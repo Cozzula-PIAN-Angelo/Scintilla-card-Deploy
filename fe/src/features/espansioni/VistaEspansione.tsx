@@ -1,16 +1,17 @@
 import { motion } from 'framer-motion'
 import { Layers } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
+import { useLocation, useSearchParams } from 'react-router'
 import { messaggioErrore } from '../../app/errori'
-import { Button } from '../../components/Button'
+import { Paginazione } from '../../components/Paginazione'
 import { GrigliaSkeleton } from '../../components/Skeleton'
 import { StatoErrore, StatoVuoto } from '../../components/StatiPagina'
 import type { Espansione, Oggetto } from '../../types/api'
 import { GrigliaOggetti } from '../oggetti/GrigliaOggetti'
 import { useGetCarteEspansioneQuery } from './espansioniApi'
 
-// un set arriva a 250+ carte: si mostrano a blocchi, così la cascata d'ingresso resta breve
-const BLOCCO = 24
+// un set arriva a 250+ carte: si mostrano a pagine (8 righe da 3 accanto alla lista laterale)
+const PER_PAGINA = 24
 
 interface Props {
   espansione: Espansione
@@ -22,9 +23,39 @@ interface Props {
 // intestazione e carte di un solo set
 export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, onApri }: Props) {
   const { data, isLoading, isFetching, isError, error, refetch } = useGetCarteEspansioneQuery(espansione.id)
-  const [visibili, setVisibili] = useState(BLOCCO)
+  const [params, setParams] = useSearchParams()
+  const location = useLocation()
+  const intestazione = useRef<HTMLElement>(null)
   const anno = espansione.dataUscita?.slice(0, 4)
   const totale = data?.length ?? espansione.totaleCarte
+
+  // la pagina sta nell'URL (?page=, numerata da 0 come nel resto del sito): un link porta dritto lì
+  const totalePagine = data ? Math.ceil(data.length / PER_PAGINA) : 0
+  const richiesta = Math.max(0, Number.parseInt(params.get('page') ?? '0', 10) || 0)
+  const pagina = totalePagine > 0 ? Math.min(richiesta, totalePagine - 1) : 0
+  const inizio = pagina * PER_PAGINA
+  const carteDellaPagina = data?.slice(inizio, inizio + PER_PAGINA) ?? []
+
+  // replace: cambiare pagina non aggiunge passi alla cronologia, così "Tutte le espansioni"
+  // (che torna indietro di un numero preciso di passi) riporta sempre alla vetrina.
+  // Lo state va ripassato, altrimenti con replace si perde il conteggio di quei passi
+  const vaiAPagina = (nuova: number) =>
+    setParams(
+      (precedenti) => {
+        const nuovi = new URLSearchParams(precedenti)
+        if (nuova > 0) nuovi.set('page', String(nuova))
+        else nuovi.delete('page')
+        return nuovi
+      },
+      { replace: true, state: location.state },
+    )
+
+  // si riparte dall'inizio del set, non dal fondo della griglia appena lasciata
+  const paginaPrecedente = useRef(pagina)
+  useEffect(() => {
+    if (paginaPrecedente.current !== pagina) intestazione.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    paginaPrecedente.current = pagina
+  }, [pagina])
 
   return (
     <motion.div
@@ -33,7 +64,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
-      <header className="mb-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+      <header ref={intestazione} className="mb-10 flex scroll-mt-28 flex-col items-start gap-5 sm:flex-row sm:items-center">
         {espansione.logoUrl && (
           <div className="grid h-28 w-full max-w-56 shrink-0 place-items-center rounded-3xl bg-white p-4 shadow-lg shadow-blu-900/10">
             <img src={espansione.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
@@ -71,22 +102,21 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
         />
       ) : (
         <>
+          {totalePagine > 1 && (
+            <p className="mb-4 text-sm font-medium text-blu-900/70">
+              Carte {inizio + 1}–{inizio + carteDellaPagina.length} di {data.length}
+            </p>
+          )}
           <GrigliaOggetti
-            chiave={espansione.id}
-            elementi={data.slice(0, visibili).map((oggetto) => ({ oggetto }))}
+            chiave={`${espansione.id}-${pagina}`}
+            elementi={carteDellaPagina.map((oggetto) => ({ oggetto }))}
             isPreferito={isPreferito}
             onTogglePreferito={onTogglePreferito}
             onApri={onApri}
             inAggiornamento={isFetching}
             stretta
           />
-          {visibili < data.length && (
-            <div className="mt-10 flex justify-center">
-              <Button variante="primario" onClick={() => setVisibili((n) => n + BLOCCO)}>
-                Mostra altre carte ({data.length - visibili})
-              </Button>
-            </div>
-          )}
+          <Paginazione pagina={pagina} totalePagine={totalePagine} onCambia={vaiAPagina} />
         </>
       )}
     </motion.div>
