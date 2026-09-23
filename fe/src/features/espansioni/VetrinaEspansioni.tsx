@@ -12,7 +12,8 @@ import { useGetEspansioniQuery } from './espansioniApi'
 import { memoriaElenco } from './memoriaElenco'
 import { raggruppaPerSerie } from './raggruppaPerSerie'
 
-const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'
+// 5 per riga al massimo: i loghi sono larghi, è la larghezza del riquadro a deciderne la grandezza
+const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
 
 // espansioni raggruppate per serie (la più recente in alto); ogni set si apre nella sua pagina
 export function VetrinaEspansioni() {
@@ -47,7 +48,7 @@ export function VetrinaEspansioni() {
     return (
       <div role="status" aria-label="Caricamento delle espansioni" className={CLASSI_GRIGLIA}>
         {Array.from({ length: 12 }, (_, i) => (
-          <Skeleton key={i} className="h-40 rounded-3xl" />
+          <Skeleton key={i} className="h-44 rounded-3xl" />
         ))}
       </div>
     )

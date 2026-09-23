@@ -28,7 +28,8 @@ export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
           evidenziata && 'ring-4 ring-giallo-400',
         )}
       >
-        <div className="grid h-20 w-full place-items-center">
+        {/* dimensioni esplicite + object-contain: il logo resta sempre dentro il riquadro */}
+        <div className="relative grid h-24 w-full place-items-center">
           {espansione.logoUrl && !logoRotto ? (
             <img
               src={espansione.logoUrl}
@@ -36,7 +37,7 @@ export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
               loading="lazy"
               decoding="async"
               onError={() => setLogoRotto(true)}
-              className="max-h-20 max-w-full object-contain transition-transform group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-contain transition-transform group-hover:scale-105"
             />
           ) : (
             <span className="font-titolo text-2xl font-bold text-blu-700">{espansione.nome}</span>
