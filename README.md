@@ -48,6 +48,18 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
   volte. `POKEMONTCG_API_KEY` (gratuita su dev.pokemontcg.io) alza il limite di richieste
   da circa 1.000 a 20.000 al giorno, ma non elimina quegli errori.
 
+## Pokédex
+
+La voce **Pokédex** della navbar mostra i 1025 Pokémon per generazione, con gli sprite in pixel
+art di PokeAPI e una ricerca per nome (italiano o inglese) o numero. Cliccando un Pokémon si
+aprono tutte le carte in cui compare, dalla più recente.
+
+- `GET /pokedex/{numero}/carte` (pubblico): alla prima apertura il backend importa da
+  pokemontcg.io tutte le carte del Pokémon (`nationalPokedexNumbers`), poi legge dal database;
+  dopo 7 giorni le riscarica, così compaiono le carte dei set nuovi.
+- Ogni carta salva i numeri di Pokédex dei Pokémon raffigurati (tabella `oggetti_pokedex`).
+- L'elenco dei nomi è in `fe/src/features/pokedex/pokedex.json`, generato da PokeAPI.
+
 ## Deploy su Render
 
 1. Repository Git con `be/`, `fe/`, `render.yaml` nella radice.

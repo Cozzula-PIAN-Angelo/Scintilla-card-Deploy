@@ -1,6 +1,8 @@
 package com.example.ecommerce.entities;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -17,6 +19,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -58,6 +62,12 @@ public class Oggetto {
 
     // numero della carta nel set (es. 4, TG01): serve a ordinarle come nell'album
     private String numero;
+
+    // numeri di Pokédex dei Pokémon raffigurati: servono all'indice per Pokémon
+    @ElementCollection
+    @CollectionTable(name = "oggetti_pokedex", joinColumns = @JoinColumn(name = "oggetto_id"))
+    @Column(name = "numero_pokedex", nullable = false)
+    private Set<Integer> numeriPokedex = new HashSet<>();
 
     public Oggetto(String nome, BigDecimal prezzo) {
         this.nome = nome;

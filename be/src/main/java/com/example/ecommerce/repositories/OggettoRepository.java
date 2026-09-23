@@ -22,6 +22,10 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
 
     List<Oggetto> findByIdEsternoIn(Collection<String> idEsterni);
 
+    // carte di un Pokémon, con l'espansione già caricata per ordinarle per data d'uscita
+    @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione JOIN o.numeriPokedex n WHERE n = :numero")
+    List<Oggetto> findByNumeroPokedex(@Param("numero") int numero);
+
     // tra gli idEsterno passati, quelli già importati: una sola query per un'intera pagina di risultati
     @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni")
     Set<String> findIdEsterniPresenti(@Param("idEsterni") Collection<String> idEsterni);

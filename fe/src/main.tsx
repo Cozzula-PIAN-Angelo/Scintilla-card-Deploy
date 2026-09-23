@@ -7,6 +7,10 @@ import { App } from './App'
 import { store } from './app/store'
 import './theme/theme.css'
 
+// lo scroll lo gestisce l'app (in cima al cambio pagina, punto di partenza tornando a vetrina e
+// Pokédex): il ripristino automatico del browser, animato dallo smooth del tema, lo sovrascriveva
+history.scrollRestoration = 'manual'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>

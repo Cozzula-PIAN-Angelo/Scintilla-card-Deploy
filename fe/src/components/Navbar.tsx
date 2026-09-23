@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Heart, LayoutGrid, LogOut, Menu, ShieldCheck, X, type LucideIcon } from 'lucide-react'
+import { BookOpen, Heart, LayoutGrid, LogOut, Menu, ShieldCheck, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
@@ -34,6 +34,7 @@ export function Navbar() {
 
   const voci: VoceMenu[] = [
     { a: '/', etichetta: 'Catalogo', icona: LayoutGrid },
+    { a: '/pokedex', etichetta: 'Pokédex', icona: BookOpen },
     { a: '/preferiti', etichetta: 'Preferiti', icona: Heart },
     ...(isAdmin ? [{ a: '/admin', etichetta: 'Admin', icona: ShieldCheck }] : []),
   ]

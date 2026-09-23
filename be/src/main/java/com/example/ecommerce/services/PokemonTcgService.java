@@ -22,6 +22,7 @@ import com.example.ecommerce.repositories.OggettoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -33,6 +34,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -54,7 +56,7 @@ import java.util.stream.Stream;
 public class PokemonTcgService {
 
     private static final int MAX_SIZE = 50;
-    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket";
+    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers";
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
     // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
@@ -68,6 +70,11 @@ public class PokemonTcgService {
     private final RestClient pokemonTcgRestClient;
     private final OggettoRepository oggettoRepository;
     private final EspansioneRepository espansioneRepository;
+    private final TransactionTemplate transazione;
+
+    // un import alla volta: un set e un Pokémon importati insieme conterrebbero le stesse carte,
+    // e la seconda scrittura violerebbe il vincolo UNIQUE su id_esterno
+    private final Object lockScrittura = new Object();
 
     public PageResponse<CartaEsternaDTO> cerca(String nome, int page, int size) {
         String nomePulito = pulisciNome(nome);
@@ -146,55 +153,87 @@ public class PokemonTcgService {
             throw new BadRequestException("Id del set non valido: usa l'id di pokemontcg.io, es. base1, sv1, swsh1");
         }
 
-        List<Carta> carte = scaricaSet(id);
+        List<Carta> carte = scaricaCarte("set.id:" + id, "set " + id);
         if (carte.isEmpty()) {
             throw new NotFoundException("Nessuna carta trovata per il set " + id + " su pokemontcg.io");
         }
 
-        Espansione espansione = salvaEspansione(carte.getFirst().set());
-        // le carte già presenti (importate una a una) si collegano all'espansione se non lo sono ancora
-        Map<String, Oggetto> giaImportate = oggettoRepository.findByIdEsternoIn(carte.stream().map(Carta::id).toList())
-                .stream()
-                .collect(Collectors.toMap(Oggetto::getIdEsterno, Function.identity()));
-        Set<String> nomiUsati = new HashSet<>();
-        List<Oggetto> daSalvare = new ArrayList<>();
-        int importate = 0;
-        int saltate = 0;
-        int scartate = 0;
+        EsitoImport esito = salvaCarte(carte);
+        espansioneRepository.findById(id).ifPresent(espansione -> {
+            espansione.setImportata(true);
+            espansioneRepository.save(espansione);
+        });
+        log.info("Import set {}: {}", id, esito);
+        return new ImportaSetResponseDTO(id, esito.trovate(), esito.importate(), esito.saltate(), esito.scartate());
+    }
 
-        for (Carta carta : carte) {
-            Oggetto esistente = giaImportate.get(carta.id());
-            if (esistente != null) {
-                if (esistente.getEspansione() == null) {
-                    esistente.setEspansione(espansione);
-                    esistente.setNumero(carta.number());
-                    daSalvare.add(esistente);
-                }
-                saltate++;
-                continue;
-            }
-            String nome = componiNome(carta);
-            if (!nomiUsati.add(nome) || oggettoRepository.existsByNome(nome)) {
-                saltate++;
-                continue;
-            }
-            BigDecimal prezzo = prezzoSuggerito(carta);
-            if (prezzo == null) {
-                prezzo = PREZZO_RIPIEGO;
-            } else if (prezzo.compareTo(PREZZO_MASSIMO) > 0) {
-                scartate++;
-                continue;
-            }
-            daSalvare.add(nuovoOggetto(carta, nome, prezzo, espansione));
-            importate++;
+    // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
+    // Nessuna carta non è un errore: alcuni Pokémon non ne hanno ancora
+    public EsitoImport importaPokemon(int numeroPokedex) {
+        List<Carta> carte = scaricaCarte("nationalPokedexNumbers:" + numeroPokedex, "Pokémon #" + numeroPokedex);
+        EsitoImport esito = salvaCarte(carte);
+        log.info("Import Pokémon #{}: {}", numeroPokedex, esito);
+        return esito;
+    }
+
+    public record EsitoImport(int trovate, int importate, int saltate, int scartate) {
+    }
+
+    // salva le carte scaricate: le nuove entrano nel catalogo, quelle già presenti ricevono i dati
+    // mancanti (espansione, numero, numeri di Pokédex). Le carte possono venire da set diversi
+    private EsitoImport salvaCarte(List<Carta> carte) {
+        if (carte.isEmpty()) {
+            return new EsitoImport(0, 0, 0, 0);
         }
+        synchronized (lockScrittura) {
+            return transazione.execute(stato -> {
+                Map<String, Espansione> espansioni = new HashMap<>();
+                Map<String, Oggetto> giaImportate = oggettoRepository.findByIdEsternoIn(carte.stream().map(Carta::id).toList())
+                        .stream()
+                        .collect(Collectors.toMap(Oggetto::getIdEsterno, Function.identity()));
+                Set<String> nomiUsati = new HashSet<>();
+                List<Oggetto> nuovi = new ArrayList<>();
+                int saltate = 0;
+                int scartate = 0;
 
-        oggettoRepository.saveAll(daSalvare);
-        espansione.setImportata(true);
-        espansioneRepository.save(espansione);
-        log.info("Import set {}: {} trovate, {} importate, {} saltate, {} scartate",
-                id, carte.size(), importate, saltate, scartate);
-        return new ImportaSetResponseDTO(id, carte.size(), importate, saltate, scartate);
+                for (Carta carta : carte) {
+                    if (carta.set() == null || carta.set().id() == null) {
+                        saltate++;
+                        continue;
+                    }
+                    Espansione espansione = espansioni.computeIfAbsent(carta.set().id(), chiave -> salvaEspansione(carta.set()));
+                    Oggetto esistente = giaImportate.get(carta.id());
+                    if (esistente != null) {
+                        // entity gestita: le modifiche si salvano al commit
+                        if (esistente.getEspansione() == null) {
+                            esistente.setEspansione(espansione);
+                            esistente.setNumero(carta.number());
+                        }
+                        if (esistente.getNumeriPokedex().isEmpty() && carta.nationalPokedexNumbers() != null) {
+                            esistente.getNumeriPokedex().addAll(carta.nationalPokedexNumbers());
+                        }
+                        saltate++;
+                        continue;
+                    }
+                    String nome = componiNome(carta);
+                    if (!nomiUsati.add(nome) || oggettoRepository.existsByNome(nome)) {
+                        saltate++;
+                        continue;
+                    }
+                    BigDecimal prezzo = prezzoSuggerito(carta);
+                    if (prezzo == null) {
+                        prezzo = PREZZO_RIPIEGO;
+                    } else if (prezzo.compareTo(PREZZO_MASSIMO) > 0) {
+                        scartate++;
+                        continue;
+                    }
+                    nuovi.add(nuovoOggetto(carta, nome, prezzo, espansione));
+                }
+
+                oggettoRepository.saveAll(nuovi);
+                return new EsitoImport(carte.size(), nuovi.size(), saltate, scartate);
+            });
+        }
     }
 
     // tutte le espansioni di pokemontcg.io (circa 180: basta una pagina)
@@ -243,12 +282,15 @@ public class PokemonTcgService {
         Oggetto oggetto = new Oggetto(nome, prezzo, immagineUrl(carta), carta.id());
         oggetto.setEspansione(espansione);
         oggetto.setNumero(carta.number());
+        if (carta.nationalPokedexNumbers() != null) {
+            oggetto.getNumeriPokedex().addAll(carta.nationalPokedexNumbers());
+        }
         return oggetto;
     }
 
     // orderBy=id: con orderBy=number pokemontcg.io pagina in modo instabile (la pagina 2 ripete
     // carte della 1 e altre si perdono). Per sicurezza i doppioni si scartano comunque per id
-    private List<Carta> scaricaSet(String setId) {
+    private List<Carta> scaricaCarte(String query, String descrizione) {
         Map<String, Carta> carte = new LinkedHashMap<>();
         int pagina = 1;
         long totale;
@@ -261,10 +303,10 @@ public class PokemonTcgService {
                                     .queryParam("pageSize", PAGINA_SET)
                                     .queryParam("select", CAMPI_RICHIESTI)
                                     .queryParam("orderBy", "id")
-                                    .build(Map.of("q", "set.id:" + setId)))
+                                    .build(Map.of("q", query)))
                             .retrieve()
                             .body(RispostaRicerca.class),
-                    "Set " + setId + " non trovato su pokemontcg.io"), "set " + setId + " pagina " + numeroPagina);
+                    "Carte non trovate su pokemontcg.io (" + descrizione + ")"), descrizione + " pagina " + numeroPagina);
             if (risposta.data() == null || risposta.data().isEmpty()) {
                 break;
             }

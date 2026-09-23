@@ -11,13 +11,19 @@ import { CatalogoPage } from './pages/CatalogoPage'
 import { EspansionePage } from './pages/EspansionePage'
 import { LoginPage } from './pages/LoginPage'
 import { NonTrovataPage } from './pages/NonTrovataPage'
+import { PokedexPage } from './pages/PokedexPage'
+import { PokemonPage } from './pages/PokemonPage'
 import { PreferitiPage } from './pages/PreferitiPage'
 import { RegisterPage } from './pages/RegisterPage'
 
 export function App() {
   const location = useLocation()
-  // tra un'espansione e l'altra la pagina resta montata (lista laterale ferma, cambiano solo le carte)
-  const chiavePagina = location.pathname.startsWith('/espansioni/') ? '/espansioni' : location.pathname
+  // tra un'espansione e l'altra (o un Pokémon e l'altro) la pagina resta montata: cambiano solo i contenuti
+  const chiavePagina = location.pathname.startsWith('/espansioni/')
+    ? '/espansioni'
+    : location.pathname.startsWith('/pokedex/')
+      ? '/pokedex/pokemon'
+      : location.pathname
 
   // cambio pagina: si riparte dall'alto (i cambi di query string, come la paginazione, no).
   // Istantaneo: con lo scroll-behavior smooth del tema si vedrebbe la pagina risalire
@@ -36,6 +42,8 @@ export function App() {
           <Routes location={location} key={chiavePagina}>
             <Route path="/" element={<CatalogoPage />} />
             <Route path="/espansioni/:id" element={<EspansionePage />} />
+            <Route path="/pokedex" element={<PokedexPage />} />
+            <Route path="/pokedex/:numero" element={<PokemonPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route

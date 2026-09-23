@@ -76,6 +76,10 @@
 }
 
 @layer components {
+  /* sprite in pixel art ingranditi: niente sfocatura, i pixel restano netti */
+  .sprite-pixel {
+    image-rendering: pixelated;
+  }
   /* sfondo blu animato di hero e pagine di accesso */
   .sfondo-hero {
     background-image: linear-gradient(
