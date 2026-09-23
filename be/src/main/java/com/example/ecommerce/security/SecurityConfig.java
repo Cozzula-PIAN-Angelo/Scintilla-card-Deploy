@@ -47,6 +47,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/oggetti").permitAll()
+                        // vetrina per espansioni: la prima apertura di un set lo importa, ma è pubblica
+                        .requestMatchers(HttpMethod.GET, "/espansioni", "/espansioni/*/carte").permitAll()
                         // health check di Render
                         .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         // pagina di errore interna di Spring: senza questo un errore su un endpoint

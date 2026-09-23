@@ -2,9 +2,12 @@ package com.example.ecommerce.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -47,6 +50,14 @@ public class Oggetto {
     // (PostgreSQL ammette più NULL in una colonna UNIQUE)
     @Column(name = "id_esterno", unique = true)
     private String idEsterno;
+
+    // espansione della carta; null per gli oggetti creati a mano
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "espansione_id")
+    private Espansione espansione;
+
+    // numero della carta nel set (es. 4, TG01): serve a ordinarle come nell'album
+    private String numero;
 
     public Oggetto(String nome, BigDecimal prezzo) {
         this.nome = nome;

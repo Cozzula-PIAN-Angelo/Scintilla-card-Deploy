@@ -104,7 +104,7 @@ export function OggettiTab() {
                       className="border-t border-blu-50 transition-colors hover:bg-blu-50/50"
                     >
                       <td className="px-5 py-3">
-                        <ImmagineCarta src={oggetto.immagineUrl} alt={oggetto.nome} className="aspect-[63/88] w-12 rounded-lg" />
+                        <ImmagineCarta src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl} alt={oggetto.nome} className="aspect-[63/88] w-12 rounded-lg" />
                       </td>
                       <td className="px-5 py-3">
                         <p className="font-semibold text-blu-900">{oggetto.nome}</p>

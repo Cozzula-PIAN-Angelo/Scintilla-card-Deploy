@@ -29,16 +29,24 @@ Avviabile in locale e pronto per il deploy su Render.
 Non serve impostare variabili: senza `SPRING_PROFILES_ACTIVE` parte il profilo
 `local` (`application-local.properties`) con secret JWT e password admin di sviluppo.
 
-## Popolare il catalogo
+## Vetrina ed espansioni
 
-- **Automatico**: al primo avvio, se il catalogo è vuoto, il backend importa i set
-  indicati in `SEED_SET` (default `base1`, 102 carte). Vale anche su Render.
-- **A mano** (admin): `POST /carte/importa-set/{setId}` con il token JWT, es.
-  `sv1`, `swsh1`, `base2`. Importa tutte le carte del set, salta quelle già presenti
-  e risponde con il riepilogo (`trovate`, `importate`, `saltate`, `scartate`).
-  Le carte senza prezzo Cardmarket entrano a 1,00 €.
-- pokemontcg.io risponde spesso 500/502 a caso: l'import ritenta da solo fino a 6
-  volte. Se fallisce comunque, basta rilanciare la stessa chiamata.
+La vetrina mostra tutte le espansioni di pokemontcg.io (circa 180), raggruppate per
+serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le sue carte.
+
+- **Elenco espansioni**: si sincronizza all'avvio e ogni notte (`GET /espansioni`, pubblico).
+- **Carte di un'espansione** (`GET /espansioni/{id}/carte`, pubblico): alla prima apertura
+  il backend importa il set nel catalogo (qualche secondo), dalle volte successive legge
+  dal database. Prezzi, preferiti e modifica admin funzionano su tutte le carte.
+- **Import a mano** (admin): `POST /carte/importa-set/{setId}` importa un set intero e
+  completa le carte mancanti di un set già importato. Risponde con `trovate`,
+  `importate`, `saltate`, `scartate`.
+- **Primo avvio**: se il catalogo è vuoto si importano i set di `SEED_SET` (default `base1`),
+  così l'hero ha subito delle carte.
+- Le carte senza prezzo Cardmarket (tipico dei set appena usciti) entrano a 1,00 €.
+- pokemontcg.io risponde spesso 500/502 a caso: le chiamate ritentano da sole fino a 6
+  volte. `POKEMONTCG_API_KEY` (gratuita su dev.pokemontcg.io) alza il limite di richieste
+  da circa 1.000 a 20.000 al giorno, ma non elimina quegli errori.
 
 ## Deploy su Render
 

@@ -26,7 +26,17 @@ public final class PokemonTcgApi {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Espansione(String id, String name, Integer printedTotal) {
+    public record RispostaEspansioni(List<Espansione> data, long totalCount) {
+    }
+
+    // releaseDate nel formato "2026/09/16"
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Espansione(String id, String name, String series, Integer printedTotal, Integer total,
+                             String releaseDate, ImmaginiEspansione images) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ImmaginiEspansione(String symbol, String logo) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

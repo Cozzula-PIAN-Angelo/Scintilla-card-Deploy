@@ -1,5 +1,6 @@
 package com.example.ecommerce.services;
 
+import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
@@ -10,9 +11,13 @@ import com.example.ecommerce.payloads.ImportaCartaDTO;
 import com.example.ecommerce.payloads.ImportaSetResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.PageResponse;
+import com.example.ecommerce.payloads.PokemonTcgApi;
 import com.example.ecommerce.payloads.PokemonTcgApi.Carta;
+import com.example.ecommerce.payloads.PokemonTcgApi.ImmaginiEspansione;
 import com.example.ecommerce.payloads.PokemonTcgApi.RispostaCarta;
+import com.example.ecommerce.payloads.PokemonTcgApi.RispostaEspansioni;
 import com.example.ecommerce.payloads.PokemonTcgApi.RispostaRicerca;
+import com.example.ecommerce.repositories.EspansioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +29,18 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -52,9 +63,11 @@ public class PokemonTcgService {
     // pokemontcg.io risponde spesso 500/502 a caso: l'import in blocco ritenta con attese crescenti
     private static final int TENTATIVI_SET = 6;
     private static final long ATTESA_BASE_MS = 1000;
+    private static final DateTimeFormatter FORMATO_DATA_USCITA = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
     private final RestClient pokemonTcgRestClient;
     private final OggettoRepository oggettoRepository;
+    private final EspansioneRepository espansioneRepository;
 
     public PageResponse<CartaEsternaDTO> cerca(String nome, int page, int size) {
         String nomePulito = pulisciNome(nome);
@@ -122,9 +135,8 @@ public class PokemonTcgService {
         }
 
         // flush immediato: così createdAt è valorizzato nella risposta
-        Oggetto oggetto = oggettoRepository.saveAndFlush(
-                new Oggetto(nome, prezzo, immagineUrl(carta), carta.id()));
-        return OggettoResponseDTO.from(oggetto);
+        Oggetto oggetto = nuovoOggetto(carta, nome, prezzo, salvaEspansione(carta.set()));
+        return OggettoResponseDTO.from(oggettoRepository.saveAndFlush(oggetto));
     }
 
     // importa tutte le carte di un set (es. base1) saltando quelle già presenti nel catalogo
@@ -139,15 +151,30 @@ public class PokemonTcgService {
             throw new NotFoundException("Nessuna carta trovata per il set " + id + " su pokemontcg.io");
         }
 
-        Set<String> giaImportate = oggettoRepository.findIdEsterniPresenti(carte.stream().map(Carta::id).toList());
+        Espansione espansione = salvaEspansione(carte.getFirst().set());
+        // le carte già presenti (importate una a una) si collegano all'espansione se non lo sono ancora
+        Map<String, Oggetto> giaImportate = oggettoRepository.findByIdEsternoIn(carte.stream().map(Carta::id).toList())
+                .stream()
+                .collect(Collectors.toMap(Oggetto::getIdEsterno, Function.identity()));
         Set<String> nomiUsati = new HashSet<>();
-        List<Oggetto> nuovi = new ArrayList<>();
+        List<Oggetto> daSalvare = new ArrayList<>();
+        int importate = 0;
         int saltate = 0;
         int scartate = 0;
 
         for (Carta carta : carte) {
+            Oggetto esistente = giaImportate.get(carta.id());
+            if (esistente != null) {
+                if (esistente.getEspansione() == null) {
+                    esistente.setEspansione(espansione);
+                    esistente.setNumero(carta.number());
+                    daSalvare.add(esistente);
+                }
+                saltate++;
+                continue;
+            }
             String nome = componiNome(carta);
-            if (giaImportate.contains(carta.id()) || !nomiUsati.add(nome) || oggettoRepository.existsByNome(nome)) {
+            if (!nomiUsati.add(nome) || oggettoRepository.existsByNome(nome)) {
                 saltate++;
                 continue;
             }
@@ -158,17 +185,71 @@ public class PokemonTcgService {
                 scartate++;
                 continue;
             }
-            nuovi.add(new Oggetto(nome, prezzo, immagineUrl(carta), carta.id()));
+            daSalvare.add(nuovoOggetto(carta, nome, prezzo, espansione));
+            importate++;
         }
 
-        oggettoRepository.saveAll(nuovi);
+        oggettoRepository.saveAll(daSalvare);
+        espansione.setImportata(true);
+        espansioneRepository.save(espansione);
         log.info("Import set {}: {} trovate, {} importate, {} saltate, {} scartate",
-                id, carte.size(), nuovi.size(), saltate, scartate);
-        return new ImportaSetResponseDTO(id, carte.size(), nuovi.size(), saltate, scartate);
+                id, carte.size(), importate, saltate, scartate);
+        return new ImportaSetResponseDTO(id, carte.size(), importate, saltate, scartate);
     }
 
+    // tutte le espansioni di pokemontcg.io (circa 180: basta una pagina)
+    public List<Espansione> scaricaEspansioni() {
+        RispostaEspansioni risposta = conTentativi(() -> chiama(() -> pokemonTcgRestClient.get()
+                        .uri(uri -> uri.path("/sets").queryParam("pageSize", 250).build())
+                        .retrieve()
+                        .body(RispostaEspansioni.class),
+                "Elenco delle espansioni non trovato su pokemontcg.io"), "elenco espansioni");
+        List<PokemonTcgApi.Espansione> dati = risposta.data() == null ? List.of() : risposta.data();
+        return dati.stream().map(this::aggiornaDa).toList();
+    }
+
+    // crea o aggiorna l'espansione con i dati dell'API, senza toccare il flag importata
+    private Espansione salvaEspansione(PokemonTcgApi.Espansione dati) {
+        if (dati == null || dati.id() == null) {
+            throw new ServizioEsternoException("Carta senza espansione nella risposta di pokemontcg.io", null);
+        }
+        return espansioneRepository.save(aggiornaDa(dati));
+    }
+
+    private Espansione aggiornaDa(PokemonTcgApi.Espansione dati) {
+        Espansione espansione = espansioneRepository.findById(dati.id()).orElseGet(() -> new Espansione(dati.id()));
+        espansione.setNome(dati.name());
+        espansione.setSerie(dati.series());
+        espansione.setTotaleCarte(dati.total() != null ? dati.total() : dati.printedTotal());
+        espansione.setDataUscita(dataUscita(dati.releaseDate()));
+        ImmaginiEspansione immagini = dati.images();
+        espansione.setLogoUrl(immagini == null ? null : immagini.logo());
+        espansione.setSimboloUrl(immagini == null ? null : immagini.symbol());
+        return espansione;
+    }
+
+    private LocalDate dataUscita(String testo) {
+        if (testo == null || testo.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(testo, FORMATO_DATA_USCITA);
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
+    }
+
+    private Oggetto nuovoOggetto(Carta carta, String nome, BigDecimal prezzo, Espansione espansione) {
+        Oggetto oggetto = new Oggetto(nome, prezzo, immagineUrl(carta), carta.id());
+        oggetto.setEspansione(espansione);
+        oggetto.setNumero(carta.number());
+        return oggetto;
+    }
+
+    // orderBy=id: con orderBy=number pokemontcg.io pagina in modo instabile (la pagina 2 ripete
+    // carte della 1 e altre si perdono). Per sicurezza i doppioni si scartano comunque per id
     private List<Carta> scaricaSet(String setId) {
-        List<Carta> carte = new ArrayList<>();
+        Map<String, Carta> carte = new LinkedHashMap<>();
         int pagina = 1;
         long totale;
         do {
@@ -179,7 +260,7 @@ public class PokemonTcgService {
                                     .queryParam("page", numeroPagina)
                                     .queryParam("pageSize", PAGINA_SET)
                                     .queryParam("select", CAMPI_RICHIESTI)
-                                    .queryParam("orderBy", "number")
+                                    .queryParam("orderBy", "id")
                                     .build(Map.of("q", "set.id:" + setId)))
                             .retrieve()
                             .body(RispostaRicerca.class),
@@ -187,11 +268,15 @@ public class PokemonTcgService {
             if (risposta.data() == null || risposta.data().isEmpty()) {
                 break;
             }
-            carte.addAll(risposta.data());
+            int prima = carte.size();
+            risposta.data().forEach(carta -> carte.putIfAbsent(carta.id(), carta));
+            if (carte.size() == prima) {
+                break;
+            }
             totale = risposta.totalCount();
             pagina++;
         } while (carte.size() < totale);
-        return carte;
+        return new ArrayList<>(carte.values());
     }
 
     // ritenta solo gli errori temporanei (5xx, 429, timeout); 404 e 400 non cambiano riprovando
@@ -274,9 +359,18 @@ public class PokemonTcgService {
                 carta.number(),
                 carta.rarity(),
                 immagineUrl(carta),
+                immaginePiccola(carta),
                 prezzoSuggerito(carta),
                 giaImportata
         );
+    }
+
+    private String immaginePiccola(Carta carta) {
+        if (carta.images() == null) {
+            return null;
+        }
+        String small = carta.images().small();
+        return small != null && !small.isBlank() ? small : immagineUrl(carta);
     }
 
     private String immagineUrl(Carta carta) {

@@ -32,7 +32,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
           aria-label={`Apri i dettagli di ${oggetto.nome}`}
           className="block w-full rounded-3xl bg-white p-3 text-left shadow-lg shadow-blu-900/10 ring-1 ring-blu-900/5 transition-shadow hover:shadow-2xl hover:shadow-blu-500/25"
         >
-          <ImmagineCarta src={oggetto.immagineUrl} alt={oggetto.nome} className="aspect-[63/88] w-full rounded-2xl" />
+          <ImmagineCarta src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl} alt={oggetto.nome} className="aspect-[63/88] w-full rounded-2xl" />
           <div className="mt-3 flex items-start justify-between gap-3 px-1">
             <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-blu-900">{oggetto.nome}</h3>
             <span className="shrink-0 rounded-full bg-giallo-400 px-3 py-1 text-sm font-bold text-blu-900 shadow-sm">

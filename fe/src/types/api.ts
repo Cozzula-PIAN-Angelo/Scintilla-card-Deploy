@@ -27,7 +27,21 @@ export interface Oggetto {
   prezzo: number
   createdAt: string
   immagineUrl: string | null
+  // versione leggera per griglie e miniature; la grande resta per il dettaglio
+  immagineUrlPiccola: string | null
   idEsterno: string | null
+}
+
+// espansione (set) di pokemontcg.io; importata = carte già nel catalogo
+export interface Espansione {
+  id: string
+  nome: string
+  serie: string | null
+  dataUscita: string | null
+  totaleCarte: number | null
+  logoUrl: string | null
+  simboloUrl: string | null
+  importata: boolean
 }
 
 export interface Preferito {
@@ -42,6 +56,8 @@ export interface CartaEsterna {
   numero: string | null
   rarita: string | null
   immagineUrl: string | null
+  // versione leggera per griglie e miniature; la grande resta per il dettaglio
+  immagineUrlPiccola: string | null
   prezzoSuggerito: number | null
   giaImportata: boolean
 }

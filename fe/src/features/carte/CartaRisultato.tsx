@@ -16,7 +16,7 @@ export function CartaRisultato({ carta }: { carta: CartaEsterna }) {
   return (
     <motion.li variants={elementoGriglia} className="relative list-none overflow-hidden rounded-3xl bg-white p-3 shadow-lg shadow-blu-900/10 ring-1 ring-blu-900/5">
       <div className="relative">
-        <ImmagineCarta src={carta.immagineUrl} alt={carta.nome} className="aspect-[63/88] w-full rounded-2xl" />
+        <ImmagineCarta src={carta.immagineUrlPiccola ?? carta.immagineUrl} alt={carta.nome} className="aspect-[63/88] w-full rounded-2xl" />
         <AnimatePresence>
           {carta.giaImportata && (
             <motion.span

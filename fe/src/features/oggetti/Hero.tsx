@@ -71,7 +71,7 @@ export function Hero({ vetrina, onEsplora }: Props) {
               >
                 <div className="animate-fluttua" style={{ animationDelay: `${indice * 1.3}s`, animationDuration: '7s' }}>
                   <ImmagineCarta
-                    src={oggetto?.immagineUrl ?? null}
+                    src={oggetto?.immagineUrlPiccola ?? oggetto?.immagineUrl ?? null}
                     alt={oggetto?.nome ?? 'Scintilla'}
                     priorita
                     className="aspect-[63/88] w-full rounded-2xl shadow-2xl shadow-blu-900/60 ring-4 ring-white/80"

@@ -8,6 +8,7 @@ public record CartaEsternaDTO(String idEsterno,
                               String numero,
                               String rarita,
                               String immagineUrl,
+                              String immagineUrlPiccola,
                               BigDecimal prezzoSuggerito,
                               boolean giaImportata) {
 }
