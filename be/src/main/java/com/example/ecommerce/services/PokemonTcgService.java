@@ -7,6 +7,7 @@ import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.payloads.CartaEsternaDTO;
 import com.example.ecommerce.payloads.ImportaCartaDTO;
+import com.example.ecommerce.payloads.ImportaSetResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.payloads.PokemonTcgApi.Carta;
@@ -23,6 +24,8 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +45,13 @@ public class PokemonTcgService {
     private static final int MAX_SIZE = 50;
     private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket";
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
+    // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
+    private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
+    // pagine più piccole del massimo (250): la risposta resta sotto il timeout di lettura
+    private static final int PAGINA_SET = 100;
+    // pokemontcg.io risponde spesso 500/502 a caso: l'import in blocco ritenta con attese crescenti
+    private static final int TENTATIVI_SET = 6;
+    private static final long ATTESA_BASE_MS = 1000;
 
     private final RestClient pokemonTcgRestClient;
     private final OggettoRepository oggettoRepository;
@@ -115,6 +125,98 @@ public class PokemonTcgService {
         Oggetto oggetto = oggettoRepository.saveAndFlush(
                 new Oggetto(nome, prezzo, immagineUrl(carta), carta.id()));
         return OggettoResponseDTO.from(oggetto);
+    }
+
+    // importa tutte le carte di un set (es. base1) saltando quelle già presenti nel catalogo
+    public ImportaSetResponseDTO importaSet(String setId) {
+        String id = setId == null ? "" : setId.trim().toLowerCase();
+        if (!id.matches("[a-z0-9.-]{2,30}")) {
+            throw new BadRequestException("Id del set non valido: usa l'id di pokemontcg.io, es. base1, sv1, swsh1");
+        }
+
+        List<Carta> carte = scaricaSet(id);
+        if (carte.isEmpty()) {
+            throw new NotFoundException("Nessuna carta trovata per il set " + id + " su pokemontcg.io");
+        }
+
+        Set<String> giaImportate = oggettoRepository.findIdEsterniPresenti(carte.stream().map(Carta::id).toList());
+        Set<String> nomiUsati = new HashSet<>();
+        List<Oggetto> nuovi = new ArrayList<>();
+        int saltate = 0;
+        int scartate = 0;
+
+        for (Carta carta : carte) {
+            String nome = componiNome(carta);
+            if (giaImportate.contains(carta.id()) || !nomiUsati.add(nome) || oggettoRepository.existsByNome(nome)) {
+                saltate++;
+                continue;
+            }
+            BigDecimal prezzo = prezzoSuggerito(carta);
+            if (prezzo == null) {
+                prezzo = PREZZO_RIPIEGO;
+            } else if (prezzo.compareTo(PREZZO_MASSIMO) > 0) {
+                scartate++;
+                continue;
+            }
+            nuovi.add(new Oggetto(nome, prezzo, immagineUrl(carta), carta.id()));
+        }
+
+        oggettoRepository.saveAll(nuovi);
+        log.info("Import set {}: {} trovate, {} importate, {} saltate, {} scartate",
+                id, carte.size(), nuovi.size(), saltate, scartate);
+        return new ImportaSetResponseDTO(id, carte.size(), nuovi.size(), saltate, scartate);
+    }
+
+    private List<Carta> scaricaSet(String setId) {
+        List<Carta> carte = new ArrayList<>();
+        int pagina = 1;
+        long totale;
+        do {
+            int numeroPagina = pagina;
+            RispostaRicerca risposta = conTentativi(() -> chiama(() -> pokemonTcgRestClient.get()
+                            .uri(uri -> uri.path("/cards")
+                                    .queryParam("q", "{q}")
+                                    .queryParam("page", numeroPagina)
+                                    .queryParam("pageSize", PAGINA_SET)
+                                    .queryParam("select", CAMPI_RICHIESTI)
+                                    .queryParam("orderBy", "number")
+                                    .build(Map.of("q", "set.id:" + setId)))
+                            .retrieve()
+                            .body(RispostaRicerca.class),
+                    "Set " + setId + " non trovato su pokemontcg.io"), "set " + setId + " pagina " + numeroPagina);
+            if (risposta.data() == null || risposta.data().isEmpty()) {
+                break;
+            }
+            carte.addAll(risposta.data());
+            totale = risposta.totalCount();
+            pagina++;
+        } while (carte.size() < totale);
+        return carte;
+    }
+
+    // ritenta solo gli errori temporanei (5xx, 429, timeout); 404 e 400 non cambiano riprovando
+    private <T> T conTentativi(Supplier<T> chiamata, String descrizione) {
+        for (int tentativo = 1; ; tentativo++) {
+            try {
+                return chiamata.get();
+            } catch (ServizioEsternoException ex) {
+                boolean temporaneo = !(ex.getCause() instanceof RestClientResponseException risposta)
+                        || risposta.getStatusCode().is5xxServerError()
+                        || risposta.getStatusCode().value() == 429;
+                if (!temporaneo || tentativo >= TENTATIVI_SET) {
+                    throw ex;
+                }
+                long attesa = ATTESA_BASE_MS * tentativo;
+                log.warn("pokemontcg.io non disponibile ({}), tentativo {}/{} tra {} ms",
+                        descrizione, tentativo, TENTATIVI_SET, attesa);
+                try {
+                    Thread.sleep(attesa);
+                } catch (InterruptedException interrotto) {
+                    Thread.currentThread().interrupt();
+                    throw ex;
+                }
+            }
+        }
     }
 
     // traduce gli errori HTTP e di rete dell'API esterna nelle eccezioni dell'applicazione

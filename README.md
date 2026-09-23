@@ -29,6 +29,17 @@ Avviabile in locale e pronto per il deploy su Render.
 Non serve impostare variabili: senza `SPRING_PROFILES_ACTIVE` parte il profilo
 `local` (`application-local.properties`) con secret JWT e password admin di sviluppo.
 
+## Popolare il catalogo
+
+- **Automatico**: al primo avvio, se il catalogo è vuoto, il backend importa i set
+  indicati in `SEED_SET` (default `base1`, 102 carte). Vale anche su Render.
+- **A mano** (admin): `POST /carte/importa-set/{setId}` con il token JWT, es.
+  `sv1`, `swsh1`, `base2`. Importa tutte le carte del set, salta quelle già presenti
+  e risponde con il riepilogo (`trovate`, `importate`, `saltate`, `scartate`).
+  Le carte senza prezzo Cardmarket entrano a 1,00 €.
+- pokemontcg.io risponde spesso 500/502 a caso: l'import ritenta da solo fino a 6
+  volte. Se fallisce comunque, basta rilanciare la stessa chiamata.
+
 ## Deploy su Render
 
 1. Repository Git con `be/`, `fe/`, `render.yaml` nella radice.

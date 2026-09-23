@@ -2,6 +2,7 @@ package com.example.ecommerce.controllers;
 
 import com.example.ecommerce.payloads.CartaEsternaDTO;
 import com.example.ecommerce.payloads.ImportaCartaDTO;
+import com.example.ecommerce.payloads.ImportaSetResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.services.PokemonTcgService;
@@ -39,5 +40,11 @@ public class CarteController {
     public OggettoResponseDTO importa(@PathVariable String idEsterno,
                                       @RequestBody(required = false) @Valid ImportaCartaDTO body) {
         return pokemonTcgService.importa(idEsterno, body);
+    }
+
+    // importa in blocco tutte le carte di un set, es. POST /carte/importa-set/base1
+    @PostMapping("/importa-set/{setId}")
+    public ImportaSetResponseDTO importaSet(@PathVariable String setId) {
+        return pokemonTcgService.importaSet(setId);
     }
 }
