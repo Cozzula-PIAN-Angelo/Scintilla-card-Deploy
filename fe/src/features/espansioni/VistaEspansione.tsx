@@ -66,8 +66,10 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
     >
       <header ref={intestazione} className="mb-10 flex scroll-mt-28 flex-col items-start gap-5 sm:flex-row sm:items-center">
         {espansione.logoUrl && (
-          <div className="grid h-28 w-full max-w-56 shrink-0 place-items-center rounded-3xl bg-white p-4 shadow-lg shadow-blu-900/10">
-            <img src={espansione.logoUrl} alt="" className="max-h-full max-w-full object-contain" />
+          // dimensioni esplicite + object-contain: i loghi quadrati o verticali (POP, promo) con
+          // max-h-full restavano alti quanto la loro larghezza e uscivano dal riquadro
+          <div className="relative h-28 w-full max-w-56 shrink-0 rounded-3xl bg-white shadow-lg shadow-blu-900/10">
+            <img src={espansione.logoUrl} alt="" className="absolute inset-0 h-full w-full object-contain p-4" />
           </div>
         )}
         <div className="min-w-0">
