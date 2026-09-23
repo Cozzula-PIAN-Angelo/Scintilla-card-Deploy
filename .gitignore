@@ -1,5 +1,6 @@
 # Backend
 be/target/
+be/.env
 
 # Frontend
 fe/node_modules/
@@ -11,3 +12,8 @@ fe/.env.local
 .idea/
 .vscode/
 *.iml
+
+# Log e file di sistema
+*.log
+.DS_Store
+Thumbs.db

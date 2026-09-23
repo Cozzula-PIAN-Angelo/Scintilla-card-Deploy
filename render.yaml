@@ -1,18 +1,17 @@
 # Blueprint Render: database + backend + frontend.
 # Su Render: New > Blueprint > repository > Apply.
-# Rinominare app-db / app-be / app-fe con il nome del progetto.
 
 databases:
-  - name: app-db
-    databaseName: app
-    user: app
+  - name: scintilla-db
+    databaseName: scintilla
+    user: scintilla
     plan: free
     region: frankfurt
 
 services:
   # ---------- Backend: Spring Boot via Docker ----------
   - type: web
-    name: app-be
+    name: scintilla-be
     runtime: docker
     plan: free
     region: frankfurt
@@ -27,15 +26,29 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: app-db
+          name: scintilla-db
           property: connectionString
-      # Origine del FE per il CORS, es. https://app-fe.onrender.com
+      # Esclude application-local.properties (secret e password di sviluppo)
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # Generato da Render al primo deploy, poi resta stabile
+      - key: JWT_SECRET
+        generateValue: true
+      # Credenziali dell'admin creato dal seeder
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Origine del FE per il CORS, es. https://scintilla-fe.onrender.com
       - key: ALLOWED_ORIGIN
+        sync: false
+      # Facoltativa: senza chiave l'API Pokémon TCG ha un limite di richieste più basso
+      - key: POKEMONTCG_API_KEY
         sync: false
 
   # ---------- Frontend: build Vite statica ----------
   - type: web
-    name: app-fe
+    name: scintilla-fe
     runtime: static
     rootDir: fe
     buildCommand: npm ci && npm run build
@@ -45,10 +58,11 @@ services:
         - fe/**
         - render.yaml
     envVars:
-      # Indirizzo del BE, es. https://app-be.onrender.com (senza / finale)
+      # Indirizzo del BE, es. https://scintilla-be.onrender.com (senza / finale)
       - key: VITE_API_URL
         sync: false
     routes:
+      # react-router: ogni percorso restituisce index.html
       - type: rewrite
         source: /*
         destination: /index.html

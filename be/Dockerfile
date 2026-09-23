@@ -1,8 +1,8 @@
-# Render non ha un runtime Java 25 pronto: si costruisce l'immagine, cosi' la
-# versione del JDK la decidiamo noi ed e' la stessa che gira sul portatile.
+# Render non ha un runtime Java pronto: si costruisce l'immagine, cosi' la
+# versione del JDK (21, come nel pom) la decidiamo noi.
 
 # --- Fase 1: compilazione -----------------------------------------------------
-FROM eclipse-temurin:25-jdk AS build
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 
 # Prima solo i file del wrapper e il pom: finche' le dipendenze non cambiano,
@@ -16,7 +16,7 @@ RUN ./mvnw -B -ntp -DskipTests package
 
 # --- Fase 2: esecuzione -------------------------------------------------------
 # Solo il JRE e il jar: l'immagine finale non si porta dietro Maven ne' i sorgenti.
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 

@@ -1,44 +1,61 @@
-import { useEffect, useState } from 'react'
-import { api, type Stato } from '@/lib/api'
+import { AnimatePresence } from 'framer-motion'
+import { useEffect } from 'react'
+import { Route, Routes, useLocation } from 'react-router'
+import { Footer } from './components/Footer'
+import { Navbar } from './components/Navbar'
+import { ToastViewport } from './components/ToastViewport'
+import { AuthBootstrap, SessionWatcher } from './features/auth/GestioneSessione'
+import { AdminRoute, ProtectedRoute } from './features/auth/RouteProtette'
+import { AdminPage } from './pages/AdminPage'
+import { CatalogoPage } from './pages/CatalogoPage'
+import { LoginPage } from './pages/LoginPage'
+import { NonTrovataPage } from './pages/NonTrovataPage'
+import { PreferitiPage } from './pages/PreferitiPage'
+import { RegisterPage } from './pages/RegisterPage'
 
-export default function App() {
-  const [stato, setStato] = useState<Stato | null>(null)
-  const [errore, setErrore] = useState<string | null>(null)
+export function App() {
+  const location = useLocation()
 
+  // cambio pagina: si riparte dall'alto (i cambi di query string, come la paginazione, no)
   useEffect(() => {
-    api
-      .stato()
-      .then(setStato)
-      .catch((e) => setErrore(e instanceof Error ? e.message : String(e)))
-  }, [])
+    window.scrollTo({ top: 0 })
+  }, [location.pathname])
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-2xl px-4 py-10">
-        <h1 className="text-3xl font-semibold tracking-tight">Progetto base</h1>
-        <p className="mt-1 text-sm text-slate-600">React + TypeScript, Spring Boot, PostgreSQL.</p>
+    <div className="flex min-h-screen flex-col">
+      <AuthBootstrap />
+      <SessionWatcher />
+      <Navbar />
 
-        <section className="mt-8 rounded-lg border border-slate-200 bg-white p-4 text-sm">
-          <div className="flex justify-between gap-4">
-            <span className="text-slate-500">API</span>
-            <code className="truncate font-mono text-xs">{api.indirizzo}</code>
-          </div>
-          <div className="mt-2 flex justify-between gap-4">
-            <span className="text-slate-500">Database</span>
-            <span className="font-mono text-xs">{stato ? stato.database : '...'}</span>
-          </div>
-          <div className="mt-2 flex justify-between gap-4">
-            <span className="text-slate-500">Ora del server</span>
-            <span className="font-mono text-xs">{stato ? stato.ora : '...'}</span>
-          </div>
-        </section>
-
-        {errore && (
-          <p className="mt-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {errore}
-          </p>
-        )}
+      <div className="flex-1">
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/" element={<CatalogoPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/preferiti"
+              element={
+                <ProtectedRoute>
+                  <PreferitiPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPage />
+                </AdminRoute>
+              }
+            />
+            <Route path="*" element={<NonTrovataPage />} />
+          </Routes>
+        </AnimatePresence>
       </div>
+
+      <Footer />
+      <ToastViewport />
     </div>
   )
 }

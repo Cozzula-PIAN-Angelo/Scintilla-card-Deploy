@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/*
+ * Tema unico dell'app: tutti i colori vivono qui. La palette di default di Tailwind
+ * viene azzerata, così nel codice si possono usare solo i colori del negozio.
+ */
+@theme {
+  --color-*: initial;
+  --color-white: #ffffff;
+
+  --color-blu-50: #dcebfa;
+  --color-blu-500: #2a75bb;
+  --color-blu-700: #1b4f8a;
+  --color-blu-900: #0b1f4b;
+
+  --color-giallo-400: #ffcb05;
+
+  --color-rosso-500: #e3350d;
+  /* variante scura per il testo: il rosso base su bianco non raggiunge il contrasto AA (4.39:1) */
+  --color-rosso-700: #b52a0a;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-titolo: "Fredoka", ui-rounded, "Inter", system-ui, sans-serif;
+
+  --animate-gradiente: gradiente 18s ease-in-out infinite;
+  --animate-fluttua: fluttua 9s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-rimbalzo: rimbalzo 0.55s cubic-bezier(0.33, 0, 0.66, 1) infinite alternate;
+  --animate-rotazione: rotazione 1.4s linear infinite;
+  --animate-ombra: ombra 0.55s cubic-bezier(0.33, 0, 0.66, 1) infinite alternate;
+
+  @keyframes gradiente {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes fluttua {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-18px) rotate(10deg); }
+  }
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+  @keyframes rimbalzo {
+    from { transform: translateY(0); }
+    to { transform: translateY(-30px); }
+  }
+  @keyframes rotazione {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes ombra {
+    from { transform: scaleX(1); opacity: 0.35; }
+    to { transform: scaleX(0.5); opacity: 0.12; }
+  }
+}
+
+@keyframes pulsa {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-blu-50 font-sans text-blu-900 antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-titolo;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-giallo-400);
+    outline-offset: 3px;
+  }
+}
+
+@layer components {
+  /* sfondo blu animato di hero e pagine di accesso */
+  .sfondo-hero {
+    background-image: linear-gradient(
+      125deg,
+      var(--color-blu-900),
+      var(--color-blu-700),
+      var(--color-blu-500),
+      var(--color-blu-700),
+      var(--color-blu-900)
+    );
+    background-size: 300% 300%;
+  }
+
+  .skeleton {
+    background-image: linear-gradient(
+      90deg,
+      var(--color-blu-50) 25%,
+      var(--color-white) 50%,
+      var(--color-blu-50) 75%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  /* riflesso della carta olografica: la posizione segue il cursore tramite --mx e --my */
+  .holo-riflesso {
+    background-image:
+      radial-gradient(
+        circle at var(--mx, 50%) var(--my, 50%),
+        color-mix(in srgb, var(--color-white) 70%, transparent) 0%,
+        transparent 42%
+      ),
+      linear-gradient(
+        115deg,
+        transparent 18%,
+        color-mix(in srgb, var(--color-rosso-500) 55%, transparent) 32%,
+        color-mix(in srgb, var(--color-giallo-400) 60%, transparent) 42%,
+        color-mix(in srgb, var(--color-blu-50) 60%, transparent) 50%,
+        color-mix(in srgb, var(--color-blu-500) 60%, transparent) 60%,
+        color-mix(in srgb, var(--color-rosso-500) 45%, transparent) 72%,
+        transparent 86%
+      );
+    background-size: 100% 100%, 260% 260%;
+    background-position: center, var(--mx, 50%) var(--my, 50%);
+    mix-blend-mode: color-dodge;
+  }
+
+  /* sfera del loader: spicchi nei tre colori del tema */
+  .sfera-loader {
+    background-image: conic-gradient(
+      var(--color-blu-500) 0deg 120deg,
+      var(--color-giallo-400) 120deg 240deg,
+      var(--color-rosso-500) 240deg 360deg
+    );
+  }
+  .sfera-loader-luce {
+    background-image: radial-gradient(
+      circle at 32% 28%,
+      color-mix(in srgb, var(--color-white) 85%, transparent) 0 14%,
+      transparent 15%
+    );
+    box-shadow: inset -5px -7px 0 color-mix(in srgb, var(--color-blu-900) 25%, transparent);
+  }
+}
+
+/* con "riduci movimento" attivo restano solo dissolvenze */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .dissolvenza-ridotta {
+    animation: pulsa 1.6s ease-in-out infinite !important;
+  }
+}
