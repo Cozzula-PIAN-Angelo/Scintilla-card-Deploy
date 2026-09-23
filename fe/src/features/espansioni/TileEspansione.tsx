@@ -6,12 +6,13 @@ import { cn } from '../../utils/cn'
 
 interface Props {
   espansione: Espansione
-  aperta: boolean
+  // l'ultimo set aperto: tornando all'elenco si ritrova a colpo d'occhio
+  evidenziata: boolean
   onClick: () => void
 }
 
 // riquadro di un'espansione: logo, nome, anno e numero di carte
-export function TileEspansione({ espansione, aperta, onClick }: Props) {
+export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
   const [logoRotto, setLogoRotto] = useState(false)
   const anno = espansione.dataUscita?.slice(0, 4)
 
@@ -20,12 +21,11 @@ export function TileEspansione({ espansione, aperta, onClick }: Props) {
       <button
         type="button"
         onClick={onClick}
-        aria-expanded={aperta}
-        aria-controls={`pannello-${espansione.id}`}
+        aria-label={`Apri ${espansione.nome}`}
         className={cn(
           'group flex h-full w-full flex-col items-center gap-3 rounded-3xl bg-white p-4 text-center shadow-lg shadow-blu-900/10 ring-1 ring-blu-900/5 transition',
           'hover:-translate-y-1 hover:shadow-2xl hover:shadow-blu-500/25',
-          aperta && 'ring-4 ring-giallo-400',
+          evidenziata && 'ring-4 ring-giallo-400',
         )}
       >
         <div className="grid h-20 w-full place-items-center">

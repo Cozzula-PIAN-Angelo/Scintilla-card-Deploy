@@ -1,45 +1,47 @@
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Search, Sparkles } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useNavigationType } from 'react-router'
 import { messaggioErrore } from '../../app/errori'
 import { Skeleton } from '../../components/Skeleton'
 import { StatoErrore, StatoVuoto } from '../../components/StatiPagina'
 import { useDebounce } from '../../hooks/useDebounce'
-import type { Espansione, Oggetto } from '../../types/api'
 import { griglia } from '../../theme/motion'
-import { PannelloEspansione } from './PannelloEspansione'
 import { TileEspansione } from './TileEspansione'
 import { useGetEspansioniQuery } from './espansioniApi'
-
-interface Props {
-  isPreferito: (id: string) => boolean
-  onTogglePreferito: (oggetto: Oggetto) => void
-  onApri: (oggetto: Oggetto) => void
-}
+import { memoriaElenco } from './memoriaElenco'
+import { raggruppaPerSerie } from './raggruppaPerSerie'
 
 const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6'
 
-// espansioni raggruppate per serie (la più recente in alto); il set aperto vive nell'URL (?set=sv1)
-export function VetrinaEspansioni({ isPreferito, onTogglePreferito, onApri }: Props) {
+// espansioni raggruppate per serie (la più recente in alto); ogni set si apre nella sua pagina
+export function VetrinaEspansioni() {
   const { data, isLoading, isError, error, refetch } = useGetEspansioniQuery()
-  const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  const tipoNavigazione = useNavigationType()
   const [ricerca, setRicerca] = useState('')
   const filtro = useDebounce(ricerca.trim().toLowerCase(), 200)
-  const aperta = params.get('set')
 
   const serie = useMemo(() => raggruppaPerSerie(data ?? [], filtro), [data, filtro])
 
-  const apriChiudi = (id: string) =>
-    setParams(
-      (precedenti) => {
-        const nuovi = new URLSearchParams(precedenti)
-        if (nuovi.get('set') === id) nuovi.delete('set')
-        else nuovi.set('set', id)
-        return nuovi
-      },
-      { preventScrollReset: true },
-    )
+  // tornati dalla pagina di un set (indietro del browser o del sito): si riparte dallo stesso punto.
+  // Salto istantaneo: il tema ha scroll-behavior smooth, che animerebbe migliaia di pixel
+  const pronto = data !== undefined
+  useEffect(() => {
+    if (!pronto) return
+    if (tipoNavigazione === 'POP' && memoriaElenco.posizione !== null) {
+      window.scrollTo({ top: memoriaElenco.posizione, behavior: 'instant' })
+    }
+    memoriaElenco.posizione = null
+  }, [pronto, tipoNavigazione])
+
+  const apri = (id: string) => {
+    memoriaElenco.posizione = window.scrollY
+    memoriaElenco.ultimaAperta = id
+    // passi di cronologia dalla vetrina: "Tutte le espansioni" torna qui anche dopo aver
+    // cambiato set dalla lista laterale
+    navigate(`/espansioni/${encodeURIComponent(id)}`, { state: { passiDallaVetrina: 1 } })
+  }
 
   if (isLoading) {
     return (
@@ -85,54 +87,26 @@ export function VetrinaEspansioni({ isPreferito, onTogglePreferito, onApri }: Pr
         />
       ) : (
         <div className="space-y-14">
-          {serie.map(({ nome, espansioni }) => {
-            const apertaQui = espansioni.find((e) => e.id === aperta)
-            return (
-              <section key={nome} aria-labelledby={`serie-${nome}`}>
-                <h3 id={`serie-${nome}`} className="mb-5 text-2xl font-bold text-blu-900">
-                  {nome}
-                  <span className="ml-3 text-base font-medium text-blu-900/60">{espansioni.length}</span>
-                </h3>
-                <motion.ul variants={griglia} initial="nascosto" whileInView="visibile" viewport={{ once: true, margin: '100px' }} className={CLASSI_GRIGLIA}>
-                  {espansioni.map((espansione) => (
-                    <TileEspansione
-                      key={espansione.id}
-                      espansione={espansione}
-                      aperta={espansione.id === aperta}
-                      onClick={() => apriChiudi(espansione.id)}
-                    />
-                  ))}
-                </motion.ul>
-                <AnimatePresence>
-                  {apertaQui && (
-                    <PannelloEspansione
-                      key={apertaQui.id}
-                      espansione={apertaQui}
-                      isPreferito={isPreferito}
-                      onTogglePreferito={onTogglePreferito}
-                      onApri={onApri}
-                      onChiudi={() => apriChiudi(apertaQui.id)}
-                    />
-                  )}
-                </AnimatePresence>
-              </section>
-            )
-          })}
+          {serie.map(({ nome, espansioni }) => (
+            <section key={nome} aria-labelledby={`serie-${nome}`}>
+              <h3 id={`serie-${nome}`} className="mb-5 text-2xl font-bold text-blu-900">
+                {nome}
+                <span className="ml-3 text-base font-medium text-blu-900/60">{espansioni.length}</span>
+              </h3>
+              <motion.ul variants={griglia} initial="nascosto" whileInView="visibile" viewport={{ once: true, margin: '100px' }} className={CLASSI_GRIGLIA}>
+                {espansioni.map((espansione) => (
+                  <TileEspansione
+                    key={espansione.id}
+                    espansione={espansione}
+                    evidenziata={espansione.id === memoriaElenco.ultimaAperta}
+                    onClick={() => apri(espansione.id)}
+                  />
+                ))}
+              </motion.ul>
+            </section>
+          ))}
         </div>
       )}
     </div>
   )
-}
-
-// mantiene l'ordine del backend (dalla più recente): la serie compare dove compare il suo set più nuovo
-function raggruppaPerSerie(espansioni: Espansione[], filtro: string) {
-  const gruppi = new Map<string, Espansione[]>()
-  for (const espansione of espansioni) {
-    const serie = espansione.serie || 'Altre'
-    if (filtro && !espansione.nome.toLowerCase().includes(filtro) && !serie.toLowerCase().includes(filtro)) continue
-    const gruppo = gruppi.get(serie)
-    if (gruppo) gruppo.push(espansione)
-    else gruppi.set(serie, [espansione])
-  }
-  return [...gruppi].map(([nome, espansioni]) => ({ nome, espansioni }))
 }

@@ -12,9 +12,11 @@ interface Props {
   onTogglePreferito: (oggetto: Oggetto) => void
   onApri: (oggetto: Oggetto) => void
   inAggiornamento?: boolean
+  // accanto a una colonna laterale: al massimo 3 carte per riga, altrimenti i nomi si tagliano
+  stretta?: boolean
 }
 
-export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferito, onApri, inAggiornamento }: Props) {
+export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferito, onApri, inAggiornamento, stretta }: Props) {
   return (
     <motion.ul
       key={chiave}
@@ -23,7 +25,8 @@ export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferit
       animate="visibile"
       aria-busy={inAggiornamento || undefined}
       className={cn(
-        'grid grid-cols-1 gap-6 transition-opacity sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+        'grid grid-cols-1 gap-6 transition-opacity sm:grid-cols-2',
+        stretta ? 'xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4',
         inAggiornamento && 'opacity-60',
       )}
     >

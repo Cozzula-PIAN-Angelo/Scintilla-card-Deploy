@@ -8,6 +8,7 @@ import { AuthBootstrap, SessionWatcher } from './features/auth/GestioneSessione'
 import { AdminRoute, ProtectedRoute } from './features/auth/RouteProtette'
 import { AdminPage } from './pages/AdminPage'
 import { CatalogoPage } from './pages/CatalogoPage'
+import { EspansionePage } from './pages/EspansionePage'
 import { LoginPage } from './pages/LoginPage'
 import { NonTrovataPage } from './pages/NonTrovataPage'
 import { PreferitiPage } from './pages/PreferitiPage'
@@ -15,10 +16,13 @@ import { RegisterPage } from './pages/RegisterPage'
 
 export function App() {
   const location = useLocation()
+  // tra un'espansione e l'altra la pagina resta montata (lista laterale ferma, cambiano solo le carte)
+  const chiavePagina = location.pathname.startsWith('/espansioni/') ? '/espansioni' : location.pathname
 
-  // cambio pagina: si riparte dall'alto (i cambi di query string, come la paginazione, no)
+  // cambio pagina: si riparte dall'alto (i cambi di query string, come la paginazione, no).
+  // Istantaneo: con lo scroll-behavior smooth del tema si vedrebbe la pagina risalire
   useEffect(() => {
-    window.scrollTo({ top: 0 })
+    window.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
 
   return (
@@ -29,8 +33,9 @@ export function App() {
 
       <div className="flex-1">
         <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
+          <Routes location={location} key={chiavePagina}>
             <Route path="/" element={<CatalogoPage />} />
+            <Route path="/espansioni/:id" element={<EspansionePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route

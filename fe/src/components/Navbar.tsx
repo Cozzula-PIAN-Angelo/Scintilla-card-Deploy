@@ -28,6 +28,10 @@ export function Navbar() {
 
   useEffect(() => setMenuAperto(false), [pathname])
 
+  // la pagina di un'espansione fa parte del catalogo
+  const attiva = (voce: VoceMenu, isActive: boolean) =>
+    isActive || (voce.a === '/' && pathname.startsWith('/espansioni/'))
+
   const voci: VoceMenu[] = [
     { a: '/', etichetta: 'Catalogo', icona: LayoutGrid },
     { a: '/preferiti', etichetta: 'Preferiti', icona: Heart },
@@ -54,11 +58,11 @@ export function Navbar() {
               >
                 {({ isActive }) => (
                   <>
-                    {isActive && (
+                    {attiva(voce, isActive) && (
                       <motion.span layoutId="voce-attiva" transition={molla} className="absolute inset-0 rounded-full bg-white/15 ring-1 ring-white/25" />
                     )}
                     <span className="relative flex items-center gap-2">
-                      <voce.icona aria-hidden className={cn('size-4', isActive && 'text-giallo-400')} />
+                      <voce.icona aria-hidden className={cn('size-4', attiva(voce, isActive) && 'text-giallo-400')} />
                       {voce.etichetta}
                     </span>
                   </>
@@ -133,7 +137,7 @@ export function Navbar() {
                     className={({ isActive }) =>
                       cn(
                         'flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold',
-                        isActive ? 'bg-white text-blu-900' : 'text-white hover:bg-white/10',
+                        attiva(voce, isActive) ? 'bg-white text-blu-900' : 'text-white hover:bg-white/10',
                       )
                     }
                   >
