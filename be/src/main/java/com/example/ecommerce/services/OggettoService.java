@@ -9,6 +9,7 @@ import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.repositories.OggettoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,8 +23,11 @@ public class OggettoService {
     private final OggettoRepository oggettoRepository;
 
     @Transactional(readOnly = true)
-    public PageResponse<OggettoResponseDTO> findAll(Pageable pageable) {
-        return PageResponse.from(oggettoRepository.findAll(pageable).map(OggettoResponseDTO::from));
+    public PageResponse<OggettoResponseDTO> findAll(String q, Pageable pageable) {
+        Page<Oggetto> pagina = q == null || q.isBlank()
+                ? oggettoRepository.findAll(pageable)
+                : oggettoRepository.findByNomeContainingIgnoreCase(q.trim(), pageable);
+        return PageResponse.from(pagina.map(OggettoResponseDTO::from));
     }
 
     @Transactional

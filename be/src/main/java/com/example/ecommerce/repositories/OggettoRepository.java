@@ -1,6 +1,8 @@
 package com.example.ecommerce.repositories;
 
 import com.example.ecommerce.entities.Oggetto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,9 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     boolean existsByIdEsterno(String idEsterno);
 
     List<Oggetto> findByEspansioneId(String espansioneId);
+
+    // ricerca per nome nel catalogo (cassetto delle carte del binder)
+    Page<Oggetto> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
     List<Oggetto> findByIdEsternoIn(Collection<String> idEsterni);
 

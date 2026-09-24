@@ -39,8 +39,10 @@ public class OggettoController {
     @GetMapping
     public PageResponse<OggettoResponseDTO> findAll(@RequestParam(required = false) Integer page,
                                                     @RequestParam(required = false) Integer size,
-                                                    @RequestParam(required = false) String sort) {
-        return oggettoService.findAll(paginationHelper.perOggetti(page, size, sort));
+                                                    @RequestParam(required = false) String sort,
+                                                    // ricerca per nome, facoltativa
+                                                    @RequestParam(required = false) String q) {
+        return oggettoService.findAll(q, paginationHelper.perOggetti(page, size, sort));
     }
 
     @PostMapping
