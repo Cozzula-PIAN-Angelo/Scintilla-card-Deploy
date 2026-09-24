@@ -1,0 +1,29 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>
+  <!-- trama delle pagine dei binder: intreccio a quadretti (basket weave). Ogni tessera da 12px
+       ha quattro quadretti che alternano fili orizzontali e verticali; la sfumatura di ciascuno
+       dà il rilievo del filo. Sopra, una grana leggera. 240 è multiplo di 12: nessuna giuntura -->
+  <defs>
+    <linearGradient id='filoOrizzontale' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0' stop-color='#fff' stop-opacity='0.13'/>
+      <stop offset='0.45' stop-color='#fff' stop-opacity='0.03'/>
+      <stop offset='1' stop-color='#000' stop-opacity='0.45'/>
+    </linearGradient>
+    <linearGradient id='filoVerticale' x1='0' y1='0' x2='1' y2='0'>
+      <stop offset='0' stop-color='#fff' stop-opacity='0.09'/>
+      <stop offset='0.45' stop-color='#fff' stop-opacity='0.02'/>
+      <stop offset='1' stop-color='#000' stop-opacity='0.45'/>
+    </linearGradient>
+    <pattern id='intreccio' width='12' height='12' patternUnits='userSpaceOnUse'>
+      <rect x='0' y='0' width='6' height='6' fill='url(#filoOrizzontale)'/>
+      <rect x='6' y='0' width='6' height='6' fill='url(#filoVerticale)'/>
+      <rect x='0' y='6' width='6' height='6' fill='url(#filoVerticale)'/>
+      <rect x='6' y='6' width='6' height='6' fill='url(#filoOrizzontale)'/>
+    </pattern>
+    <filter id='grana' x='0' y='0' width='100%' height='100%'>
+      <feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' seed='11' stitchTiles='stitch'/>
+      <feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 -0.25'/>
+    </filter>
+  </defs>
+  <rect width='100%' height='100%' fill='url(#intreccio)'/>
+  <rect width='100%' height='100%' filter='url(#grana)' opacity='0.1'/>
+</svg>

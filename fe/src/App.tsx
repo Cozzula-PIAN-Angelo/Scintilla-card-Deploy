@@ -7,6 +7,7 @@ import { ToastViewport } from './components/ToastViewport'
 import { AuthBootstrap, SessionWatcher } from './features/auth/GestioneSessione'
 import { AdminRoute, ProtectedRoute } from './features/auth/RouteProtette'
 import { AdminPage } from './pages/AdminPage'
+import { BinderPage } from './pages/BinderPage'
 import { CatalogoPage } from './pages/CatalogoPage'
 import { EspansionePage } from './pages/EspansionePage'
 import { LoginPage } from './pages/LoginPage'
@@ -18,12 +19,15 @@ import { RegisterPage } from './pages/RegisterPage'
 
 export function App() {
   const location = useLocation()
-  // tra un'espansione e l'altra (o un Pokémon e l'altro) la pagina resta montata: cambiano solo i contenuti
+  // tra un'espansione e l'altra (o un Pokémon e l'altro, o tra mensola e binder aperto)
+  // la pagina resta montata: cambiano solo i contenuti
   const chiavePagina = location.pathname.startsWith('/espansioni/')
     ? '/espansioni'
     : location.pathname.startsWith('/pokedex/')
       ? '/pokedex/pokemon'
-      : location.pathname
+      : location.pathname.startsWith('/binder')
+        ? '/binder'
+        : location.pathname
 
   // cambio pagina: si riparte dall'alto (i cambi di query string, come la paginazione, no).
   // Istantaneo: con lo scroll-behavior smooth del tema si vedrebbe la pagina risalire
@@ -51,6 +55,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <PreferitiPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/binder/:id?"
+              element={
+                <ProtectedRoute>
+                  <BinderPage />
                 </ProtectedRoute>
               }
             />

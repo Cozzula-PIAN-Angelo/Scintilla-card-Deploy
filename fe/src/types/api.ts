@@ -49,6 +49,45 @@ export interface Preferito {
   aggiuntoIl: string
 }
 
+export type MotivoBinder = 'NESSUNO' | 'STELLE' | 'FULMINI' | 'POKEBALL' | 'POIS' | 'OLOGRAFICO'
+
+// album di carte dell'utente: pagine di tasche (4, 9 o 12 per pagina)
+export interface Binder {
+  id: string
+  nome: string
+  tasche: number
+  pagine: number
+  colore: string
+  motivo: MotivoBinder
+  cartaCopertina: Oggetto | null
+  // null senza immagine di copertina caricata; altrimenti fa da versione
+  immagineAggiornataIl: string | null
+  carteInserite: number
+  createdAt: string
+}
+
+// tasca occupata; pagina e posizione partono da 0
+export interface SlotBinder {
+  pagina: number
+  posizione: number
+  oggetto: Oggetto
+}
+
+export interface BinderDettaglio {
+  binder: Binder
+  slot: SlotBinder[]
+}
+
+// impostazioni inviate in creazione e in modifica (sempre tutte)
+export interface DatiBinder {
+  nome: string
+  tasche: number
+  pagine: number
+  colore: string
+  motivo: MotivoBinder
+  cartaCopertinaId: string | null
+}
+
 export interface CartaEsterna {
   idEsterno: string
   nome: string

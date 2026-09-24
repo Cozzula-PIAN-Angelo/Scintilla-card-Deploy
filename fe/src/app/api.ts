@@ -45,6 +45,6 @@ const baseQueryConSessione: BaseQueryFn<
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryConSessione,
-  tagTypes: ['Espansioni', 'Oggetti', 'Preferiti', 'PreferitiIds', 'Me', 'Utenti', 'Ricerca'],
+  tagTypes: ['Espansioni', 'Oggetti', 'Preferiti', 'PreferitiIds', 'Me', 'Utenti', 'Ricerca', 'Binder'],
   endpoints: () => ({}),
 })
