@@ -51,23 +51,23 @@ export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, class
     })
 
   return (
-    <nav aria-label="Altre espansioni" className={cn('flex flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-blu-900/10', className)}>
-      <div className="border-b border-blu-900/10 p-3">
+    <nav aria-label="Altre espansioni" className={cn('flex flex-col overflow-hidden rounded-3xl bg-superficie shadow-lg shadow-ombra/10', className)}>
+      <div className="border-b border-linea/10 p-3">
         <label className="relative block">
           <span className="sr-only">Cerca un'espansione</span>
-          <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-blu-500" />
+          <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-accento" />
           <input
             type="search"
             value={ricerca}
             onChange={(e) => setRicerca(e.target.value)}
             placeholder="Cerca un'espansione…"
-            className="w-full rounded-full bg-blu-50 py-2 pl-9 pr-4 text-sm text-blu-900 outline-none placeholder:text-blu-900/50 focus:ring-2 focus:ring-blu-500"
+            className="w-full rounded-full bg-tenue py-2 pl-9 pr-4 text-sm text-testo outline-none placeholder:text-testo/50 focus:ring-2 focus:ring-blu-500"
           />
         </label>
       </div>
 
       <div ref={contenitore} className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-        {serie.length === 0 && <p className="px-3 py-6 text-center text-sm text-blu-900/60">Nessuna espansione trovata.</p>}
+        {serie.length === 0 && <p className="px-3 py-6 text-center text-sm text-testo/60">Nessuna espansione trovata.</p>}
         {serie.map(({ nome, espansioni: gruppo }) => {
           // cercando si mostra tutto quello che corrisponde, senza dover aprire le serie
           const aperta = filtro !== '' || aperte.has(nome)
@@ -77,10 +77,10 @@ export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, class
                 type="button"
                 onClick={() => apriChiudi(nome)}
                 aria-expanded={aperta}
-                className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold text-blu-900 transition-colors hover:bg-blu-50"
+                className="flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold text-testo transition-colors hover:bg-tenue"
               >
                 <span className="truncate">{nome}</span>
-                <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-blu-900/50">
+                <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-testo/50">
                   {gruppo.length}
                   <ChevronDown aria-hidden className={cn('size-4 transition-transform', aperta && 'rotate-180')} />
                 </span>
@@ -105,7 +105,7 @@ export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, class
                             aria-current={attuale ? 'page' : undefined}
                             className={cn(
                               'flex items-center gap-2.5 rounded-xl py-1.5 pl-5 pr-3 text-sm transition-colors',
-                              attuale ? 'bg-blu-500 font-semibold text-white' : 'text-blu-900/80 hover:bg-blu-50 hover:text-blu-900',
+                              attuale ? 'bg-blu-500 font-semibold text-white' : 'text-testo/80 hover:bg-tenue hover:text-testo',
                             )}
                           >
                             <span className="grid size-5 shrink-0 place-items-center">
@@ -114,7 +114,7 @@ export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, class
                               )}
                             </span>
                             <span className="min-w-0 flex-1 truncate">{espansione.nome}</span>
-                            <span className={cn('shrink-0 text-xs', attuale ? 'text-white/80' : 'text-blu-900/40')}>
+                            <span className={cn('shrink-0 text-xs', attuale ? 'text-white/80' : 'text-testo/40')}>
                               {espansione.dataUscita?.slice(0, 4)}
                             </span>
                           </Link>

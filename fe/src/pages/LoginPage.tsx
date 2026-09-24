@@ -89,9 +89,9 @@ export function LoginPage() {
         <Button type="submit" variante="primario" dimensione="lg" caricamento={isLoading} className="w-full">
           Accedi
         </Button>
-        <p className="text-center text-sm text-blu-900/70">
+        <p className="text-center text-sm text-testo/70">
           Non hai un account?{' '}
-          <Link to="/register" className="font-semibold text-blu-700 underline-offset-4 hover:underline">
+          <Link to="/register" className="font-semibold text-testo-2 underline-offset-4 hover:underline">
             Registrati
           </Link>
         </p>

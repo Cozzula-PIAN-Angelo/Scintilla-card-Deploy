@@ -19,7 +19,7 @@ export function ImmagineCarta({ src, alt, className, priorita = false }: Props) 
 
   const caricata = srcCaricata === src
   return (
-    <div className={cn('relative overflow-hidden bg-blu-50', className)}>
+    <div className={cn('relative overflow-hidden bg-tenue', className)}>
       {!caricata && <div aria-hidden className="skeleton dissolvenza-ridotta absolute inset-0" />}
       <img
         src={src}

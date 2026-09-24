@@ -12,6 +12,15 @@
       rel="stylesheet"
     />
     <title>Scintilla · Carte da collezione</title>
+    <script>
+      // tema applicato prima del primo disegno, senza lampo di bianco: scelta salvata o, in mancanza, quella del sistema
+      // (stessa chiave di src/theme/tema.ts)
+      try {
+        var tema = localStorage.getItem('scintilla.tema')
+        if (tema !== 'chiaro' && tema !== 'scuro') tema = matchMedia('(prefers-color-scheme: dark)').matches ? 'scuro' : 'chiaro'
+        document.documentElement.dataset.tema = tema
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

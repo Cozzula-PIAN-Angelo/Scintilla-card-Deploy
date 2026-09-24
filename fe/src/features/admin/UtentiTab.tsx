@@ -55,8 +55,8 @@ export function UtentiTab() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-blu-900">Utenti registrati</h2>
-        {data && <p className="text-sm text-blu-900/70">{data.totalElements} in totale</p>}
+        <h2 className="text-2xl font-semibold text-testo">Utenti registrati</h2>
+        {data && <p className="text-sm text-testo/70">{data.totalElements} in totale</p>}
       </div>
 
       {isLoading ? (
@@ -67,9 +67,9 @@ export function UtentiTab() {
         <StatoVuoto icona={<Users aria-hidden className="size-16" />} titolo="Nessun utente" testo="Non ci sono ancora utenti registrati." />
       ) : (
         <>
-          <div className={cn('overflow-x-auto rounded-3xl bg-white shadow-lg shadow-blu-900/10 transition-opacity', isFetching && 'opacity-60')}>
+          <div className={cn('overflow-x-auto rounded-3xl bg-superficie shadow-lg shadow-ombra/10 transition-opacity', isFetching && 'opacity-60')}>
             <table className="w-full min-w-[640px] text-left text-sm">
-              <thead className="bg-blu-50 text-xs uppercase tracking-wide text-blu-700">
+              <thead className="bg-tenue text-xs uppercase tracking-wide text-testo-2">
                 <tr>
                   <th scope="col" className="px-5 py-4">Utente</th>
                   <th scope="col" className="px-5 py-4">Email</th>
@@ -81,7 +81,7 @@ export function UtentiTab() {
                 {data.content.map((utente) => {
                   const admin = utente.ruoli.includes(RUOLO_ADMIN)
                   return (
-                    <tr key={utente.id} className="border-t border-blu-50 transition-colors hover:bg-blu-50/50">
+                    <tr key={utente.id} className="border-t border-tenue transition-colors hover:bg-tenue/50">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <span
@@ -93,13 +93,13 @@ export function UtentiTab() {
                           >
                             {utente.username.charAt(0).toUpperCase()}
                           </span>
-                          <span className="font-semibold text-blu-900">
+                          <span className="font-semibold text-testo">
                             {utente.username}
-                            {utente.id === io?.id && <span className="ml-1 font-normal text-blu-900/70">(tu)</span>}
+                            {utente.id === io?.id && <span className="ml-1 font-normal text-testo/70">(tu)</span>}
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-blu-900/70">{utente.email}</td>
+                      <td className="px-5 py-3 text-testo/70">{utente.email}</td>
                       <td className="px-5 py-3">
                         <div className="flex flex-wrap gap-1.5">
                           {utente.ruoli.map((ruolo) => (
@@ -107,7 +107,7 @@ export function UtentiTab() {
                               key={ruolo}
                               className={cn(
                                 'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold',
-                                ruolo === RUOLO_ADMIN ? 'bg-giallo-400 text-blu-900' : 'bg-blu-50 text-blu-700',
+                                ruolo === RUOLO_ADMIN ? 'bg-giallo-400 text-blu-900' : 'bg-tenue text-testo-2',
                               )}
                             >
                               {ruolo === RUOLO_ADMIN && <Crown aria-hidden className="size-3.5" />}
@@ -140,7 +140,7 @@ export function UtentiTab() {
       )}
 
       <Modale aperto={revocaPersonale} onChiudi={() => setRevocaPersonale(false)} titolo="Revocare il tuo ruolo admin?">
-        <p className="text-blu-900">
+        <p className="text-testo">
           Perderai subito l'accesso al pannello di amministrazione. Potrà ridartelo solo un altro admin.
         </p>
         <div className="mt-6 flex justify-end gap-3">

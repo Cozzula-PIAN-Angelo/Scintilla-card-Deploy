@@ -28,14 +28,14 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
         {espansione.logoUrl && (
           // dimensioni esplicite + object-contain: i loghi quadrati o verticali (POP, promo) con
           // max-h-full restavano alti quanto la loro larghezza e uscivano dal riquadro
-          <div className="relative h-28 w-full max-w-56 shrink-0 rounded-3xl bg-white shadow-lg shadow-blu-900/10">
+          <div className="relative h-28 w-full max-w-56 shrink-0 rounded-3xl bg-superficie shadow-lg shadow-ombra/10">
             <img src={espansione.logoUrl} alt="" className="absolute inset-0 h-full w-full object-contain p-4" />
           </div>
         )}
         <div className="min-w-0">
-          {espansione.serie && <p className="text-sm font-semibold uppercase tracking-wide text-blu-500">{espansione.serie}</p>}
-          <h3 className="text-4xl font-bold text-blu-900">{espansione.nome}</h3>
-          <p className="mt-1 flex items-center gap-2 text-blu-900/70">
+          {espansione.serie && <p className="text-sm font-semibold uppercase tracking-wide text-accento">{espansione.serie}</p>}
+          <h3 className="text-4xl font-bold text-testo">{espansione.nome}</h3>
+          <p className="mt-1 flex items-center gap-2 text-testo/70">
             {espansione.simboloUrl && <img src={espansione.simboloUrl} alt="" className="size-5 object-contain" />}
             {[anno, totale != null && (totale === 1 ? '1 carta' : `${totale} carte`)].filter(Boolean).join(' · ')}
           </p>

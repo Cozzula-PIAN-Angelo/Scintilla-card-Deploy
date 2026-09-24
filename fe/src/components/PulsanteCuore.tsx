@@ -29,7 +29,7 @@ export function PulsanteCuore({ attivo, onToggle, nome, className }: Props) {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.85 }}
       className={cn(
-        'relative grid size-11 place-items-center rounded-full bg-white shadow-lg shadow-blu-900/20 ring-1 ring-blu-900/10',
+        'relative grid size-11 place-items-center rounded-full bg-superficie shadow-lg shadow-ombra/20 ring-1 ring-linea/10',
         className,
       )}
     >
@@ -43,7 +43,7 @@ export function PulsanteCuore({ attivo, onToggle, nome, className }: Props) {
           aria-hidden
           className={cn(
             'size-5 transition-colors',
-            attivo ? 'fill-rosso-500 text-rosso-500' : 'fill-transparent text-blu-700',
+            attivo ? 'fill-rosso-500 text-rosso-500' : 'fill-transparent text-testo-2',
           )}
         />
       </motion.span>

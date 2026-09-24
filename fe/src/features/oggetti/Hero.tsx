@@ -74,7 +74,7 @@ export function Hero({ vetrina, onEsplora }: Props) {
                     src={oggetto?.immagineUrlPiccola ?? oggetto?.immagineUrl ?? null}
                     alt={oggetto?.nome ?? 'Scintilla'}
                     priorita
-                    className="aspect-[63/88] w-full rounded-2xl shadow-2xl shadow-blu-900/60 ring-4 ring-white/80"
+                    className="aspect-[63/88] w-full rounded-2xl shadow-2xl shadow-ombra/60 ring-4 ring-white/80"
                   />
                 </div>
               </motion.div>

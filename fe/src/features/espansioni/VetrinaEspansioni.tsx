@@ -70,13 +70,13 @@ export function VetrinaEspansioni() {
     <div>
       <label className="relative mb-10 block max-w-md">
         <span className="sr-only">Cerca un'espansione</span>
-        <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-blu-500" />
+        <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-accento" />
         <input
           type="search"
           value={ricerca}
           onChange={(e) => setRicerca(e.target.value)}
           placeholder="Cerca un'espansione o una serie…"
-          className="w-full rounded-full bg-white py-3 pl-12 pr-5 text-blu-900 shadow-md shadow-blu-900/10 ring-1 ring-blu-900/10 outline-none placeholder:text-blu-900/50 focus:ring-2 focus:ring-blu-500"
+          className="w-full rounded-full bg-superficie py-3 pl-12 pr-5 text-testo shadow-md shadow-ombra/10 ring-1 ring-linea/10 outline-none placeholder:text-testo/50 focus:ring-2 focus:ring-blu-500"
         />
       </label>
 
@@ -90,9 +90,9 @@ export function VetrinaEspansioni() {
         <div className="space-y-14">
           {serie.map(({ nome, espansioni }) => (
             <section key={nome} aria-labelledby={`serie-${nome}`}>
-              <h3 id={`serie-${nome}`} className="mb-5 text-2xl font-bold text-blu-900">
+              <h3 id={`serie-${nome}`} className="mb-5 text-2xl font-bold text-testo">
                 {nome}
-                <span className="ml-3 text-base font-medium text-blu-900/60">{espansioni.length}</span>
+                <span className="ml-3 text-base font-medium text-testo/60">{espansioni.length}</span>
               </h3>
               <motion.ul variants={griglia} initial="nascosto" whileInView="visibile" viewport={{ once: true, margin: '100px' }} className={CLASSI_GRIGLIA}>
                 {espansioni.map((espansione) => (

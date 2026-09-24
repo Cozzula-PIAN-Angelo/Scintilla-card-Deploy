@@ -21,11 +21,11 @@ export function CatalogoPage() {
 
       <section ref={sezione} id="catalogo" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
         <div className="mb-8">
-          <h2 className="flex items-center gap-2 text-4xl font-bold text-blu-900">
+          <h2 className="flex items-center gap-2 text-4xl font-bold text-testo">
             Le espansioni
-            <Sparkles aria-hidden className="size-7 text-blu-500" />
+            <Sparkles aria-hidden className="size-7 text-accento" />
           </h2>
-          <p className="mt-1 text-blu-900/70">Scegli un'espansione per scoprirne le carte.</p>
+          <p className="mt-1 text-testo/70">Scegli un'espansione per scoprirne le carte.</p>
         </div>
 
         <VetrinaEspansioni />

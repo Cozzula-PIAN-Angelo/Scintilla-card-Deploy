@@ -77,16 +77,16 @@ export function PokemonPage() {
       </div>
 
       <header className="mb-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-        <div className="grid size-40 shrink-0 place-items-center rounded-3xl bg-white shadow-lg shadow-blu-900/10">
+        <div className="grid size-40 shrink-0 place-items-center rounded-3xl bg-superficie shadow-lg shadow-ombra/10">
           <img src={spriteUrl(pokemon.numero)} alt="" width={96} height={96} className="sprite-pixel size-36" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-wide text-blu-500">
+          <p className="text-sm font-semibold uppercase tracking-wide text-accento">
             {numeroFormattato(pokemon.numero)}
             {generazione && ` · Generazione ${generazione.sigla} · ${generazione.regione}`}
           </p>
-          <h1 className="text-4xl font-bold text-blu-900">{pokemon.nome}</h1>
-          <p className="mt-1 text-blu-900/70">
+          <h1 className="text-4xl font-bold text-testo">{pokemon.nome}</h1>
+          <p className="mt-1 text-testo/70">
             {[pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`, data && (data.length === 1 ? '1 carta' : `${data.length} carte`)]
               .filter(Boolean)
               .join(' · ')}
@@ -138,7 +138,7 @@ function FrecciaPokemon({ pokemon, direzione, state }: PropsFreccia) {
       to={`/pokedex/${pokemon.numero}`}
       state={state}
       aria-label={`Pokémon ${direzione}: ${pokemon.nome}`}
-      className="flex items-center gap-1.5 rounded-full bg-white py-1 pl-2 pr-3 text-sm font-semibold text-blu-700 shadow-md shadow-blu-900/10 transition-colors hover:bg-blu-50"
+      className="flex items-center gap-1.5 rounded-full bg-superficie py-1 pl-2 pr-3 text-sm font-semibold text-testo-2 shadow-md shadow-ombra/10 transition-colors hover:bg-tenue"
     >
       {direzione === 'precedente' && <Icona aria-hidden className="size-4" />}
       <img src={spriteUrl(pokemon.numero)} alt="" width={96} height={96} className="sprite-pixel size-8" />

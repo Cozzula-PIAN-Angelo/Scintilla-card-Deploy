@@ -12,7 +12,7 @@ export function Logo({ compatto = false }: { compatto?: boolean }) {
         )}
       >
         <Scintilla className={cn('fill-giallo-400 transition-all duration-300', compatto ? 'w-5' : 'w-6')} />
-        <span aria-hidden className="absolute -right-1 -top-1 size-3 rounded-full bg-rosso-500 ring-2 ring-blu-900" />
+        <span aria-hidden className="absolute -right-1 -top-1 size-3 rounded-full bg-rosso-500 ring-2 ring-notte" />
       </span>
       <span className={cn('font-titolo font-bold text-white transition-all duration-300', compatto ? 'text-xl' : 'text-2xl')}>
         Scint<span className="text-giallo-400">illa</span>

@@ -45,7 +45,7 @@ export function Modale({ aperto, onChiudi, titolo, children, larghezza = 'max-w-
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <div aria-hidden className="fixed inset-0 bg-blu-900/70 backdrop-blur-sm" onClick={onChiudi} />
+          <div aria-hidden className="fixed inset-0 bg-ombra/70 backdrop-blur-sm" onClick={onChiudi} />
           <motion.div
             ref={pannello}
             role="dialog"
@@ -56,7 +56,7 @@ export function Modale({ aperto, onChiudi, titolo, children, larghezza = 'max-w-
             animate={{ opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 26 } }}
             exit={{ opacity: 0, scale: 0.94, y: 16, transition: { duration: 0.18 } }}
             className={cn(
-              'relative my-auto w-full rounded-3xl bg-white p-6 shadow-2xl shadow-blu-900/40 outline-none sm:p-8',
+              'relative my-auto w-full rounded-3xl bg-superficie p-6 shadow-2xl shadow-ombra/40 outline-none sm:p-8',
               larghezza,
             )}
           >
@@ -64,12 +64,12 @@ export function Modale({ aperto, onChiudi, titolo, children, larghezza = 'max-w-
               type="button"
               onClick={onChiudi}
               aria-label="Chiudi"
-              className="absolute right-4 top-4 grid size-10 place-items-center rounded-full text-blu-700 transition-colors hover:bg-blu-50"
+              className="absolute right-4 top-4 grid size-10 place-items-center rounded-full text-testo-2 transition-colors hover:bg-tenue"
             >
               <X aria-hidden className="size-5" />
             </button>
             {titolo && (
-              <h2 id={idTitolo} className="mb-5 pr-10 text-2xl font-semibold text-blu-900">
+              <h2 id={idTitolo} className="mb-5 pr-10 text-2xl font-semibold text-testo">
                 {titolo}
               </h2>
             )}

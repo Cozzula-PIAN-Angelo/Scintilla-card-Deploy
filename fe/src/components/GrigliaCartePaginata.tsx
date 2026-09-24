@@ -82,7 +82,7 @@ export function GrigliaCartePaginata({
     return (
       <>
         {avvisoCaricamento && (
-          <p role="status" className="mb-4 text-sm font-medium text-blu-900/70">
+          <p role="status" className="mb-4 text-sm font-medium text-testo/70">
             {avvisoCaricamento}
           </p>
         )}
@@ -100,7 +100,7 @@ export function GrigliaCartePaginata({
   return (
     <div ref={inizioGriglia} className="scroll-mt-28">
       {totalePagine > 1 && (
-        <p className="mb-4 text-sm font-medium text-blu-900/70">
+        <p className="mb-4 text-sm font-medium text-testo/70">
           Carte {inizio + 1}–{inizio + carteDellaPagina.length} di {carte.length}
         </p>
       )}

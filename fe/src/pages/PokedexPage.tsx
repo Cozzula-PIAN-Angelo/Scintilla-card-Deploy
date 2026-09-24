@@ -35,23 +35,23 @@ export function PokedexPage() {
   return (
     <PaginaAnimata className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <div className="mb-8">
-        <h1 className="flex items-center gap-3 text-4xl font-bold text-blu-900">
+        <h1 className="flex items-center gap-3 text-4xl font-bold text-testo">
           Pokédex
-          <BookOpen aria-hidden className="size-8 text-blu-500" />
+          <BookOpen aria-hidden className="size-8 text-accento" />
         </h1>
-        <p className="mt-1 text-blu-900/70">Scegli un Pokémon per vedere tutte le carte in cui compare.</p>
+        <p className="mt-1 text-testo/70">Scegli un Pokémon per vedere tutte le carte in cui compare.</p>
       </div>
 
-      <div className="sticky top-16 z-20 -mx-4 mb-10 bg-blu-50/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+      <div className="sticky top-16 z-20 -mx-4 mb-10 bg-sfondo/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
         <label className="relative block max-w-md">
           <span className="sr-only">Cerca un Pokémon</span>
-          <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-blu-500" />
+          <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-accento" />
           <input
             type="search"
             value={ricerca}
             onChange={(e) => setRicerca(e.target.value)}
             placeholder="Cerca per nome o numero…"
-            className="w-full rounded-full bg-white py-3 pl-12 pr-5 text-blu-900 shadow-md shadow-blu-900/10 ring-1 ring-blu-900/10 outline-none placeholder:text-blu-900/50 focus:ring-2 focus:ring-blu-500"
+            className="w-full rounded-full bg-superficie py-3 pl-12 pr-5 text-testo shadow-md shadow-ombra/10 ring-1 ring-linea/10 outline-none placeholder:text-testo/50 focus:ring-2 focus:ring-blu-500"
           />
         </label>
         {!filtro && (
@@ -61,7 +61,7 @@ export function PokedexPage() {
                 key={g.numero}
                 type="button"
                 onClick={() => vaiAGenerazione(g.numero)}
-                className="shrink-0 rounded-full bg-white px-3.5 py-1.5 text-sm font-semibold text-blu-700 shadow-sm ring-1 ring-blu-900/10 transition-colors hover:bg-blu-500 hover:text-white"
+                className="shrink-0 rounded-full bg-superficie px-3.5 py-1.5 text-sm font-semibold text-testo-2 shadow-sm ring-1 ring-linea/10 transition-colors hover:bg-blu-500 hover:text-white"
               >
                 {g.sigla} · {g.regione}
               </button>
@@ -88,9 +88,9 @@ export function PokedexPage() {
         <div className="space-y-14">
           {GENERAZIONI.map((g) => (
             <section key={g.numero} id={`generazione-${g.numero}`} aria-labelledby={`titolo-generazione-${g.numero}`} className="scroll-mt-44">
-              <h2 id={`titolo-generazione-${g.numero}`} className="mb-5 text-2xl font-bold text-blu-900">
+              <h2 id={`titolo-generazione-${g.numero}`} className="mb-5 text-2xl font-bold text-testo">
                 Generazione {g.sigla} · {g.regione}
-                <span className="ml-3 text-base font-medium text-blu-900/60">
+                <span className="ml-3 text-base font-medium text-testo/60">
                   {numeroFormattato(g.da)}–{numeroFormattato(g.a)}
                 </span>
               </h2>
@@ -120,7 +120,7 @@ function TilePokemon({ pokemon }: { pokemon: Pokemon }) {
           memoriaPokedex.ultimo = pokemon.numero
         }}
         className={cn(
-          'group flex flex-col items-center rounded-2xl bg-white px-2 pb-3 pt-1 text-center shadow-md shadow-blu-900/10 ring-1 ring-blu-900/5 transition',
+          'group flex flex-col items-center rounded-2xl bg-superficie px-2 pb-3 pt-1 text-center shadow-md shadow-ombra/10 ring-1 ring-linea/5 transition',
           'hover:-translate-y-1 hover:shadow-xl hover:shadow-blu-500/25',
           evidenziato && 'ring-4 ring-giallo-400',
         )}
@@ -134,8 +134,8 @@ function TilePokemon({ pokemon }: { pokemon: Pokemon }) {
           height={96}
           className="sprite-pixel size-24 transition-transform group-hover:scale-110"
         />
-        <span className="text-xs font-semibold text-blu-900/50">{numeroFormattato(pokemon.numero)}</span>
-        <span className="w-full truncate text-sm font-semibold text-blu-900">{pokemon.nome}</span>
+        <span className="text-xs font-semibold text-testo/50">{numeroFormattato(pokemon.numero)}</span>
+        <span className="w-full truncate text-sm font-semibold text-testo">{pokemon.nome}</span>
       </Link>
     </li>
   )

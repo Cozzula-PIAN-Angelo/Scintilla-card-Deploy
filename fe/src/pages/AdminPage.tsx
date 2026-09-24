@@ -25,7 +25,7 @@ export function AdminPage() {
 
   return (
     <PaginaAnimata className="min-h-[70vh]">
-      <section className="bg-blu-700 text-white">
+      <section className="bg-notte-2 text-white">
         <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6">
           <h1 className="flex items-center gap-3 text-4xl font-bold sm:text-5xl">
             <ShieldCheck aria-hidden className="size-9 text-giallo-400" />

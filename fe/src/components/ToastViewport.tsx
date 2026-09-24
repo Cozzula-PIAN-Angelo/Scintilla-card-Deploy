@@ -8,9 +8,9 @@ import { cn } from '../utils/cn'
 const DURATA_MS = 4000
 
 const STILI: Record<TipoToast, { classe: string; icona: typeof Info; barra: string }> = {
-  successo: { classe: 'bg-blu-900 text-white', icona: CircleCheck, barra: 'bg-giallo-400' },
+  successo: { classe: 'bg-blu-900 text-white scuro:ring-1 scuro:ring-white/15', icona: CircleCheck, barra: 'bg-giallo-400' },
   errore: { classe: 'bg-rosso-700 text-white', icona: TriangleAlert, barra: 'bg-white/70' },
-  info: { classe: 'bg-white text-blu-900 ring-1 ring-blu-900/10', icona: Info, barra: 'bg-blu-500' },
+  info: { classe: 'bg-superficie text-testo ring-1 ring-linea/10', icona: Info, barra: 'bg-blu-500' },
 }
 
 export function ToastViewport() {
@@ -47,7 +47,7 @@ function ElementoToast({ toast }: { toast: Toast }) {
       animate={{ opacity: 1, x: 0, scale: 1, transition: { type: 'spring', stiffness: 320, damping: 24 } }}
       exit={{ opacity: 0, x: 60, scale: 0.9, transition: { duration: 0.2 } }}
       className={cn(
-        'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl shadow-blu-900/30',
+        'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl shadow-ombra/30',
         stile.classe,
       )}
     >

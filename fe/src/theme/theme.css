@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+/* variante per i pochi ritocchi che valgono solo di notte (scuro:ring-1 ...) */
+@custom-variant scuro (&:where([data-tema="scuro"], [data-tema="scuro"] *));
+
 /*
  * Tema unico dell'app: tutti i colori vivono qui. La palette di default di Tailwind
  * viene azzerata, così nel codice si possono usare solo i colori del negozio.
+ *
+ * Due livelli: la palette del marchio (blu, giallo, rosso), identica nei due temi, e i
+ * colori "di ruolo" (sfondo, superficie, testo...) che la modalità scura ridefinisce più
+ * sotto. Per ciò che cambia col tema si usano i ruoli, per il marchio la palette.
  */
 @theme {
   --color-*: initial;
@@ -18,6 +25,19 @@
   --color-rosso-500: #e3350d;
   /* variante scura per il testo: il rosso base su bianco non raggiunge il contrasto AA (4.39:1) */
   --color-rosso-700: #b52a0a;
+
+  /* ruoli: valori del tema chiaro, ridefiniti in :root[data-tema="scuro"] */
+  --color-sfondo: var(--color-blu-50); /* fondo della pagina */
+  --color-superficie: var(--color-white); /* card, modali, campi */
+  --color-tenue: var(--color-blu-50); /* riempimenti leggeri e hover sopra una superficie */
+  --color-testo: var(--color-blu-900);
+  --color-testo-2: var(--color-blu-700); /* testo secondario, icone, link */
+  --color-accento: var(--color-blu-500); /* icone ed etichette colorate sopra una superficie */
+  --color-errore: var(--color-rosso-700); /* testo e bordi di errore sopra una superficie */
+  --color-linea: var(--color-blu-900); /* bordi sottili, sempre con opacità (ring-linea/10) */
+  --color-ombra: var(--color-blu-900); /* ombre e velature */
+  --color-notte: var(--color-blu-900); /* fasce scure: navbar, footer */
+  --color-notte-2: var(--color-blu-700); /* fasce d'intestazione, menu mobile */
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-titolo: "Fredoka", ui-rounded, "Inter", system-ui, sans-serif;
@@ -59,12 +79,33 @@
   50% { opacity: 0.45; }
 }
 
+/*
+ * Modalità scura: un cielo stellato. Fondo blu notte con una nebulosa appena accennata,
+ * superfici indaco un po' più chiare, testo bianco stella con una punta di lavanda.
+ * Giallo e rosso del marchio restano uguali: sul fondo scuro brillano come stelle.
+ */
+:root[data-tema="scuro"] {
+  color-scheme: dark;
+  --color-sfondo: #0a0e24;
+  --color-superficie: #151b3c;
+  --color-tenue: #212a55;
+  --color-testo: #e6eaff;
+  --color-testo-2: #a9b7ee;
+  --color-accento: #8eaeff;
+  --color-errore: #ff9479;
+  --color-linea: #c9d4ff;
+  --color-ombra: #000000;
+  --color-notte: #070a1c;
+  --color-notte-2: #1a1a48;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-blu-50 font-sans text-blu-900 antialiased;
+    @apply bg-sfondo font-sans text-testo antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   h1, h2, h3, h4 {
     @apply font-titolo;
@@ -92,13 +133,25 @@
     );
     background-size: 300% 300%;
   }
+  /* di notte l'hero è un velo semitrasparente dal blu profondo al viola di una nebulosa:
+     sotto continua il cielo stellato della pagina */
+  :root[data-tema="scuro"] .sfondo-hero {
+    background-image: linear-gradient(
+      125deg,
+      rgb(6 8 25 / 0.55),
+      rgb(24 30 88 / 0.7),
+      rgb(52 36 120 / 0.7),
+      rgb(24 30 88 / 0.7),
+      rgb(6 8 25 / 0.55)
+    );
+  }
 
   .skeleton {
     background-image: linear-gradient(
       90deg,
-      var(--color-blu-50) 25%,
-      var(--color-white) 50%,
-      var(--color-blu-50) 75%
+      var(--color-tenue) 25%,
+      var(--color-superficie) 50%,
+      var(--color-tenue) 75%
     );
     background-size: 200% 100%;
     @apply animate-shimmer;
@@ -127,6 +180,11 @@
     mix-blend-mode: color-dodge;
   }
 
+  /* fondo della pagina per ciò che la copre per intero; di notte vi si aggiungono le stelle (più sotto) */
+  .cielo-stellato {
+    background-color: var(--color-sfondo);
+  }
+
   /* sfera del loader: spicchi nei tre colori del tema */
   .sfera-loader {
     background-image: conic-gradient(
@@ -143,6 +201,41 @@
     );
     box-shadow: inset -5px -7px 0 color-mix(in srgb, var(--color-blu-900) 25%, transparent);
   }
+}
+
+/*
+ * Il cielo stellato dietro le pagine, solo in modalità scura. Due strati fissi sotto il
+ * contenuto: ::before con la nebulosa e le stelle ferme, ::after con poche stelle più grandi
+ * che scintillano piano. Le stelle sono SVG con punti sparsi a caso su tessere grandi e di
+ * misura diversa, così la ripetizione non si nota.
+ */
+:root[data-tema="scuro"] body::before,
+:root[data-tema="scuro"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+/* .cielo-stellato: stesso cielo per ciò che copre la pagina (binder a schermo intero) */
+:root[data-tema="scuro"] body::before,
+:root[data-tema="scuro"] .cielo-stellato {
+  background-image:
+    url("/cielo-stelle.svg"),
+    radial-gradient(ellipse 60% 45% at 15% 10%, rgb(94 70 190 / 0.22), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 90% 35%, rgb(42 117 187 / 0.18), transparent 70%),
+    radial-gradient(ellipse 70% 40% at 55% 100%, rgb(130 70 170 / 0.16), transparent 70%);
+  background-size: 1100px 1100px, 100% 100%, 100% 100%, 100% 100%;
+}
+:root[data-tema="scuro"] body::after {
+  background-image: url("/cielo-stelle-brillanti.svg");
+  background-size: 1300px 1300px;
+  background-position: 370px 210px;
+  animation: scintilla-stelle 5s ease-in-out infinite alternate;
+}
+@keyframes scintilla-stelle {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
 }
 
 /* con "riduci movimento" attivo restano solo dissolvenze */

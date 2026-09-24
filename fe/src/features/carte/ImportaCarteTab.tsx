@@ -39,11 +39,11 @@ export function ImportaCarteTab() {
   return (
     <div>
       <div className="mx-auto max-w-2xl">
-        <label htmlFor="ricerca-carte" className="mb-2 block font-titolo text-xl font-semibold text-blu-900">
+        <label htmlFor="ricerca-carte" className="mb-2 block font-titolo text-xl font-semibold text-testo">
           Cerca una carta da importare
         </label>
         <div className="relative">
-          <Search aria-hidden className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-blu-700" />
+          <Search aria-hidden className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-testo-2" />
           <input
             id="ricerca-carte"
             type="search"
@@ -52,20 +52,20 @@ export function ImportaCarteTab() {
             placeholder="Nome della carta, es. charizard"
             autoComplete="off"
             aria-describedby="ricerca-carte-aiuto"
-            className="w-full rounded-full border-2 border-blu-500/80 bg-white py-4 pl-14 pr-14 text-lg text-blu-900 shadow-lg shadow-blu-900/10 outline-none transition placeholder:text-blu-900/65 focus:border-blu-500 focus:ring-4 focus:ring-blu-500/25 [&::-webkit-search-cancel-button]:hidden"
+            className="w-full rounded-full border-2 border-blu-500/80 bg-superficie py-4 pl-14 pr-14 text-lg text-testo shadow-lg shadow-ombra/10 outline-none transition placeholder:text-testo/65 focus:border-blu-500 focus:ring-4 focus:ring-blu-500/25 [&::-webkit-search-cancel-button]:hidden"
           />
           {testo && (
             <button
               type="button"
               onClick={() => cambiaTesto('')}
               aria-label="Svuota la ricerca"
-              className="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full text-blu-700 hover:bg-blu-50"
+              className="absolute right-3 top-1/2 grid size-10 -translate-y-1/2 place-items-center rounded-full text-testo-2 hover:bg-tenue"
             >
               <X aria-hidden className="size-5" />
             </button>
           )}
         </div>
-        <p id="ricerca-carte-aiuto" className="mt-2 pl-5 text-sm text-blu-900/70">
+        <p id="ricerca-carte-aiuto" className="mt-2 pl-5 text-sm text-testo/70">
           Almeno {MINIMO_CARATTERI} caratteri. Una sola parola cerca per inizio del nome.
         </p>
       </div>
@@ -104,7 +104,7 @@ export function ImportaCarteTab() {
           />
         ) : (
           <>
-            <p className="mb-6 text-center font-semibold text-blu-900">
+            <p className="mb-6 text-center font-semibold text-testo">
               {data.totalElements === 1 ? '1 carta trovata' : `${data.totalElements} carte trovate`}
             </p>
             <motion.ul

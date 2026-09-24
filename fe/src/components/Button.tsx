@@ -12,8 +12,8 @@ const VARIANTI: Record<Variante, string> = {
   primario: 'bg-blu-500 text-white shadow-lg shadow-blu-500/30 hover:bg-blu-700',
   secondario: 'bg-giallo-400 text-blu-900 shadow-lg shadow-giallo-400/40 hover:shadow-giallo-400/60',
   pericolo: 'bg-rosso-700 text-white shadow-lg shadow-rosso-500/30',
-  chiaro: 'bg-white text-blu-700 shadow-md shadow-blu-900/10 hover:bg-blu-50',
-  fantasma: 'bg-transparent text-blu-700 hover:bg-blu-50',
+  chiaro: 'bg-superficie text-testo-2 shadow-md shadow-ombra/10 hover:bg-tenue scuro:ring-1 scuro:ring-white/10',
+  fantasma: 'bg-transparent text-testo-2 hover:bg-tenue',
   // per sfondi blu scuri (navbar)
   suScuro: 'bg-transparent text-white ring-1 ring-white/40 hover:bg-white/10',
 }

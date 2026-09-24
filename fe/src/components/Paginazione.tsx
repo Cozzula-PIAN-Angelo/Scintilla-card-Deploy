@@ -25,7 +25,7 @@ export function Paginazione({ pagina, totalePagine, onCambia }: Props) {
   if (totalePagine <= 1) return null
 
   const classeFreccia =
-    'grid size-11 place-items-center rounded-full bg-white text-blu-700 shadow-md shadow-blu-900/10 transition-colors hover:bg-blu-50 disabled:cursor-not-allowed disabled:opacity-40'
+    'grid size-11 place-items-center rounded-full bg-superficie text-testo-2 shadow-md shadow-ombra/10 transition-colors hover:bg-tenue disabled:cursor-not-allowed disabled:opacity-40'
 
   return (
     <nav aria-label="Paginazione" className="mt-12 flex items-center justify-center gap-2">
@@ -36,7 +36,7 @@ export function Paginazione({ pagina, totalePagine, onCambia }: Props) {
       <ul className="flex items-center gap-1.5">
         {paginePerNavigazione(pagina, totalePagine).map((voce, indice) =>
           voce === 'salto' ? (
-            <li key={`salto-${indice}`} aria-hidden className="px-1 font-semibold text-blu-700">
+            <li key={`salto-${indice}`} aria-hidden className="px-1 font-semibold text-testo-2">
               …
             </li>
           ) : (
@@ -48,7 +48,7 @@ export function Paginazione({ pagina, totalePagine, onCambia }: Props) {
                 aria-label={`Pagina ${voce + 1}`}
                 className={cn(
                   'relative grid size-11 place-items-center rounded-full text-sm font-bold transition-colors',
-                  voce === pagina ? 'text-blu-900' : 'text-blu-700 hover:bg-white',
+                  voce === pagina ? 'text-blu-900' : 'text-testo-2 hover:bg-superficie',
                 )}
               >
                 {voce === pagina && (

@@ -14,7 +14,7 @@ export function CartaRisultato({ carta }: { carta: CartaEsterna }) {
   const [formAperto, setFormAperto] = useState(false)
 
   return (
-    <motion.li variants={elementoGriglia} className="relative list-none overflow-hidden rounded-3xl bg-white p-3 shadow-lg shadow-blu-900/10 ring-1 ring-blu-900/5">
+    <motion.li variants={elementoGriglia} className="relative list-none overflow-hidden rounded-3xl bg-superficie p-3 shadow-lg shadow-ombra/10 ring-1 ring-linea/5">
       <div className="relative">
         <ImmagineCarta src={carta.immagineUrlPiccola ?? carta.immagineUrl} alt={carta.nome} className="aspect-[63/88] w-full rounded-2xl" />
         <AnimatePresence>
@@ -32,8 +32,8 @@ export function CartaRisultato({ carta }: { carta: CartaEsterna }) {
       </div>
 
       <div className="mt-3 space-y-2 px-1">
-        <h3 className="line-clamp-1 text-lg font-semibold text-blu-900">{carta.nome}</h3>
-        <p className="line-clamp-1 text-sm text-blu-900/70">
+        <h3 className="line-clamp-1 text-lg font-semibold text-testo">{carta.nome}</h3>
+        <p className="line-clamp-1 text-sm text-testo/70">
           {carta.espansione ?? 'Espansione sconosciuta'}
           {carta.numero && <> · n° {carta.numero}</>}
         </p>
@@ -46,7 +46,7 @@ export function CartaRisultato({ carta }: { carta: CartaEsterna }) {
               {formattaPrezzo(carta.prezzoSuggerito)}
             </span>
           ) : (
-            <span className="text-xs font-medium text-blu-900/70">Prezzo non disponibile</span>
+            <span className="text-xs font-medium text-testo/70">Prezzo non disponibile</span>
           )}
         </div>
         <Button

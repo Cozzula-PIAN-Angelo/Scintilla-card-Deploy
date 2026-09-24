@@ -7,9 +7,11 @@ import { selectIsAdmin, selectToken, selectUtente } from '../features/auth/authS
 import { useLogout } from '../features/auth/useLogout'
 import { useScrollato } from '../hooks/useScrollato'
 import { molla } from '../theme/motion'
+import { useTema } from '../theme/tema'
 import { cn } from '../utils/cn'
 import { Button, LinkBottone } from './Button'
 import { Logo } from './Logo'
+import { PulsanteTema } from './PulsanteTema'
 
 interface VoceMenu {
   a: string
@@ -23,6 +25,7 @@ export function Navbar() {
   const utente = useAppSelector(selectUtente)
   const isAdmin = useAppSelector(selectIsAdmin)
   const { esci, inUscita } = useLogout()
+  const { tema, alterna } = useTema()
   const [menuAperto, setMenuAperto] = useState(false)
   const { pathname } = useLocation()
 
@@ -43,7 +46,7 @@ export function Navbar() {
     <header
       className={cn(
         'sticky top-0 z-40 transition-[padding,background-color,box-shadow] duration-300',
-        scrollato ? 'bg-blu-900/95 py-2 shadow-xl shadow-blu-900/30 backdrop-blur-md' : 'bg-blu-900 py-4',
+        scrollato ? 'bg-notte/95 py-2 shadow-xl shadow-ombra/30 backdrop-blur-md' : 'bg-notte py-4',
       )}
     >
       <nav aria-label="Principale" className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
@@ -73,51 +76,55 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden items-center gap-3 md:flex">
-          {utente ? (
-            <>
-              <span className="text-sm text-white">
-                Ciao, <strong className="font-semibold text-giallo-400">{utente.username}</strong>
-              </span>
-              <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
-                <LogOut aria-hidden className="size-4" />
-                Esci
-              </Button>
-            </>
-          ) : (
-            !token && (
-              <>
-                <LinkBottone to="/login" variante="suScuro" dimensione="sm">
-                  Accedi
-                </LinkBottone>
-                <LinkBottone to="/register" variante="secondario" dimensione="sm">
-                  Registrati
-                </LinkBottone>
-              </>
-            )
-          )}
-        </div>
+        <div className="flex items-center gap-1 md:gap-3">
+          <PulsanteTema tema={tema} onAlterna={alterna} />
 
-        <button
-          type="button"
-          onClick={() => setMenuAperto((aperto) => !aperto)}
-          aria-expanded={menuAperto}
-          aria-controls="menu-mobile"
-          aria-label={menuAperto ? 'Chiudi il menu' : 'Apri il menu'}
-          className="grid size-11 place-items-center rounded-full text-white transition-colors hover:bg-white/10 md:hidden"
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={menuAperto ? 'chiudi' : 'apri'}
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              {menuAperto ? <X aria-hidden className="size-6" /> : <Menu aria-hidden className="size-6" />}
-            </motion.span>
-          </AnimatePresence>
-        </button>
+          <div className="hidden items-center gap-3 md:flex">
+            {utente ? (
+              <>
+                <span className="text-sm text-white">
+                  Ciao, <strong className="font-semibold text-giallo-400">{utente.username}</strong>
+                </span>
+                <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
+                  <LogOut aria-hidden className="size-4" />
+                  Esci
+                </Button>
+              </>
+            ) : (
+              !token && (
+                <>
+                  <LinkBottone to="/login" variante="suScuro" dimensione="sm">
+                    Accedi
+                  </LinkBottone>
+                  <LinkBottone to="/register" variante="secondario" dimensione="sm">
+                    Registrati
+                  </LinkBottone>
+                </>
+              )
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMenuAperto((aperto) => !aperto)}
+            aria-expanded={menuAperto}
+            aria-controls="menu-mobile"
+            aria-label={menuAperto ? 'Chiudi il menu' : 'Apri il menu'}
+            className="grid size-11 place-items-center rounded-full text-white transition-colors hover:bg-white/10 md:hidden"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={menuAperto ? 'chiudi' : 'apri'}
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                {menuAperto ? <X aria-hidden className="size-6" /> : <Menu aria-hidden className="size-6" />}
+              </motion.span>
+            </AnimatePresence>
+          </button>
+        </div>
       </nav>
 
       <AnimatePresence>
@@ -129,7 +136,7 @@ export function Navbar() {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden md:hidden"
           >
-            <div className="mx-4 mt-3 space-y-1 rounded-3xl bg-blu-700 p-3 shadow-xl">
+            <div className="mx-4 mt-3 space-y-1 rounded-3xl bg-notte-2 p-3 shadow-xl">
               {voci.map((voce, indice) => (
                 <motion.div key={voce.a} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1, transition: { delay: indice * 0.05 } }}>
                   <NavLink

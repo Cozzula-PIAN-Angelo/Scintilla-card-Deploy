@@ -18,9 +18,9 @@ export function Loader({ etichetta = 'Caricamento…', className }: Props) {
             </div>
           </div>
         </div>
-        <div className="absolute inset-x-0 bottom-0 mx-auto h-2 w-9 animate-ombra rounded-full bg-blu-900" />
+        <div className="absolute inset-x-0 bottom-0 mx-auto h-2 w-9 animate-ombra rounded-full bg-ombra" />
       </div>
-      <span className="text-sm font-semibold text-blu-700">{etichetta}</span>
+      <span className="text-sm font-semibold text-testo-2">{etichetta}</span>
     </div>
   )
 }

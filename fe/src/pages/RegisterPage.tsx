@@ -114,9 +114,9 @@ export function RegisterPage() {
         <Button type="submit" variante="primario" dimensione="lg" caricamento={inRegistrazione || inAccesso} className="w-full">
           Registrati
         </Button>
-        <p className="text-center text-sm text-blu-900/70">
+        <p className="text-center text-sm text-testo/70">
           Hai già un account?{' '}
-          <Link to="/login" className="font-semibold text-blu-700 underline-offset-4 hover:underline">
+          <Link to="/login" className="font-semibold text-testo-2 underline-offset-4 hover:underline">
             Accedi
           </Link>
         </p>

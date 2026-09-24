@@ -44,7 +44,7 @@ export function PreferitiPage() {
 
   return (
     <PaginaAnimata className="min-h-[70vh]">
-      <section className="bg-blu-700 text-white">
+      <section className="bg-notte-2 text-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-12 sm:px-6">
           <h1 className="flex items-center gap-3 text-4xl font-bold sm:text-5xl">
             <Heart aria-hidden className="size-9 fill-rosso-500 text-rosso-500" />I miei preferiti
@@ -56,7 +56,7 @@ export function PreferitiPage() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         {data && data.totalElements > 0 && (
           <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-semibold text-blu-900">
+            <p className="font-semibold text-testo">
               {data.totalElements === 1 ? '1 carta salvata' : `${data.totalElements} carte salvate`}
             </p>
             <SelectOrdinamento valore={ordinamento} opzioni={ORDINAMENTI_PREFERITI} onCambia={cambiaOrdinamento} />
