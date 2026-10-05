@@ -24,6 +24,8 @@ public class AuthService {
         // stesso messaggio per utente inesistente e password errata:
         // non si rivela quali email o username sono registrati
         return utenteRepository.findByUsernameOrEmail(body.identificativo(), body.identificativo())
+                // un account cancellato non accede più (la password è comunque casuale: è una seconda difesa)
+                .filter(utente -> !utente.isAnonimizzato())
                 .filter(utente -> passwordEncoder.matches(body.password(), utente.getPassword()))
                 .map(utente -> new LoginResponseDTO(jwtTools.generaToken(utente)))
                 .orElseThrow(() -> new UnauthorizedException("Credenziali non valide"));

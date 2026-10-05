@@ -23,6 +23,9 @@ public class RuoloUtenteService {
     @Transactional
     public void assegnaAdmin(UUID utenteId) {
         Utente utente = utenteService.findById(utenteId);
+        if (utente.isAnonimizzato()) {
+            throw new NotFoundException("Utente con id " + utenteId + " non trovato");
+        }
 
         if (ruoloUtenteRepository.existsByUtenteIdAndRuoloNome(utenteId, NomiRuolo.ADMIN)) {
             throw new ConflictException("L'utente " + utente.getUsername() + " ha già il ruolo ADMIN");

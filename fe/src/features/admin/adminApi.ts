@@ -16,7 +16,12 @@ export const adminApi = api.injectEndpoints({
       query: (idUtente) => ({ url: `/utenti/${idUtente}/ruoli/admin`, method: 'DELETE' }),
       invalidatesTags: ['Utenti', 'Me'],
     }),
+    // cancella (anonimizza) l'account di un utente: sparisce dall'elenco, i suoi dati restano anonimi
+    cancellaUtente: build.mutation<void, string>({
+      query: (idUtente) => ({ url: `/utenti/${idUtente}`, method: 'DELETE' }),
+      invalidatesTags: ['Utenti'],
+    }),
   }),
 })
 
-export const { useGetUtentiQuery, useAssegnaAdminMutation, useRevocaAdminMutation } = adminApi
+export const { useGetUtentiQuery, useAssegnaAdminMutation, useRevocaAdminMutation, useCancellaUtenteMutation } = adminApi

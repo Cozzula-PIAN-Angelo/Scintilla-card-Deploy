@@ -22,6 +22,10 @@ export const authApi = api.injectEndpoints({
     logout: build.mutation<void, void>({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
     }),
+    // cancella (anonimizza) il proprio account; la password conferma che è davvero il titolare
+    cancellaAccount: build.mutation<void, { password: string }>({
+      query: (body) => ({ url: '/me', method: 'DELETE', body }),
+    }),
     me: build.query<Utente, void>({
       query: () => '/me',
       providesTags: ['Me'],
@@ -37,4 +41,4 @@ export const authApi = api.injectEndpoints({
   }),
 })
 
-export const { useLoginMutation, useRegistraMutation, useLogoutMutation, useMeQuery } = authApi
+export const { useLoginMutation, useRegistraMutation, useLogoutMutation, useCancellaAccountMutation, useMeQuery } = authApi

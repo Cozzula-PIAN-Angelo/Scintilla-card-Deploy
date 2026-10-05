@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Album, BookOpen, Heart, LayoutGrid, LogOut, Menu, ShieldCheck, X, type LucideIcon } from 'lucide-react'
+import { Album, BookOpen, Heart, LayoutGrid, LogOut, Menu, ShieldCheck, UserX, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
 import { selectIsAdmin, selectToken, selectUtente } from '../features/auth/authSlice'
+import { ModaleCancellaAccount } from '../features/auth/ModaleCancellaAccount'
 import { useLogout } from '../features/auth/useLogout'
 import { useScrollato } from '../hooks/useScrollato'
 import { molla } from '../theme/motion'
@@ -27,6 +28,7 @@ export function Navbar() {
   const { esci, inUscita } = useLogout()
   const { tema, alterna } = useTema()
   const [menuAperto, setMenuAperto] = useState(false)
+  const [cancellazioneAperta, setCancellazioneAperta] = useState(false)
   const { pathname } = useLocation()
 
   useEffect(() => setMenuAperto(false), [pathname])
@@ -89,6 +91,15 @@ export function Navbar() {
                 <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
                   <LogOut aria-hidden className="size-4" />
                   Esci
+                </Button>
+                <Button
+                  variante="suScuro"
+                  dimensione="sm"
+                  onClick={() => setCancellazioneAperta(true)}
+                  aria-label="Cancella il tuo account"
+                  title="Cancella account"
+                >
+                  <UserX aria-hidden className="size-4" />
                 </Button>
               </>
             ) : (
@@ -157,14 +168,24 @@ export function Navbar() {
               ))}
               <div className="mt-2 border-t border-white/20 pt-3">
                 {utente ? (
-                  <div className="flex items-center justify-between gap-3 px-2">
-                    <span className="text-sm text-white">
-                      Ciao, <strong className="text-giallo-400">{utente.username}</strong>
-                    </span>
-                    <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
-                      <LogOut aria-hidden className="size-4" />
-                      Esci
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3 px-2">
+                      <span className="text-sm text-white">
+                        Ciao, <strong className="text-giallo-400">{utente.username}</strong>
+                      </span>
+                      <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
+                        <LogOut aria-hidden className="size-4" />
+                        Esci
+                      </Button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCancellazioneAperta(true)}
+                      className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/10"
+                    >
+                      <UserX aria-hidden className="size-5" />
+                      Cancella account
+                    </button>
                   </div>
                 ) : (
                   !token && (
@@ -183,6 +204,8 @@ export function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ModaleCancellaAccount aperta={cancellazioneAperta} onChiudi={() => setCancellazioneAperta(false)} />
     </header>
   )
 }

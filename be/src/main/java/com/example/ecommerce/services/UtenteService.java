@@ -87,7 +87,7 @@ public class UtenteService {
 
     @Transactional(readOnly = true)
     public PageResponse<UtenteResponseDTO> findAll(Pageable pageable) {
-        Page<Utente> utenti = utenteRepository.findAll(pageable);
+        Page<Utente> utenti = utenteRepository.findByAnonimizzatoIlIsNull(pageable);
 
         // ruoli di tutta la pagina con una sola query, raggruppati per utente
         List<UUID> ids = utenti.getContent().stream().map(Utente::getId).toList();

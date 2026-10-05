@@ -58,6 +58,10 @@ public class JWTFilter extends OncePerRequestFilter {
 
             // utente e ruoli riletti dal DB a ogni richiesta: una revoca di ADMIN ha effetto subito
             Utente utente = utenteService.findById(jwtTools.estraiIdUtente(token));
+            // account cancellato: i token emessi prima della cancellazione non valgono più
+            if (utente.isAnonimizzato()) {
+                throw new UnauthorizedException("Questo account è stato cancellato");
+            }
             List<GrantedAuthority> authorities = utenteService.getNomiRuoli(utente.getId()).stream()
                     .<GrantedAuthority>map(nomeRuolo -> new SimpleGrantedAuthority("ROLE_" + nomeRuolo))
                     .toList();

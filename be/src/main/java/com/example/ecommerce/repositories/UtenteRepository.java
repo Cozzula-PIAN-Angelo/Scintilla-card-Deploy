@@ -1,6 +1,8 @@
 package com.example.ecommerce.repositories;
 
 import com.example.ecommerce.entities.Utente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -16,4 +18,7 @@ public interface UtenteRepository extends JpaRepository<Utente, UUID> {
     boolean existsByEmail(String email);
 
     boolean existsByUsername(String username);
+
+    // elenco per l'admin: gli account cancellati restano nel DB ma non si gestiscono più
+    Page<Utente> findByAnonimizzatoIlIsNull(Pageable pageable);
 }
