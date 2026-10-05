@@ -16,7 +16,8 @@ public record RegistrazioneDTO(
         @Email(message = "L'email non è valida")
         String email,
 
-        // BCrypt considera solo i primi 72 byte: oltre, Spring Security rifiuta la password
+        // BCrypt considera solo i primi 72 byte: oltre, Spring Security rifiuta la password.
+        // @Size conta i caratteri: il limite in byte (lettere accentate = 2 byte) lo controlla UtenteService
         @NotBlank(message = "La password è obbligatoria")
         @Size(min = 8, max = 72, message = "La password deve avere tra 8 e 72 caratteri")
         String password

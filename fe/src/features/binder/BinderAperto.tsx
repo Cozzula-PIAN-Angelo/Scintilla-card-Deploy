@@ -452,7 +452,9 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
               <div className="flex min-w-0 flex-1 items-baseline justify-center gap-3">
                 <h1 className="truncate text-xl font-bold text-testo sm:text-2xl">{binder.nome}</h1>
                 <p className="shrink-0 text-sm text-testo/70">
-                  {binder.carteInserite} / {binder.pagine * binder.tasche} carte
+                  {/* dalle tasche, non da binder.carteInserite: inserire o togliere una carta aggiorna
+                      subito le tasche, mentre il conteggio del dettaglio resterebbe quello di apertura */}
+                  {slot.length} / {binder.pagine * binder.tasche} carte
                 </p>
               </div>
               <div className="flex gap-2">

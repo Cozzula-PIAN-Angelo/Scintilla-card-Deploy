@@ -3,6 +3,7 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.entities.NomiRuolo;
 import com.example.ecommerce.entities.RuoloUtente;
 import com.example.ecommerce.entities.Utente;
+import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.PageResponse;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +28,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UtenteService {
 
+    // limite di BCrypt
+    private static final int MASSIMO_BYTE_PASSWORD = 72;
+
     private final UtenteRepository utenteRepository;
     private final RuoloUtenteRepository ruoloUtenteRepository;
     private final RuoloService ruoloService;
@@ -33,6 +38,11 @@ public class UtenteService {
 
     @Transactional
     public UtenteResponseDTO registra(RegistrazioneDTO body) {
+        // oltre i 72 byte BCryptPasswordEncoder.encode lancia IllegalArgumentException (500)
+        if (body.password().getBytes(StandardCharsets.UTF_8).length > MASSIMO_BYTE_PASSWORD) {
+            throw new BadRequestException("La password è troppo lunga: lettere accentate ed emoji occupano più spazio, "
+                    + "accorciala o usa meno caratteri speciali");
+        }
         if (utenteRepository.existsByUsername(body.username())) {
             throw new ConflictException("Lo username '" + body.username() + "' è già in uso");
         }
