@@ -65,6 +65,8 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
   const [erroreImmagine, setErroreImmagine] = useState<string | null>(null)
   const [conferma, setConferma] = useState(false)
   const [salvataggio, setSalvataggio] = useState(false)
+  // nuovo binder: quello creato al primo salvataggio, anche se poi il caricamento dell'immagine è fallito
+  const [creato, setCreato] = useState<Binder | null>(null)
 
   const [crea] = useCreaBinderMutation()
   const [modifica] = useModificaBinderMutation()
@@ -103,7 +105,11 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
     setSalvataggio(true)
     const dati: DatiBinder = { nome: nomePulito, tasche, pagine, colore, motivo, cartaCopertinaId: carta?.id ?? null }
     try {
-      const salvato = binder ? await modifica({ id: binder.id, dati }).unwrap() : await crea(dati).unwrap()
+      // binder già creato in un tentativo precedente (fallito sull'immagine): si modifica quello,
+      // altrimenti un nuovo clic su "Crea binder" ne creerebbe un doppione
+      const esistente = binder ?? creato
+      const salvato = esistente ? await modifica({ id: esistente.id, dati }).unwrap() : await crea(dati).unwrap()
+      if (!binder) setCreato(salvato)
       if (immagine.tipo === 'nuova') {
         await caricaImmagine({ id: salvato.id, immagine: immagine.blob }).unwrap()
       } else if (immagine.tipo === 'nessuna' && binder?.immagineAggiornataIl) {

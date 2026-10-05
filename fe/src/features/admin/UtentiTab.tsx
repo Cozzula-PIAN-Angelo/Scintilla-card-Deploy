@@ -1,5 +1,5 @@
-import { Crown, ShieldCheck, ShieldOff, Users } from 'lucide-react'
-import { useState } from 'react'
+import { Crown, ShieldCheck, ShieldOff, Trash2, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { messaggioErrore } from '../../app/errori'
 import { useAppSelector } from '../../app/hooks'
 import { Button } from '../../components/Button'
@@ -11,7 +11,7 @@ import { RUOLO_ADMIN, type Utente } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { selectUtente } from '../auth/authSlice'
 import { useToast } from '../toast/useToast'
-import { useAssegnaAdminMutation, useGetUtentiQuery, useRevocaAdminMutation } from './adminApi'
+import { useAssegnaAdminMutation, useCancellaUtenteMutation, useGetUtentiQuery, useRevocaAdminMutation } from './adminApi'
 
 const PER_PAGINA = 10
 
@@ -20,8 +20,27 @@ export function UtentiTab() {
   const { data, isLoading, isFetching, isError, error, refetch } = useGetUtentiQuery({ page: pagina, size: PER_PAGINA })
   const [assegna] = useAssegnaAdminMutation()
   const [revoca] = useRevocaAdminMutation()
+  const [cancella, { isLoading: inCancellazione }] = useCancellaUtenteMutation()
   const io = useAppSelector(selectUtente)
   const toast = useToast()
+  const [daCancellare, setDaCancellare] = useState<Utente | null>(null)
+
+  // cancellato l'ultimo utente dell'ultima pagina: si torna alla pagina precedente
+  useEffect(() => {
+    if (data && pagina > 0 && pagina >= data.totalPages) setPagina(Math.max(0, data.totalPages - 1))
+  }, [data, pagina])
+
+  const confermaCancellazione = async () => {
+    if (!daCancellare) return
+    try {
+      await cancella(daCancellare.id).unwrap()
+      toast.successo(`L'account di ${daCancellare.username} è stato cancellato`)
+      setDaCancellare(null)
+    } catch (e) {
+      // 409: ultimo admin rimasto
+      toast.errore(messaggioErrore(e, 'Cancellazione non riuscita'))
+    }
+  }
 
   const [inCorso, setInCorso] = useState<string | null>(null)
   // revocare ADMIN a sé stessi fa perdere l'accesso a questa pagina: serve una conferma
@@ -116,18 +135,32 @@ export function UtentiTab() {
                           ))}
                         </div>
                       </td>
-                      <td className="px-5 py-3 text-right">
-                        <Button
-                          variante={admin ? 'chiaro' : 'primario'}
-                          dimensione="sm"
-                          caricamento={inCorso === utente.id}
-                          disabled={inCorso !== null && inCorso !== utente.id}
-                          onClick={() => gestisciClic(utente)}
-                        >
-                          {inCorso !== utente.id &&
-                            (admin ? <ShieldOff aria-hidden className="size-4" /> : <ShieldCheck aria-hidden className="size-4" />)}
-                          {admin ? 'Revoca admin' : 'Rendi admin'}
-                        </Button>
+                      <td className="px-5 py-3">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variante={admin ? 'chiaro' : 'primario'}
+                            dimensione="sm"
+                            caricamento={inCorso === utente.id}
+                            disabled={inCorso !== null && inCorso !== utente.id}
+                            onClick={() => gestisciClic(utente)}
+                          >
+                            {inCorso !== utente.id &&
+                              (admin ? <ShieldOff aria-hidden className="size-4" /> : <ShieldCheck aria-hidden className="size-4" />)}
+                            {admin ? 'Revoca admin' : 'Rendi admin'}
+                          </Button>
+                          {/* il proprio account si cancella dal menu utente, con la password */}
+                          {utente.id !== io?.id && (
+                            <Button
+                              variante="pericolo"
+                              dimensione="sm"
+                              onClick={() => setDaCancellare(utente)}
+                              aria-label={`Cancella l'account di ${utente.username}`}
+                              title="Cancella account"
+                            >
+                              <Trash2 aria-hidden className="size-4" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -150,6 +183,23 @@ export function UtentiTab() {
           <Button variante="pericolo" caricamento={inCorso !== null} onClick={() => io && cambiaRuolo({ ...io, ruoli: [RUOLO_ADMIN] })}>
             <ShieldOff aria-hidden className="size-4" />
             Revoca
+          </Button>
+        </div>
+      </Modale>
+
+      <Modale aperto={daCancellare !== null} onChiudi={() => setDaCancellare(null)} titolo="Cancellare l'account?">
+        <p className="text-testo">
+          L'account di <strong>{daCancellare?.username}</strong> verrà anonimizzato: username, email e immagini di
+          copertina vengono rimossi e non potrà più accedere. Preferiti e binder restano solo in forma anonima, per le
+          statistiche. L'operazione non si può annullare.
+        </p>
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variante="fantasma" onClick={() => setDaCancellare(null)}>
+            Annulla
+          </Button>
+          <Button variante="pericolo" onClick={confermaCancellazione} caricamento={inCancellazione}>
+            <Trash2 aria-hidden className="size-4" />
+            Cancella account
           </Button>
         </div>
       </Modale>

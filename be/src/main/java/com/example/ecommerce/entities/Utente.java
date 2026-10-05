@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -35,9 +36,18 @@ public class Utente {
     @Column(nullable = false, length = 60)
     private String password;
 
+    // account cancellato: la riga resta (statistiche, preferiti e binder restano collegati),
+    // ma username, email e password non sono più quelli dell'utente. Null per gli account attivi
+    @Column(name = "anonimizzato_il")
+    private Instant anonimizzatoIl;
+
     public Utente(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    public boolean isAnonimizzato() {
+        return anonimizzatoIl != null;
     }
 }

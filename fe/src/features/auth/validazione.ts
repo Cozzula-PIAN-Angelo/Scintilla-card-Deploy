@@ -19,6 +19,9 @@ export function validaRegistrazione(dati: DatiRegistrazione): ErroriForm<keyof D
   if (!dati.password) errori.password = 'La password è obbligatoria'
   else if (dati.password.length < 8 || dati.password.length > 72) {
     errori.password = 'La password deve avere tra 8 e 72 caratteri'
+  } else if (new TextEncoder().encode(dati.password).length > 72) {
+    // il limite vero di BCrypt è in byte: lettere accentate ed emoji ne occupano più di uno
+    errori.password = 'Password troppo lunga: lettere accentate ed emoji occupano più spazio, accorciala'
   }
   return errori
 }

@@ -37,7 +37,7 @@ public class BinderService {
 
     private static final Set<Integer> TASCHE_AMMESSE = Set.of(4, 9, 12);
     // il browser ridimensiona e comprime prima dell'invio: ne arrivano 100-300 KB
-    private static final int DIMENSIONE_MASSIMA_IMMAGINE = 1024 * 1024;
+    public static final int DIMENSIONE_MASSIMA_IMMAGINE = 1024 * 1024;
 
     private final BinderRepository binderRepository;
     private final SlotBinderRepository slotRepository;

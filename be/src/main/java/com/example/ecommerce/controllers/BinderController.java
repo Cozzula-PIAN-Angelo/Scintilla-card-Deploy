@@ -2,6 +2,7 @@ package com.example.ecommerce.controllers;
 
 import com.example.ecommerce.entities.ImmagineBinder;
 import com.example.ecommerce.entities.Utente;
+import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.payloads.BinderDTO;
 import com.example.ecommerce.payloads.BinderDettaglioDTO;
 import com.example.ecommerce.payloads.BinderResponseDTO;
@@ -9,6 +10,7 @@ import com.example.ecommerce.payloads.InserisciCartaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
 import com.example.ecommerce.services.BinderService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -92,11 +95,19 @@ public class BinderController {
         binderService.svuota(utente, id, pagina, posizione);
     }
 
-    // body = i byte dell'immagine, non multipart: il browser la invia già ridimensionata
+    // body = i byte dell'immagine, non multipart: il browser la invia già ridimensionata.
+    // Niente @RequestBody byte[]: leggerebbe in memoria tutto il body, di qualunque dimensione,
+    // prima del controllo sul massimo. Qui si legge al più un byte oltre il limite
     @PostMapping(value = "/{id}/immagine", consumes = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, "image/webp"})
     public BinderResponseDTO salvaImmagine(@AuthenticationPrincipal Utente utente,
                                            @PathVariable UUID id,
-                                           @RequestBody byte[] contenuto) {
+                                           HttpServletRequest request) throws IOException {
+        if (request.getContentLengthLong() > BinderService.DIMENSIONE_MASSIMA_IMMAGINE) {
+            throw new BadRequestException("L'immagine supera 1 MB");
+        }
+        // senza Content-Length (invio a blocchi) il limite vale comunque: oltre il massimo
+        // il service riceve DIMENSIONE_MASSIMA_IMMAGINE + 1 byte e risponde 400
+        byte[] contenuto = request.getInputStream().readNBytes(BinderService.DIMENSIONE_MASSIMA_IMMAGINE + 1);
         return binderService.salvaImmagine(utente, id, contenuto);
     }
 
