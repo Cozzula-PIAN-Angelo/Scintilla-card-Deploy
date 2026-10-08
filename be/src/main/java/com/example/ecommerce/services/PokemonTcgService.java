@@ -136,10 +136,7 @@ public class PokemonTcgService {
                     + PREZZO_MASSIMO + ": indica il prezzo a mano nel body, es. {\"prezzo\": 999.99}");
         }
 
-        String nome = componiNome(carta);
-        if (oggettoRepository.existsByNome(nome)) {
-            throw new ConflictException("Esiste già un oggetto con nome '" + nome + "'");
-        }
+        String nome = nomeLibero(carta, new HashSet<>());
 
         // flush immediato: così createdAt è valorizzato nella risposta
         Oggetto oggetto = nuovoOggetto(carta, nome, prezzo, salvaEspansione(carta.set()));
@@ -159,12 +156,12 @@ public class PokemonTcgService {
         }
 
         EsitoImport esito = salvaCarte(carte);
-        espansioneRepository.findById(id).ifPresent(espansione -> {
-            espansione.setImportata(true);
-            espansioneRepository.save(espansione);
-        });
+        // entity gestita: al commit si scrive solo "importata" (@DynamicUpdate)
+        transazione.executeWithoutResult(stato ->
+                espansioneRepository.findById(id).ifPresent(espansione -> espansione.setImportata(true)));
         log.info("Import set {}: {}", id, esito);
-        return new ImportaSetResponseDTO(id, esito.trovate(), esito.importate(), esito.saltate(), esito.scartate());
+        return new ImportaSetResponseDTO(id, esito.trovate(), esito.importate(), esito.saltate(), esito.scartate(),
+                esito.rinominate());
     }
 
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
@@ -176,14 +173,16 @@ public class PokemonTcgService {
         return esito;
     }
 
-    public record EsitoImport(int trovate, int importate, int saltate, int scartate) {
+    // saltate: già nel catalogo (o senza espansione nella risposta); scartate: prezzo oltre il massimo;
+    // rinominate: importate con l'id di pokemontcg.io nel nome, perché quello composto era già usato
+    public record EsitoImport(int trovate, int importate, int saltate, int scartate, int rinominate) {
     }
 
     // salva le carte scaricate: le nuove entrano nel catalogo, quelle già presenti ricevono i dati
     // mancanti (espansione, numero, numeri di Pokédex). Le carte possono venire da set diversi
     private EsitoImport salvaCarte(List<Carta> carte) {
         if (carte.isEmpty()) {
-            return new EsitoImport(0, 0, 0, 0);
+            return new EsitoImport(0, 0, 0, 0, 0);
         }
         synchronized (lockScrittura) {
             return transazione.execute(stato -> {
@@ -195,9 +194,11 @@ public class PokemonTcgService {
                 List<Oggetto> nuovi = new ArrayList<>();
                 int saltate = 0;
                 int scartate = 0;
+                int rinominate = 0;
 
                 for (Carta carta : carte) {
                     if (carta.set() == null || carta.set().id() == null) {
+                        log.warn("Carta {} senza espansione nella risposta di pokemontcg.io: non importata", carta.id());
                         saltate++;
                         continue;
                     }
@@ -215,44 +216,49 @@ public class PokemonTcgService {
                         saltate++;
                         continue;
                     }
-                    String nome = componiNome(carta);
-                    if (!nomiUsati.add(nome) || oggettoRepository.existsByNome(nome)) {
-                        saltate++;
-                        continue;
-                    }
                     BigDecimal prezzo = prezzoSuggerito(carta);
                     if (prezzo == null) {
                         prezzo = PREZZO_RIPIEGO;
                     } else if (prezzo.compareTo(PREZZO_MASSIMO) > 0) {
+                        log.warn("Carta {}: prezzo suggerito {} oltre il massimo, non importata", carta.id(), prezzo);
                         scartate++;
                         continue;
+                    }
+                    String nome = nomeLibero(carta, nomiUsati);
+                    if (!nome.equals(componiNome(carta))) {
+                        rinominate++;
                     }
                     nuovi.add(nuovoOggetto(carta, nome, prezzo, espansione));
                 }
 
                 oggettoRepository.saveAll(nuovi);
-                return new EsitoImport(carte.size(), nuovi.size(), saltate, scartate);
+                return new EsitoImport(carte.size(), nuovi.size(), saltate, scartate, rinominate);
             });
         }
     }
 
-    // tutte le espansioni di pokemontcg.io (circa 180: basta una pagina)
-    public List<Espansione> scaricaEspansioni() {
+    // scarica tutte le espansioni di pokemontcg.io (circa 180: basta una pagina) e le salva; restituisce
+    // quante sono. La chiamata HTTP sta fuori dalla transazione, il salvataggio dentro: le entity
+    // restano gestite e, con @DynamicUpdate, si scrivono solo i campi davvero cambiati (mai "importata")
+    public int sincronizzaEspansioni() {
         RispostaEspansioni risposta = conTentativi(() -> chiama(() -> pokemonTcgRestClient.get()
                         .uri(uri -> uri.path("/sets").queryParam("pageSize", 250).build())
                         .retrieve()
                         .body(RispostaEspansioni.class),
                 "Elenco delle espansioni non trovato su pokemontcg.io"), "elenco espansioni");
         List<PokemonTcgApi.Espansione> dati = risposta.data() == null ? List.of() : risposta.data();
-        return dati.stream().map(this::aggiornaDa).toList();
+        transazione.executeWithoutResult(stato -> dati.forEach(this::salvaEspansione));
+        return dati.size();
     }
 
-    // crea o aggiorna l'espansione con i dati dell'API, senza toccare il flag importata
+    // crea o aggiorna l'espansione con i dati dell'API, senza toccare il flag importata.
+    // Sempre in transazione (si unisce a quella di salvaCarte, se c'è): senza, save() farebbe il merge
+    // di una copia staccata con tutti i campi, compreso un "importata" magari già superato
     private Espansione salvaEspansione(PokemonTcgApi.Espansione dati) {
         if (dati == null || dati.id() == null) {
             throw new ServizioEsternoException("Carta senza espansione nella risposta di pokemontcg.io", null);
         }
-        return espansioneRepository.save(aggiornaDa(dati));
+        return transazione.execute(stato -> espansioneRepository.save(aggiornaDa(dati)));
     }
 
     private Espansione aggiornaDa(PokemonTcgApi.Espansione dati) {
@@ -434,6 +440,22 @@ public class PokemonTcgService {
                 .findFirst()
                 .map(prezzo -> prezzo.setScale(2, RoundingMode.HALF_UP))
                 .orElse(null);
+    }
+
+    // Il nome dell'oggetto è unico, ma quello composto non sempre: due varianti della stessa carta con
+    // stesso set e numero, o un oggetto creato a mano con quel nome. Prima la carta veniva saltata in
+    // silenzio (e il set risultava importato lo stesso); ora entra col suo id di pokemontcg.io, che è unico.
+    // nomiUsati: i nomi già assegnati nello stesso import, non ancora salvati
+    private String nomeLibero(Carta carta, Set<String> nomiUsati) {
+        String nome = componiNome(carta);
+        if (!nomiUsati.contains(nome) && !oggettoRepository.existsByNome(nome)) {
+            nomiUsati.add(nome);
+            return nome;
+        }
+        String alternativo = nome + " [" + carta.id() + "]";
+        nomiUsati.add(alternativo);
+        log.info("Nome '{}' già usato: la carta {} entra come '{}'", nome, carta.id(), alternativo);
+        return alternativo;
     }
 
     // es. "Charizard (Base 4/102)", oppure "Charizard (Base 4)" se il totale non è disponibile

@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -49,5 +50,11 @@ public class Utente {
 
     public boolean isAnonimizzato() {
         return anonimizzatoIl != null;
+    }
+
+    // le email si salvano così: "Mario@Esempio.it" e "mario@esempio.it" sono lo stesso indirizzo.
+    // Locale.ROOT: con la lingua turca "I" diventerebbe "ı"
+    public static String normalizzaEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

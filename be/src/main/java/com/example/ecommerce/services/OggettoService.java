@@ -32,11 +32,13 @@ public class OggettoService {
 
     @Transactional
     public OggettoResponseDTO crea(NuovoOggettoDTO body) {
-        if (oggettoRepository.existsByNome(body.nome())) {
-            throw new ConflictException("Esiste già un oggetto con nome '" + body.nome() + "'");
+        // senza trim "Pikachu " e "Pikachu" sarebbero due nomi diversi, aggirando il vincolo di unicità
+        String nome = body.nome().trim();
+        if (oggettoRepository.existsByNome(nome)) {
+            throw new ConflictException("Esiste già un oggetto con nome '" + nome + "'");
         }
         // flush immediato: così createdAt è valorizzato nella risposta
-        Oggetto oggetto = oggettoRepository.saveAndFlush(new Oggetto(body.nome(), body.prezzo()));
+        Oggetto oggetto = oggettoRepository.saveAndFlush(new Oggetto(nome, body.prezzo()));
         return OggettoResponseDTO.from(oggetto);
     }
 
@@ -45,10 +47,12 @@ public class OggettoService {
         Oggetto oggetto = findEntityById(id);
 
         if (body.nome() != null) {
-            if (oggettoRepository.existsByNomeAndIdNot(body.nome(), id)) {
-                throw new ConflictException("Esiste già un altro oggetto con nome '" + body.nome() + "'");
+            // il DTO garantisce almeno un carattere non vuoto, quindi dopo il trim il nome non è vuoto
+            String nome = body.nome().trim();
+            if (oggettoRepository.existsByNomeAndIdNot(nome, id)) {
+                throw new ConflictException("Esiste già un altro oggetto con nome '" + nome + "'");
             }
-            oggetto.setNome(body.nome());
+            oggetto.setNome(nome);
         }
         if (body.prezzo() != null) {
             oggetto.setPrezzo(body.prezzo());

@@ -46,12 +46,14 @@ public class UtenteService {
         if (utenteRepository.existsByUsername(body.username())) {
             throw new ConflictException("Lo username '" + body.username() + "' è già in uso");
         }
-        if (utenteRepository.existsByEmail(body.email())) {
-            throw new ConflictException("L'email '" + body.email() + "' è già registrata");
+        String email = Utente.normalizzaEmail(body.email());
+        // IgnoreCase: copre anche gli account registrati prima, con le maiuscole nell'email
+        if (utenteRepository.existsByEmailIgnoreCase(email)) {
+            throw new ConflictException("L'email '" + email + "' è già registrata");
         }
 
         Utente utente = utenteRepository.save(
-                new Utente(body.username(), body.email(), passwordEncoder.encode(body.password())));
+                new Utente(body.username(), email, passwordEncoder.encode(body.password())));
 
         // la registrazione assegna sempre e solo il ruolo UTENTE
         ruoloUtenteRepository.save(new RuoloUtente(utente, ruoloService.findByNome(NomiRuolo.UTENTE)));

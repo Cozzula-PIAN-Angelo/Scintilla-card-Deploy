@@ -40,7 +40,13 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
   dal database. Prezzi, preferiti e modifica admin funzionano su tutte le carte.
 - **Import a mano** (admin): `POST /carte/importa-set/{setId}` importa un set intero e
   completa le carte mancanti di un set già importato. Risponde con `trovate`,
-  `importate`, `saltate`, `scartate`.
+  `importate`, `saltate` (già nel catalogo), `scartate` (prezzo oltre il massimo) e
+  `rinominate`: carte il cui nome composto era già usato, importate con l'id di pokemontcg.io
+  tra parentesi quadre invece di essere scartate.
+- **Limite sugli import pubblici**: le prime aperture di set e Pokémon scaricano da pokemontcg.io,
+  quindi sono limitate a `IMPORT_LIMITE_CLIENT` (default 30) all'ora per indirizzo IP e a
+  `IMPORT_LIMITE_GIORNALIERO` (default 400) al giorno per tutto il sito; oltre, `429`. Quello che è
+  già nel catalogo si consulta senza limiti, e gli import dell'admin non contano.
 - **Primo avvio**: se il catalogo è vuoto si importano i set di `SEED_SET` (default `base1`),
   così l'hero ha subito delle carte.
 - Le carte senza prezzo Cardmarket (tipico dei set appena usciti) entrano a 1,00 €.
@@ -56,7 +62,9 @@ aprono tutte le carte in cui compare, dalla più recente.
 
 - `GET /pokedex/{numero}/carte` (pubblico): alla prima apertura il backend importa da
   pokemontcg.io tutte le carte del Pokémon (`nationalPokedexNumbers`), poi legge dal database;
-  dopo 7 giorni le riscarica, così compaiono le carte dei set nuovi.
+  dopo 7 giorni le riscarica, così compaiono le carte dei set nuovi. Il numero massimo è
+  `POKEDEX_NUMERO_MASSIMO` (default 1025); se il limite sugli import è raggiunto, il
+  riaggiornamento settimanale si rinvia e si mostrano le carte già scaricate.
 - Ogni carta salva i numeri di Pokédex dei Pokémon raffigurati (tabella `oggetti_pokedex`).
 - L'elenco dei nomi è in `fe/src/features/pokedex/pokedex.json`, generato da PokeAPI.
 

@@ -15,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -31,6 +32,8 @@ public class JWTFilter extends OncePerRequestFilter {
     private final TokenRevocatoService tokenRevocatoService;
     private final UtenteService utenteService;
     private final ErroreJsonWriter erroreJsonWriter;
+    // endpoint pubblici (SecurityConfig): con un token non valido si prosegue come anonimi
+    private final RequestMatcher endpointPubblici;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -71,6 +74,12 @@ public class JWTFilter extends OncePerRequestFilter {
         } catch (UnauthorizedException | NotFoundException ex) {
             // NotFoundException: token valido di un utente che nel frattempo è stato cancellato
             SecurityContextHolder.clearContext();
+            if (endpointPubblici.matches(request)) {
+                // pagina pubblica: il token scaduto non deve impedire di guardarla. Il frontend
+                // si accorge comunque della sessione scaduta dal 401 di /me
+                filterChain.doFilter(request, response);
+                return;
+            }
             String messaggio = ex instanceof NotFoundException
                     ? "L'utente del token non esiste più"
                     : ex.getMessage();

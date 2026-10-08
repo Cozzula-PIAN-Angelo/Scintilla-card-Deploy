@@ -48,7 +48,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         Ruolo ruoloUtente = creaRuoloSeMancante(NomiRuolo.UTENTE);
         Ruolo ruoloAdmin = creaRuoloSeMancante(NomiRuolo.ADMIN);
 
-        if (utenteRepository.existsByEmail(adminEmail)) {
+        // ADMIN_EMAIL può avere le maiuscole: si confronta e si salva come le email registrate
+        String adminEmail = Utente.normalizzaEmail(this.adminEmail);
+        if (utenteRepository.existsByEmailIgnoreCase(adminEmail)) {
             log.info("Seeder: admin con email {} già presente, salto", adminEmail);
             return;
         }
