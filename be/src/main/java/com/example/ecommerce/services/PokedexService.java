@@ -4,10 +4,12 @@ import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.PokemonImportato;
 import com.example.ecommerce.exceptions.BadRequestException;
+import com.example.ecommerce.exceptions.TroppeRichiesteException;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.PokemonImportatoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -22,30 +24,34 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 public class PokedexService {
 
-    // margine sopra i 1025 Pokémon attuali: i nuovi arrivano con le nuove generazioni
-    private static final int NUMERO_MASSIMO = 2000;
     // dopo una settimana si riscarica: così compaiono le carte dei set usciti nel frattempo
     private static final Duration VALIDITA_IMPORT = Duration.ofDays(7);
 
     private final OggettoRepository oggettoRepository;
     private final PokemonImportatoRepository pokemonImportatoRepository;
     private final PokemonTcgService pokemonTcgService;
+    private final LimitatoreImport limitatoreImport;
+
+    // oltre l'ultimo Pokémon esistente non si interroga pokemontcg.io: ogni numero inventato
+    // costerebbe una chiamata (e un posto nel limite degli import) senza trovare niente
+    @Value("${app.pokedex.numero-massimo}")
+    private int numeroMassimo;
 
     // un lock per Pokémon: due visitatori che aprono insieme lo stesso Pokémon lo importano una volta sola
     private final ConcurrentMap<Integer, Object> lockPerPokemon = new ConcurrentHashMap<>();
 
-    // carte in cui compare il Pokémon, dalla più recente; alla prima apertura si importano da pokemontcg.io
-    public List<OggettoResponseDTO> carte(int numero) {
-        if (numero < 1 || numero > NUMERO_MASSIMO) {
-            throw new BadRequestException("Numero di Pokédex non valido: deve essere tra 1 e " + NUMERO_MASSIMO);
+    // carte in cui compare il Pokémon, dalla più recente; alla prima apertura si importano da pokemontcg.io.
+    // client: IP del visitatore, per il limite sugli import
+    public List<OggettoResponseDTO> carte(int numero, String client) {
+        if (numero < 1 || numero > numeroMassimo) {
+            throw new BadRequestException("Numero di Pokédex non valido: deve essere tra 1 e " + numeroMassimo);
         }
 
         if (daImportare(numero)) {
             synchronized (lockPerPokemon.computeIfAbsent(numero, chiave -> new Object())) {
                 // ricontrollo: nel frattempo un'altra richiesta potrebbe averlo già importato
                 if (daImportare(numero)) {
-                    pokemonTcgService.importaPokemon(numero);
-                    pokemonImportatoRepository.save(new PokemonImportato(numero, Instant.now()));
+                    importa(numero, client);
                 }
             }
         }
@@ -56,6 +62,21 @@ public class PokedexService {
                         .thenComparing(Oggetto::getNumero, NumeriCarta::confronta))
                 .map(OggettoResponseDTO::from)
                 .toList();
+    }
+
+    private void importa(int numero, String client) {
+        try {
+            limitatoreImport.registra(client);
+        } catch (TroppeRichiesteException ex) {
+            // aggiornamento settimanale di un Pokémon già scaricato: col limite raggiunto si rinvia
+            // e si mostrano le carte che ci sono. Il 429 resta solo per la prima apertura
+            if (pokemonImportatoRepository.existsById(numero)) {
+                return;
+            }
+            throw ex;
+        }
+        pokemonTcgService.importaPokemon(numero);
+        pokemonImportatoRepository.save(new PokemonImportato(numero, Instant.now()));
     }
 
     private boolean daImportare(int numero) {

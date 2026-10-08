@@ -3,6 +3,7 @@ package com.example.ecommerce.controllers;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.services.EspansioneService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,8 +25,9 @@ public class EspansioneController {
         return espansioneService.findAll();
     }
 
+    // la prima apertura importa il set: l'IP serve al limite sugli import (vedi LimitatoreImport)
     @GetMapping("/{id}/carte")
-    public List<OggettoResponseDTO> carte(@PathVariable String id) {
-        return espansioneService.carte(id);
+    public List<OggettoResponseDTO> carte(@PathVariable String id, HttpServletRequest request) {
+        return espansioneService.carte(id, request.getRemoteAddr());
     }
 }

@@ -46,6 +46,12 @@ public class GlobalExceptionHandler {
         return new ErrorResponseDTO(ex.getMessage());
     }
 
+    @ExceptionHandler(TroppeRichiesteException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ErrorResponseDTO handleTroppeRichieste(TroppeRichiesteException ex) {
+        return new ErrorResponseDTO(ex.getMessage());
+    }
+
     // il dettaglio dell'errore originale è già loggato nel service
     @ExceptionHandler(ServizioEsternoException.class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
