@@ -3,6 +3,7 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.NotFoundException;
+import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.repositories.EspansioneRepository;
@@ -39,6 +40,16 @@ public class EspansioneService {
     // riavvio si riprova subito, ed è al più una chiamata per set
     private final ConcurrentMap<String, Instant> setVuoti = new ConcurrentHashMap<>();
 
+    // vetrina vuota e sincronizzazione fallita: dopo quanto la si ritenta da una visita
+    private static final Duration ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA = Duration.ofMinutes(5);
+
+    // una sola sincronizzazione alla volta dalle visite: con la vetrina vuota chi arriva insieme aspetta
+    // e poi trova le espansioni già salvate, invece di chiamare pokemontcg.io ognuno per conto suo
+    private final Object lockSincronizzazione = new Object();
+
+    // ora dell'ultima sincronizzazione fallita da una visita; letta e scritta solo dentro il lock
+    private Instant sincronizzazioneFallitaIl;
+
     // aggiorna l'elenco delle espansioni da pokemontcg.io: all'avvio e ogni notte (nuovi set)
     @Scheduled(cron = "0 30 4 * * *")
     public void sincronizza() {
@@ -48,11 +59,36 @@ public class EspansioneService {
     public List<EspansioneResponseDTO> findAll() {
         // primo avvio con pokemontcg.io giù: si riprova alla prima visita della vetrina
         if (espansioneRepository.count() == 0) {
-            sincronizza();
+            sincronizzaDaVisita();
         }
         return espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc().stream()
                 .map(EspansioneResponseDTO::from)
                 .toList();
+    }
+
+    // Se fallisce, per qualche minuto le visite rispondono subito con lo stesso errore (502) invece di
+    // rifare ognuna tutti i tentativi verso un'API ancora giù. Non una lista vuota: "nessuna espansione"
+    // sarebbe falso. La sincronizzazione notturna e quella all'avvio non passano di qui
+    private void sincronizzaDaVisita() {
+        synchronized (lockSincronizzazione) {
+            // ricontrollo: chi aspettava il lock trova le espansioni già salvate dalla visita prima
+            if (espansioneRepository.count() > 0) {
+                return;
+            }
+            if (sincronizzazioneFallitaIl != null
+                    && sincronizzazioneFallitaIl.isAfter(Instant.now().minus(ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA))) {
+                throw new ServizioEsternoException("Sincronizzazione delle espansioni fallita alle "
+                        + sincronizzazioneFallitaIl + ": si riprova dopo " + ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA.toMinutes()
+                        + " minuti", null);
+            }
+            try {
+                sincronizza();
+                sincronizzazioneFallitaIl = null;
+            } catch (ServizioEsternoException ex) {
+                sincronizzazioneFallitaIl = Instant.now();
+                throw ex;
+            }
+        }
     }
 
     // carte del set, ordinate per numero; alla prima apertura le importa da pokemontcg.io.
