@@ -4,11 +4,13 @@ import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.PokemonImportato;
 import com.example.ecommerce.exceptions.BadRequestException;
+import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.exceptions.TroppeRichiesteException;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.PokemonImportatoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PokedexService {
@@ -75,7 +78,18 @@ public class PokedexService {
             }
             throw ex;
         }
-        pokemonTcgService.importaPokemon(numero);
+        try {
+            pokemonTcgService.importaPokemon(numero);
+        } catch (ServizioEsternoException ex) {
+            // stesso criterio del limite: con pokemontcg.io giù l'aggiornamento settimanale si rinvia e si
+            // mostrano le carte già scaricate. La data non cambia, così alla prossima visita si riprova.
+            // Alla prima apertura non c'è niente da mostrare: resta il 502
+            if (pokemonImportatoRepository.existsById(numero)) {
+                log.warn("Aggiornamento delle carte del Pokémon #{} non riuscito: si mostrano quelle già salvate", numero);
+                return;
+            }
+            throw ex;
+        }
         pokemonImportatoRepository.save(new PokemonImportato(numero, Instant.now()));
     }
 
