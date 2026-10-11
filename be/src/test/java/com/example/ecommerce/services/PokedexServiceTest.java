@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +69,25 @@ class PokedexServiceTest {
         assertThat(carte).extracting(OggettoResponseDTO::nome).containsExactly("Pikachu (Base 58/102)");
         // la data non si aggiorna: alla prossima visita si riprova a scaricare
         verify(pokemonImportatoRepository, never()).save(any());
+    }
+
+    // dopo un aggiornamento fallito, per un po' non si riprova: la visita successiva risponde subito con le
+    // carte salvate, invece di aspettare di nuovo i tentativi verso un'API che è ancora giù
+    @Test
+    void dopoUnAggiornamentoFallitoNonSiRiprovaSubito() {
+        when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.of(importatoDa(Duration.ofDays(8))));
+        when(pokemonImportatoRepository.existsById(PIKACHU)).thenReturn(true);
+        when(pokemonTcgService.importaPokemon(PIKACHU))
+                .thenThrow(new ServizioEsternoException("Errore HTTP da pokemontcg.io", null));
+        when(oggettoRepository.findByNumeroPokedex(PIKACHU)).thenReturn(List.of(cartaSalvata));
+
+        service.carte(PIKACHU, CLIENT);
+        List<OggettoResponseDTO> carte = service.carte(PIKACHU, CLIENT);
+
+        assertThat(carte).hasSize(1);
+        verify(pokemonTcgService, times(1)).importaPokemon(PIKACHU);
+        // nemmeno il limite: la seconda visita non avvia nessun import
+        verify(limitatoreImport, times(1)).registra(CLIENT);
     }
 
     // prima apertura: non c'è niente da mostrare, quindi l'errore arriva al client (502)
