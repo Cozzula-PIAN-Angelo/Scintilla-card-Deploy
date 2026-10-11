@@ -4,11 +4,11 @@ import type { Oggetto } from '../../types/api'
 export const pokedexApi = api.injectEndpoints({
   endpoints: (build) => ({
     // alla prima apertura il backend importa da pokemontcg.io tutte le carte del Pokémon: la risposta
-    // può richiedere qualche secondo, e se l'API esterna è giù arriva un 502 che si ritenta
+    // può richiedere qualche secondo. Niente maxRetries: il backend ritenta già da solo, e ogni nuova
+    // richiesta consumerebbe un altro posto nel limite sugli import. Su un 502 resta il pulsante Riprova
     getCartePokemon: build.query<Oggetto[], number>({
       query: (numero) => `/pokedex/${numero}/carte`,
       providesTags: ['Oggetti'],
-      extraOptions: { maxRetries: 2 },
     }),
   }),
 })
