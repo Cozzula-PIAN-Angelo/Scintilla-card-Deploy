@@ -347,8 +347,8 @@ public class PokemonTcgService {
                     throw ex;
                 }
                 long attesa = ATTESA_BASE_MS * tentativo;
-                log.warn("pokemontcg.io non disponibile ({}), tentativo {}/{} tra {} ms",
-                        descrizione, tentativo, TENTATIVI_SET, attesa);
+                log.warn("pokemontcg.io non disponibile ({}), tentativo {}/{} fallito, il prossimo tra {} ms: {}",
+                        descrizione, tentativo, TENTATIVI_SET, attesa, ex.getMessage());
                 try {
                     Thread.sleep(attesa);
                 } catch (InterruptedException interrotto) {
@@ -359,7 +359,9 @@ public class PokemonTcgService {
         }
     }
 
-    // traduce gli errori HTTP e di rete dell'API esterna nelle eccezioni dell'applicazione
+    // traduce gli errori HTTP e di rete dell'API esterna nelle eccezioni dell'applicazione. Niente log qui:
+    // il dettaglio viaggia nel messaggio dell'eccezione, e lo scrive una volta sola chi la gestisce
+    // (conTentativi per ogni tentativo, GlobalExceptionHandler per l'errore finale)
     private <T> T chiama(Supplier<T> chiamata, String messaggioNonTrovato) {
         T risposta;
         try {
@@ -369,18 +371,15 @@ public class PokemonTcgService {
         } catch (RestClientResponseException ex) {
             // 5xx, 429 (limite di richieste) e gli altri 4xx, che dipendono da configurazione o query errate
             String corpo = ex.getResponseBodyAsString();
-            log.error("pokemontcg.io ha risposto {}: {}", ex.getStatusCode(),
-                    corpo.length() > 500 ? corpo.substring(0, 500) + "..." : corpo);
-            throw new ServizioEsternoException("Errore HTTP da pokemontcg.io", ex);
+            throw new ServizioEsternoException("pokemontcg.io ha risposto " + ex.getStatusCode() + ": "
+                    + (corpo.length() > 500 ? corpo.substring(0, 500) + "..." : corpo), ex);
         } catch (RestClientException ex) {
             // timeout, connessione rifiutata, risposta non deserializzabile
-            log.error("Chiamata a pokemontcg.io fallita", ex);
-            throw new ServizioEsternoException("Chiamata a pokemontcg.io fallita", ex);
+            throw new ServizioEsternoException("Chiamata a pokemontcg.io fallita: " + ex.getMessage(), ex);
         }
 
         if (risposta == null) {
-            log.error("pokemontcg.io ha risposto senza body");
-            throw new ServizioEsternoException("Risposta vuota da pokemontcg.io", null);
+            throw new ServizioEsternoException("pokemontcg.io ha risposto senza body", null);
         }
         return risposta;
     }

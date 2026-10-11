@@ -93,8 +93,8 @@ public class PokedexService {
             // mostrano le carte già scaricate. La data non cambia, così alla prossima visita si riprova.
             // Alla prima apertura non c'è niente da mostrare: resta il 502
             if (pokemonImportatoRepository.existsById(numero)) {
-                log.warn("Aggiornamento delle carte del Pokémon #{} non riuscito: si mostrano quelle già salvate, "
-                        + "si riprova tra {} minuti", numero, ATTESA_DOPO_ERRORE.toMinutes());
+                log.warn("Aggiornamento delle carte del Pokémon #{} non riuscito ({}): si mostrano quelle già salvate, "
+                        + "si riprova tra {} minuti", numero, ex.getMessage(), ATTESA_DOPO_ERRORE.toMinutes());
                 aggiornamentiFalliti.put(numero, Instant.now());
                 return;
             }
