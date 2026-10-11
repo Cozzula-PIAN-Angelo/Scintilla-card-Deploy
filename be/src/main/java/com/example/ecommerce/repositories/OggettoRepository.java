@@ -31,6 +31,10 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione JOIN o.numeriPokedex n WHERE n = :numero")
     List<Oggetto> findByNumeroPokedex(@Param("numero") int numero);
 
+    // tra i nomi passati, quelli già usati: una sola query per tutte le carte nuove di un import
+    @Query("SELECT o.nome FROM Oggetto o WHERE o.nome IN :nomi")
+    Set<String> findNomiPresenti(@Param("nomi") Collection<String> nomi);
+
     // tra gli idEsterno passati, quelli già importati: una sola query per un'intera pagina di risultati
     @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni")
     Set<String> findIdEsterniPresenti(@Param("idEsterni") Collection<String> idEsterni);

@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -136,7 +137,7 @@ public class PokemonTcgService {
                     + PREZZO_MASSIMO + ": indica il prezzo a mano nel body, es. {\"prezzo\": 999.99}");
         }
 
-        String nome = nomeLibero(carta, new HashSet<>());
+        String nome = nomeLibero(carta, nomiOccupati(List.of(componiNome(carta))));
 
         // flush immediato: così createdAt è valorizzato nella risposta
         Oggetto oggetto = nuovoOggetto(carta, nome, prezzo, salvaEspansione(carta.set()));
@@ -190,7 +191,13 @@ public class PokemonTcgService {
                 Map<String, Oggetto> giaImportate = oggettoRepository.findByIdEsternoIn(carte.stream().map(Carta::id).toList())
                         .stream()
                         .collect(Collectors.toMap(Oggetto::getIdEsterno, Function.identity()));
-                Set<String> nomiUsati = new HashSet<>();
+                // nomi già nel catalogo tra quelli delle carte nuove, letti tutti insieme; nomeLibero ci
+                // aggiunge man mano quelli assegnati in questo import, non ancora salvati
+                Set<String> nomiUsati = nomiOccupati(carte.stream()
+                        .filter(carta -> carta.set() != null && carta.set().id() != null)
+                        .filter(carta -> !giaImportate.containsKey(carta.id()))
+                        .map(this::componiNome)
+                        .collect(Collectors.toSet()));
                 List<Oggetto> nuovi = new ArrayList<>();
                 int saltate = 0;
                 int scartate = 0;
@@ -445,17 +452,22 @@ public class PokemonTcgService {
     // Il nome dell'oggetto è unico, ma quello composto non sempre: due varianti della stessa carta con
     // stesso set e numero, o un oggetto creato a mano con quel nome. Prima la carta veniva saltata in
     // silenzio (e il set risultava importato lo stesso); ora entra col suo id di pokemontcg.io, che è unico.
-    // nomiUsati: i nomi già assegnati nello stesso import, non ancora salvati
+    // nomiUsati: i nomi già nel catalogo (vedi nomiOccupati) più quelli assegnati nello stesso import
     private String nomeLibero(Carta carta, Set<String> nomiUsati) {
         String nome = componiNome(carta);
-        if (!nomiUsati.contains(nome) && !oggettoRepository.existsByNome(nome)) {
-            nomiUsati.add(nome);
+        if (nomiUsati.add(nome)) {
             return nome;
         }
         String alternativo = nome + " [" + carta.id() + "]";
         nomiUsati.add(alternativo);
         log.info("Nome '{}' già usato: la carta {} entra come '{}'", nome, carta.id(), alternativo);
         return alternativo;
+    }
+
+    // tra i nomi candidati, quelli già usati nel catalogo, con una sola query invece di una per carta.
+    // Insieme modificabile: nomeLibero ci aggiunge i nomi assegnati man mano
+    private Set<String> nomiOccupati(Collection<String> candidati) {
+        return candidati.isEmpty() ? new HashSet<>() : new HashSet<>(oggettoRepository.findNomiPresenti(candidati));
     }
 
     // es. "Charizard (Base 4/102)", oppure "Charizard (Base 4)" se il totale non è disponibile
