@@ -23,7 +23,13 @@ const NESSUNA = new Map<Variante, number>()
 export function useCollezione(filtro: FiltroPagina | null) {
   const token = useAppSelector(selectToken)
   const attiva = !!token && filtro !== null
-  const { data } = useGetCollezioneQuery(filtro ?? { pokemon: 0 }, { skip: !attiva })
+  // si rilegge a ogni apertura: la collezione può essere cambiata altrove (binder, altra pagina), e le
+  // modifiche aggiornano solo la cache della pagina da cui partono. currentData: i dati di questo filtro,
+  // non quelli del set o del Pokémon precedente mentre il nuovo carica
+  const { currentData: data } = useGetCollezioneQuery(filtro ?? { pokemon: 0 }, {
+    skip: !attiva,
+    refetchOnMountOrArgChange: true,
+  })
   const [modificaCopia] = useModificaCollezioneMutation()
   const toast = useToast()
 

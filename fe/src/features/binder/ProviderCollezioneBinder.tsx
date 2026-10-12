@@ -11,8 +11,9 @@ import { ContestoCollezione, type ContestoCollezioneBinder } from './contestoCol
 // Porta la collezione dell'utente alle tasche senza toccare BinderAperto. Il binder la mostra soltanto:
 // inserire, spostare o svuotare non la modificano, solo "Ce l'ho" aggiunge una copia
 export function ProviderCollezioneBinder({ id, children }: { id: string; children: ReactNode }) {
-  // stessa query di BinderAperto: RTK Query la condivide
-  const { data } = useGetBinderDettaglioQuery(id)
+  // stessa query di BinderAperto: RTK Query la condivide. Si rilegge a ogni apertura: la collezione
+  // può essere cambiata da un'altra pagina, che aggiorna solo la sua cache
+  const { data } = useGetBinderDettaglioQuery(id, { refetchOnMountOrArgChange: true })
   const [modificaCopia] = useModificaCollezioneMutation()
   const toast = useToast()
 
