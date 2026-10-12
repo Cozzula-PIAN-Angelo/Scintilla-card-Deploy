@@ -2,6 +2,7 @@ package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.entities.Variante;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
@@ -57,7 +58,7 @@ import java.util.stream.Stream;
 public class PokemonTcgService {
 
     private static final int MAX_SIZE = 50;
-    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers";
+    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers,tcgplayer";
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
     // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
@@ -211,6 +212,10 @@ public class PokemonTcgService {
                         if (esistente.getNumeriPokedex().isEmpty() && carta.nationalPokedexNumbers() != null) {
                             esistente.getNumeriPokedex().addAll(carta.nationalPokedexNumbers());
                         }
+                        // varianti mai lette: si riempiono; quelle già note (anche corrette a mano) restano
+                        if (esistente.getVarianti() == null) {
+                            esistente.setVarianti(varianti(carta));
+                        }
                         saltate++;
                         continue;
                     }
@@ -289,7 +294,14 @@ public class PokemonTcgService {
         if (carta.nationalPokedexNumbers() != null) {
             oggetto.getNumeriPokedex().addAll(carta.nationalPokedexNumbers());
         }
+        oggetto.setVarianti(varianti(carta));
         return oggetto;
+    }
+
+    // varianti suggerite dalle chiavi di tcgplayer.prices; senza tcgplayer lista vuota (carta letta, nessuna indicata)
+    private List<Variante> varianti(Carta carta) {
+        Map<String, Object> prezzi = carta.tcgplayer() == null ? null : carta.tcgplayer().prices();
+        return Variante.daChiaviTcgplayer(prezzi == null ? null : prezzi.keySet());
     }
 
     // orderBy=id: con orderBy=number pokemontcg.io pagina in modo instabile (la pagina 2 ripete

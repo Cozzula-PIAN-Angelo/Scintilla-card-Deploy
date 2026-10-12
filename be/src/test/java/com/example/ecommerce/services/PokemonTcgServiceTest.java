@@ -1,6 +1,7 @@
 package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.entities.Variante;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.repositories.EspansioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
@@ -60,6 +61,19 @@ class PokemonTcgServiceTest {
                "set": {"id": "jungle", "name": "Jungle", "printedTotal": 64},
                "cardmarket": {"prices": {"trendPrice": 1.3}}, "nationalPokedexNumbers": [25]}
             ], "page": 1, "pageSize": 100, "count": 3, "totalCount": 3}
+            """;
+
+    // due carte: la prima con le varianti di tcgplayer, la seconda senza il blocco tcgplayer
+    private static final String RISPOSTA_CON_VARIANTI = """
+            {"data": [
+              {"id": "sv1-1", "name": "Sprigatito", "number": "1",
+               "set": {"id": "sv1", "name": "Scarlet", "printedTotal": 198},
+               "tcgplayer": {"prices": {"normal": {"low": 0.1}, "reverseHolofoil": {"low": 0.2}}},
+               "cardmarket": {"prices": {"trendPrice": 0.5}}},
+              {"id": "sv1-2", "name": "Floragato", "number": "2",
+               "set": {"id": "sv1", "name": "Scarlet", "printedTotal": 198},
+               "cardmarket": {"prices": {"trendPrice": 0.6}}}
+            ], "page": 1, "pageSize": 100, "count": 2, "totalCount": 2}
             """;
 
     @Mock
@@ -140,5 +154,47 @@ class PokemonTcgServiceTest {
         verify(oggettoRepository).findNomiPresenti(nomiCercati.capture());
         assertThat(nomiCercati.getValue()).containsExactly("Pikachu (Jungle 60/64)");
         assertThat(esito).isEqualTo(new PokemonTcgService.EsitoImport(3, 2, 1, 0, 1));
+    }
+
+    // la richiesta chiede anche tcgplayer, da cui si leggono le varianti
+    private void rispondeConVarianti() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("tcgplayer"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI, MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void cartaNuovaHaLeVariantiDiTcgplayer() {
+        rispondeConVarianti();
+
+        service.importaSet("sv1");
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        // senza tcgplayer la lista è vuota, non null: la carta è stata letta
+        assertThat(salvati.getValue()).extracting(Oggetto::getVarianti).containsExactly(
+                List.of(Variante.NORMALE, Variante.REVERSE_HOLO), List.of());
+        pokemontcg.verify();
+    }
+
+    @Test
+    void cartaEsistenteSenzaVariantiLeRiceve() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getVarianti()).containsExactly(Variante.NORMALE, Variante.REVERSE_HOLO);
+    }
+
+    @Test
+    void cartaEsistenteConVariantiNonCambia() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        esistente.setVarianti(List.of(Variante.HOLO));
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getVarianti()).containsExactly(Variante.HOLO);
     }
 }

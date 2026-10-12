@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 // struttura delle risposte di pokemontcg.io v2, solo con i campi richiesti tramite "select".
 // Uso interno del service: non viene mai restituita ai client
@@ -24,7 +25,7 @@ public final class PokemonTcgApi {
     // nationalPokedexNumbers: i Pokémon raffigurati (più di uno nelle carte "tag team"); vuoto per
     // allenatori ed energie
     public record Carta(String id, String name, String number, String rarity,
-                        Espansione set, Immagini images, Cardmarket cardmarket, List<Integer> nationalPokedexNumbers) {
+                        Espansione set, Immagini images, Cardmarket cardmarket, List<Integer> nationalPokedexNumbers, Tcgplayer tcgplayer) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -43,6 +44,11 @@ public final class PokemonTcgApi {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Immagini(String small, String large) {
+    }
+
+    // prices: le chiavi sono le varianti stampate (normal, reverseHolofoil...); dei valori non serve nulla
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Tcgplayer(Map<String, Object> prices) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
