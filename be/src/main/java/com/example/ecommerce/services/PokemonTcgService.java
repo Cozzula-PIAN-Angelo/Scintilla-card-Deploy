@@ -58,7 +58,7 @@ import java.util.stream.Stream;
 public class PokemonTcgService {
 
     private static final int MAX_SIZE = 50;
-    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers,tcgplayer";
+    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,supertype,subtypes,set,images,cardmarket,nationalPokedexNumbers,tcgplayer";
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
     // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
@@ -157,9 +157,9 @@ public class PokemonTcgService {
                 esito.rinominate());
     }
 
-    // riempie varianti e rarità delle carte di un set già importato. Passa da salvaCarte come un import, quindi
+    // riempie varianti, rarità, categoria e sottotipi delle carte di un set già importato. Passa da salvaCarte come un import, quindi
     // le carte nuove del set entrano nel catalogo; non tocca "importata". Solo se il download è completo
-    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota e la rarità '', così il job non
+    // quelle che pokemontcg.io non restituisce più ricevono lista vuota, rarità '', categoria '' e sottotipi vuoti, così il job non
     // le ripropone a ogni giro; con un download parziale restano da leggere e si riprovano al giro dopo
     public void riempiVarianti(String setId) {
         Download download = scarica("set.id:" + setId, "set " + setId);
@@ -182,6 +182,12 @@ public class PokemonTcgService {
                     }
                     if (oggetto.getRarita() == null) {
                         oggetto.setRarita("");
+                    }
+                    if (oggetto.getCategoria() == null) {
+                        oggetto.setCategoria("");
+                    }
+                    if (oggetto.getSottotipi() == null) {
+                        oggetto.setSottotipi(List.of());
                     }
                 }));
         log.info("Varianti e rarità del set {} aggiornate ({} carte lette)", setId, carte.size());
@@ -249,6 +255,13 @@ public class PokemonTcgService {
                         // stesso schema per la rarità: si riempie solo se mai letta
                         if (esistente.getRarita() == null) {
                             esistente.setRarita(rarita(carta));
+                        }
+                        // e per categoria e sottotipi
+                        if (esistente.getCategoria() == null) {
+                            esistente.setCategoria(categoria(carta));
+                        }
+                        if (esistente.getSottotipi() == null) {
+                            esistente.setSottotipi(sottotipi(carta));
                         }
                         saltate++;
                         continue;
@@ -330,12 +343,24 @@ public class PokemonTcgService {
         }
         oggetto.setVarianti(varianti(carta));
         oggetto.setRarita(rarita(carta));
+        oggetto.setCategoria(categoria(carta));
+        oggetto.setSottotipi(sottotipi(carta));
         return oggetto;
     }
 
     // senza rarità nella risposta '' (carta letta, nessuna indicata)
     private String rarita(Carta carta) {
         return carta.rarity() == null ? "" : carta.rarity();
+    }
+
+    // senza categoria nella risposta '' (carta letta, nessuna indicata)
+    private String categoria(Carta carta) {
+        return carta.supertype() == null ? "" : carta.supertype();
+    }
+
+    // senza sottotipi nella risposta lista vuota (carta letta, nessuno indicato)
+    private List<String> sottotipi(Carta carta) {
+        return carta.subtypes() == null ? List.of() : carta.subtypes();
     }
 
     // varianti suggerite dalle chiavi di tcgplayer.prices; senza tcgplayer lista vuota (carta letta, nessuna indicata)

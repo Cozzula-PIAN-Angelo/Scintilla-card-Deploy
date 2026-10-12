@@ -67,6 +67,7 @@ class PokemonTcgServiceTest {
     private static final String RISPOSTA_CON_VARIANTI = """
             {"data": [
               {"id": "sv1-1", "name": "Sprigatito", "number": "1", "rarity": "Double Rare",
+               "supertype": "Pokémon", "subtypes": ["Basic", "ex"],
                "set": {"id": "sv1", "name": "Scarlet", "printedTotal": 198},
                "tcgplayer": {"prices": {"normal": {"low": 0.1}, "reverseHolofoil": {"low": 0.2}}},
                "cardmarket": {"prices": {"trendPrice": 0.5}}},
@@ -231,6 +232,79 @@ class PokemonTcgServiceTest {
         service.importaSet("sv1");
 
         assertThat(esistente.getRarita()).isEqualTo("Common");
+    }
+
+    @Test
+    void cartaNuovaHaCategoriaESottotipi() {
+        rispondeConVarianti();
+
+        service.importaSet("sv1");
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        // senza categoria e sottotipi nella risposta restano ''/lista vuota (carta letta, nessuno indicato), non null
+        assertThat(salvati.getValue()).extracting(Oggetto::getCategoria).containsExactly("Pokémon", "");
+        assertThat(salvati.getValue()).extracting(Oggetto::getSottotipi)
+                .containsExactly(List.of("Basic", "ex"), List.of());
+        pokemontcg.verify();
+    }
+
+    @Test
+    void cartaEsistenteSenzaCategoriaELaRiceve() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getCategoria()).isEqualTo("Pokémon");
+        assertThat(esistente.getSottotipi()).containsExactly("Basic", "ex");
+    }
+
+    @Test
+    void cartaEsistenteConCategoriaNonCambia() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        esistente.setCategoria("Trainer");
+        esistente.setSottotipi(List.of("Item"));
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getCategoria()).isEqualTo("Trainer");
+        assertThat(esistente.getSottotipi()).containsExactly("Item");
+    }
+
+    // download completo: le carte non più restituite portano a ''/lista vuota anche categoria e sottotipi
+    @Test
+    void riempiVariantiPortaAVuotiCategoriaESottotipiDelleCarteNonPiuRestituite() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI, MediaType.APPLICATION_JSON));
+        Oggetto sparita = new Oggetto("Carta sparita (Base 9/102)", new java.math.BigDecimal("1.00"), null, "base1-9");
+        when(oggettoRepository.findCarteDaRiempireDelSet("base1")).thenReturn(List.of(sparita));
+
+        service.riempiVarianti("base1");
+
+        assertThat(sparita.getCategoria()).isEmpty();
+        assertThat(sparita.getSottotipi()).isEmpty();
+        pokemontcg.verify();
+    }
+
+    // download parziale: categoria e sottotipi restano null e il job riprova al giro dopo
+    @Test
+    void riempiVariantiConDownloadParzialeLasciaNulliCategoriaESottotipi() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"), containsString("page=1"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI.replace("\"totalCount\": 2", "\"totalCount\": 5"),
+                        MediaType.APPLICATION_JSON));
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"), containsString("page=2"))))
+                .andRespond(withSuccess(PAGINA_VUOTA, MediaType.APPLICATION_JSON));
+        Oggetto nonLetta = new Oggetto("Carta non letta (Scarlet 3/198)", new java.math.BigDecimal("1.00"), null, "sv1-3");
+        lenient().when(oggettoRepository.findCarteDaRiempireDelSet("sv1")).thenReturn(List.of(nonLetta));
+
+        service.riempiVarianti("sv1");
+
+        assertThat(nonLetta.getCategoria()).isNull();
+        assertThat(nonLetta.getSottotipi()).isNull();
+        pokemontcg.verify();
     }
 
     // download completo: le carte del set non più restituite portano a '' anche la rarità rimasta null
