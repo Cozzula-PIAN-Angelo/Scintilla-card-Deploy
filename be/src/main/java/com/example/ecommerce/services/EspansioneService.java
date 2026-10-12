@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,9 +35,9 @@ public class EspansioneService {
     // un lock per set: due visitatori che aprono insieme un set nuovo non lo importano due volte
     private final ConcurrentMap<String, Object> lockPerSet = new ConcurrentHashMap<>();
 
-    // set annunciati ma ancora senza carte, con l'ora dell'ultimo tentativo. In memoria: dopo un
-    // riavvio si riprova subito, ed è al più una chiamata per set
-    private final ConcurrentMap<String, Instant> setVuoti = new ConcurrentHashMap<>();
+    // set annunciati ma ancora senza carte: per qualche ora non si richiedono. Dopo un riavvio si riprova
+    // subito, ed è al più una chiamata per set
+    private final PromemoriaTemporaneo<String> setVuoti = new PromemoriaTemporaneo<>(ATTESA_SET_VUOTO);
 
     // vetrina vuota e sincronizzazione fallita: dopo quanto la si ritenta da una visita
     private static final Duration ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA = Duration.ofMinutes(5);
@@ -47,8 +46,10 @@ public class EspansioneService {
     // e poi trova le espansioni già salvate, invece di chiamare pokemontcg.io ognuno per conto suo
     private final Object lockSincronizzazione = new Object();
 
-    // ora dell'ultima sincronizzazione fallita da una visita; letta e scritta solo dentro il lock
-    private Instant sincronizzazioneFallitaIl;
+    // sincronizzazione dell'elenco fallita da poco, da una visita: una chiave sola, l'elenco intero
+    private static final String ELENCO = "elenco";
+    private final PromemoriaTemporaneo<String> sincronizzazioneFallita =
+            new PromemoriaTemporaneo<>(ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA);
 
     // aggiorna l'elenco delle espansioni da pokemontcg.io: all'avvio e ogni notte (nuovi set)
     @Scheduled(cron = "0 30 4 * * *")
@@ -75,17 +76,15 @@ public class EspansioneService {
             if (espansioneRepository.count() > 0) {
                 return;
             }
-            if (sincronizzazioneFallitaIl != null
-                    && sincronizzazioneFallitaIl.isAfter(Instant.now().minus(ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA))) {
-                throw new ServizioEsternoException("Sincronizzazione delle espansioni fallita alle "
-                        + sincronizzazioneFallitaIl + ": si riprova dopo " + ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA.toMinutes()
-                        + " minuti", null);
+            if (sincronizzazioneFallita.isRecente(ELENCO)) {
+                throw new ServizioEsternoException("Sincronizzazione delle espansioni fallita da poco: si riprova dopo "
+                        + ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA.toMinutes() + " minuti", null);
             }
             try {
                 sincronizza();
-                sincronizzazioneFallitaIl = null;
+                sincronizzazioneFallita.dimentica(ELENCO);
             } catch (ServizioEsternoException ex) {
-                sincronizzazioneFallitaIl = Instant.now();
+                sincronizzazioneFallita.annota(ELENCO);
                 throw ex;
             }
         }
@@ -101,18 +100,18 @@ public class EspansioneService {
             synchronized (lockPerSet.computeIfAbsent(id, chiave -> new Object())) {
                 // ricontrollo: nel frattempo un'altra richiesta potrebbe averlo già importato
                 boolean giaImportata = espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false);
-                if (!giaImportata && !vuotoDiRecente(id)) {
+                if (!giaImportata && !setVuoti.isRecente(id)) {
                     // dopo il ricontrollo: chi trova il set già importato da un altro non consuma il limite
                     limitatoreImport.registra(client);
                     try {
                         pokemonTcgService.importaSet(id);
-                        setVuoti.remove(id);
+                        setVuoti.dimentica(id);
                     } catch (NotFoundException ex) {
                         // set annunciato ma ancora senza carte su pokemontcg.io: non è un errore, la vetrina
                         // lo mostra vuoto. Non si segna come importato (le carte arriveranno), ma per qualche
                         // ora non si richiede di nuovo, invece di una chiamata esterna a ogni visita
                         log.info("Set {} ancora senza carte su pokemontcg.io: si riprova tra {} ore", id, ATTESA_SET_VUOTO.toHours());
-                        setVuoti.put(id, Instant.now());
+                        setVuoti.annota(id);
                     }
                 }
             }
@@ -122,10 +121,5 @@ public class EspansioneService {
                 .sorted(Comparator.comparing(Oggetto::getNumero, NumeriCarta::confronta))
                 .map(OggettoResponseDTO::from)
                 .toList();
-    }
-
-    private boolean vuotoDiRecente(String id) {
-        Instant tentativo = setVuoti.get(id);
-        return tentativo != null && tentativo.isAfter(Instant.now().minus(ATTESA_SET_VUOTO));
     }
 }

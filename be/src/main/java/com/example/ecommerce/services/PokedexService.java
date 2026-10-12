@@ -46,10 +46,9 @@ public class PokedexService {
     // un lock per Pokémon: due visitatori che aprono insieme lo stesso Pokémon lo importano una volta sola
     private final ConcurrentMap<Integer, Object> lockPerPokemon = new ConcurrentHashMap<>();
 
-    // Pokémon il cui aggiornamento è appena fallito, con l'ora del tentativo: nel frattempo si mostrano
-    // subito le carte salvate, invece di far aspettare a ogni visita i tentativi verso un'API ancora giù.
-    // In memoria, come i set vuoti di EspansioneService: dopo un riavvio si riprova subito
-    private final ConcurrentMap<Integer, Instant> aggiornamentiFalliti = new ConcurrentHashMap<>();
+    // Pokémon il cui aggiornamento è appena fallito: nel frattempo si mostrano subito le carte salvate,
+    // invece di far aspettare a ogni visita i tentativi verso un'API ancora giù
+    private final PromemoriaTemporaneo<Integer> aggiornamentiFalliti = new PromemoriaTemporaneo<>(ATTESA_DOPO_ERRORE);
 
     // carte in cui compare il Pokémon, dalla più recente; alla prima apertura si importano da pokemontcg.io.
     // client: IP del visitatore, per il limite sugli import
@@ -95,12 +94,12 @@ public class PokedexService {
             if (pokemonImportatoRepository.existsById(numero)) {
                 log.warn("Aggiornamento delle carte del Pokémon #{} non riuscito ({}): si mostrano quelle già salvate, "
                         + "si riprova tra {} minuti", numero, ex.getMessage(), ATTESA_DOPO_ERRORE.toMinutes());
-                aggiornamentiFalliti.put(numero, Instant.now());
+                aggiornamentiFalliti.annota(numero);
                 return;
             }
             throw ex;
         }
-        aggiornamentiFalliti.remove(numero);
+        aggiornamentiFalliti.dimentica(numero);
         pokemonImportatoRepository.save(new PokemonImportato(numero, Instant.now()));
     }
 
@@ -108,13 +107,8 @@ public class PokedexService {
     private boolean daImportare(int numero) {
         return pokemonImportatoRepository.findById(numero)
                 .map(importato -> importato.getImportatoIl().isBefore(Instant.now().minus(VALIDITA_IMPORT))
-                        && !fallitoDiRecente(numero))
+                        && !aggiornamentiFalliti.isRecente(numero))
                 .orElse(true);
-    }
-
-    private boolean fallitoDiRecente(int numero) {
-        Instant tentativo = aggiornamentiFalliti.get(numero);
-        return tentativo != null && tentativo.isAfter(Instant.now().minus(ATTESA_DOPO_ERRORE));
     }
 
     private static LocalDate dataUscita(Oggetto oggetto) {
