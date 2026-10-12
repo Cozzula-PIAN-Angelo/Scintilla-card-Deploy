@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { CalendarHeart, Plus } from 'lucide-react'
 import { riflessoPer, varianteEffetto } from '../features/collezione/conteggi'
+import { cornice } from '../features/collezione/varianti'
 import type { CollezioneGriglia } from '../features/collezione/useCollezione'
 import type { Oggetto, Variante } from '../types/api'
 import { elementoGriglia } from '../theme/motion'
@@ -68,6 +69,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
             src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
             alt={oggetto.nome}
             riflesso={riflessoPer(effetto)}
+            cornice={cornice(oggetto)}
             className={cn(
               'aspect-[63/88] w-full rounded-2xl transition-[filter] duration-300',
               // non posseduta: in grigio, a colori in hover o con il focus sulla carta

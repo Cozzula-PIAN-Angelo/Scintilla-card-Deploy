@@ -240,6 +240,18 @@
     mask-composite: add, exclude, add;
   }
 
+  /* maschera dell'holo delle carte con cornice ex: arcobaleno su tutto tranne il riquadro del testo, perché il
+     disegno occupa tutta la metà alta dentro il bordo. Misurata sui pixel di carte Scarlatto e Violetto:
+     riquadro del testo x 4,0%..96,0% (larghezza 92%), y 49,2%..96,0% (altezza 46,8%).
+     Posizione % = inizio / (100% - dimensione): x 4 / 8 = 50%, y 49,2 / 53,2 = 92,48%.
+     Pieno meno il riquadro (livello in "exclude" sul pieno) */
+  .holo-cornice-ex {
+    -webkit-mask: linear-gradient(#000 0 0), linear-gradient(#000 0 0) 50% 92.48% / 92% 46.8% no-repeat;
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0), linear-gradient(#000 0 0) 50% 92.48% / 92% 46.8% no-repeat;
+    mask-composite: exclude;
+  }
+
   /* fondo della pagina per ciò che la copre per intero; di notte vi si aggiungono le stelle (più sotto) */
   .cielo-stellato {
     background-color: var(--color-sfondo);

@@ -42,6 +42,8 @@ export interface Oggetto {
   idEsterno: string | null
   // varianti suggerite da pokemontcg.io; null = non ancora lette, [] = non indicate
   varianti: Variante[] | null
+  // rarità di pokemontcg.io (es. "Double Rare"); null = non ancora letta, '' = non indicata
+  rarita: string | null
 }
 
 // espansione (set) di pokemontcg.io; importata = carte già nel catalogo

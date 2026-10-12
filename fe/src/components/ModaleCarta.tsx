@@ -1,6 +1,7 @@
 import { BadgeCheck, CalendarDays } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { riflessoPer, varianteEffetto } from '../features/collezione/conteggi'
+import { cornice } from '../features/collezione/varianti'
 import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
 import type { Oggetto, Variante } from '../types/api'
 import { formattaData, formattaPrezzo } from '../utils/formato'
@@ -56,6 +57,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
               alt={mostrato.nome}
               priorita
               riflesso={riflessoPer(effetto)}
+              cornice={cornice(mostrato)}
               className="aspect-[63/88] w-full rounded-3xl shadow-2xl shadow-ombra/30"
             />
           </HoloCard>

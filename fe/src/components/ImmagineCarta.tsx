@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { cn } from '../utils/cn'
+import type { Cornice } from '../features/collezione/varianti'
 import { Anello, Fulmine, Scintilla, Stella } from './Forme'
 
 interface Props {
@@ -10,10 +11,19 @@ interface Props {
   // riflesso olografico (usa --mx, --my, --riflesso di un HoloCard antenato): 'holo' arcobaleno su bordo e disegno,
   // 'reverse' a specchio sulla sola cornice
   riflesso?: 'holo' | 'reverse' | null
+  // cornice della carta: decide la maschera dell'holo (il reverse non cambia)
+  cornice?: Cornice
+}
+
+// maschera dell'holo per tipo di cornice: la full art resta tutta olografica
+const MASCHERA_HOLO: Record<Cornice, string | undefined> = {
+  normale: 'solo-bordo-e-disegno',
+  ex: 'holo-cornice-ex',
+  piena: undefined,
 }
 
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato
-export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null }: Props) {
+export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null, cornice = 'normale' }: Props) {
   // stato legato allo src: se cambia, si riparte da "non caricata"
   const [srcCaricata, setSrcCaricata] = useState<string | null>(null)
   const [srcInErrore, setSrcInErrore] = useState<string | null>(null)
@@ -40,7 +50,7 @@ export function ImmagineCarta({ src, alt, className, priorita = false, riflesso 
         <div aria-hidden className="holo-reverse senza-disegno pointer-events-none absolute inset-0" />
       )}
       {riflesso === 'holo' && caricata && (
-        <div aria-hidden className="holo-riflesso solo-bordo-e-disegno pointer-events-none absolute inset-0" />
+        <div aria-hidden className={cn('holo-riflesso pointer-events-none absolute inset-0', MASCHERA_HOLO[cornice])} />
       )}
     </div>
   )
