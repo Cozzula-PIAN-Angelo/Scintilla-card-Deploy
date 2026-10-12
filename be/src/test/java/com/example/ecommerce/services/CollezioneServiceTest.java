@@ -166,13 +166,18 @@ class CollezioneServiceTest {
     // due "−1" davvero contemporanei da quantità 2, ognuno in una transazione sua e committata:
     // nessuno deve andare in errore (prima il secondo portava la quantità a 0 violando il CHECK) e la riga sparisce.
     // Fuori dalla transazione di test: il @BeforeEach scrive già in autocommit, quindi alla fine si pulisce a mano
+    // pochi giri: il database di test non ha pool e ogni giro apre una manciata di connessioni TCP, che su Windows
+    // restano in TIME_WAIT ("No buffer space available" con 100 giri). Il bug vero si vede nei primi giri,
+    // perché la barriera allinea le due transazioni
+    private static final int GIRI_CONCORRENZA = 25;
+
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void dueMenoContemporaneiNonDannoErrore() throws Exception {
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         ExecutorService pool = Executors.newFixedThreadPool(2);
         try {
-            for (int giro = 0; giro < 100; giro++) {
+            for (int giro = 0; giro < GIRI_CONCORRENZA; giro++) {
                 jdbc.update("DELETE FROM collezione");
                 scrivi(carta, 2);
                 CyclicBarrier via = new CyclicBarrier(2);
