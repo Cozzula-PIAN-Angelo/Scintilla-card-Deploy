@@ -40,8 +40,12 @@ public class PaginationHelper {
         return PageRequest.of(numeroPagina(page), dimensione(size), Sort.by("username"));
     }
 
+    // id come ultimo criterio: a parità di valore (es. createdAt delle carte importate in blocco)
+    // PostgreSQL non garantisce lo stesso ordine tra una pagina e l'altra, e una carta potrebbe
+    // comparire due volte o mai. L'id è univoco, quindi l'ordine diventa stabile
     private Pageable crea(Integer page, Integer size, String sort, UnaryOperator<String> proprietaDaCampo) {
-        return PageRequest.of(numeroPagina(page), dimensione(size), creaSort(sort, proprietaDaCampo));
+        Sort ordine = creaSort(sort, proprietaDaCampo).and(Sort.by(Sort.Direction.ASC, "id"));
+        return PageRequest.of(numeroPagina(page), dimensione(size), ordine);
     }
 
     private int numeroPagina(Integer page) {

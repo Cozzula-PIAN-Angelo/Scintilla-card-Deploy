@@ -6,7 +6,7 @@ import { useDebounce } from '../../hooks/useDebounce'
 import type { Oggetto, Pagina } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { useGetPreferitiQuery } from '../preferiti/preferitiApi'
-import { useCercaCarteQuery } from './binderApi'
+import { useCercaCatalogoQuery } from './binderApi'
 import { TIPO_TRASCINAMENTO } from './contesto'
 
 type Scheda = 'preferiti' | 'catalogo'
@@ -35,7 +35,7 @@ export function ElencoCarte({ onScegli, selezionata, onTrascina, onFineTrascinam
     { page: paginaPreferiti, size: PER_PAGINA, sort: 'createdAt,desc' },
     { skip: scheda !== 'preferiti' },
   )
-  const catalogo = useCercaCarteQuery({ q: ricerca, page: paginaCatalogo }, { skip: scheda !== 'catalogo' })
+  const catalogo = useCercaCatalogoQuery({ q: ricerca, page: paginaCatalogo }, { skip: scheda !== 'catalogo' })
 
   const attiva = scheda === 'preferiti' ? preferiti : catalogo
   const pagina: Pagina<Oggetto> | undefined =

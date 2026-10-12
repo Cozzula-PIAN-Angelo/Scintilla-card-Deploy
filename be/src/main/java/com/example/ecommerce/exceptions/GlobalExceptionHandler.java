@@ -52,10 +52,12 @@ public class GlobalExceptionHandler {
         return new ErrorResponseDTO(ex.getMessage());
     }
 
-    // il dettaglio dell'errore originale è già loggato nel service
+    // l'unico punto in cui si scrive l'errore finale: il service mette il dettaglio nel messaggio
+    // (status e risposta di pokemontcg.io) senza loggarlo. Al client va un messaggio generico
     @ExceptionHandler(ServizioEsternoException.class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     public ErrorResponseDTO handleServizioEsterno(ServizioEsternoException ex) {
+        log.error("Servizio carte non disponibile: {}", ex.getMessage());
         return new ErrorResponseDTO("Servizio carte non disponibile, riprova più tardi");
     }
 

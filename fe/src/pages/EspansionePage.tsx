@@ -13,8 +13,8 @@ import { ListaEspansioni } from '../features/espansioni/ListaEspansioni'
 import { memoriaElenco } from '../features/espansioni/memoriaElenco'
 import { VistaEspansione } from '../features/espansioni/VistaEspansione'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
+import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useTitolo } from '../hooks/useTitolo'
-import type { Oggetto } from '../types/api'
 import { cn } from '../utils/cn'
 
 // pagina di un set: a sinistra l'elenco delle espansioni per cambiare set senza perdere il
@@ -24,7 +24,7 @@ export function EspansionePage() {
   const { data, isLoading, isError, error, refetch } = useGetEspansioniQuery()
   const espansione = data?.find((e) => e.id === id)
   const { isPreferito, toggle } = usePreferiti()
-  const [selezionato, setSelezionato] = useState<Oggetto | null>(null)
+  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
   const [listaMobileAperta, setListaMobileAperta] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
@@ -126,19 +126,14 @@ export function EspansionePage() {
                 espansione={espansione}
                 isPreferito={isPreferito}
                 onTogglePreferito={toggle}
-                onApri={setSelezionato}
+                onApri={apri}
               />
             </AnimatePresence>
           </div>
         </div>
       )}
 
-      <ModaleCarta
-        oggetto={selezionato}
-        preferito={selezionato ? isPreferito(selezionato.id) : false}
-        onTogglePreferito={toggle}
-        onChiudi={() => setSelezionato(null)}
-      />
+      <ModaleCarta {...modale} />
     </PaginaAnimata>
   )
 }

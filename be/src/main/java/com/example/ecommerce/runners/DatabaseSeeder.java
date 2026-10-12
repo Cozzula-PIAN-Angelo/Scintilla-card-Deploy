@@ -54,7 +54,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             log.info("Seeder: admin con email {} già presente, salto", adminEmail);
             return;
         }
-        if (utenteRepository.existsByUsername(adminUsername)) {
+        if (utenteRepository.existsByUsernameIgnoreCase(adminUsername)) {
             log.warn("Seeder: lo username {} è già usato da un altro utente, admin non creato", adminUsername);
             return;
         }

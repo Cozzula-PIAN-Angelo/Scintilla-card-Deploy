@@ -4,11 +4,13 @@ import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.PokemonImportato;
 import com.example.ecommerce.exceptions.BadRequestException;
+import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.exceptions.TroppeRichiesteException;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.PokemonImportatoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PokedexService {
@@ -37,8 +40,15 @@ public class PokedexService {
     @Value("${app.pokedex.numero-massimo}")
     private int numeroMassimo;
 
+    // aggiornamento settimanale fallito (pokemontcg.io giù): dopo quanto si riprova
+    private static final Duration ATTESA_DOPO_ERRORE = Duration.ofMinutes(30);
+
     // un lock per Pokémon: due visitatori che aprono insieme lo stesso Pokémon lo importano una volta sola
     private final ConcurrentMap<Integer, Object> lockPerPokemon = new ConcurrentHashMap<>();
+
+    // Pokémon il cui aggiornamento è appena fallito: nel frattempo si mostrano subito le carte salvate,
+    // invece di far aspettare a ogni visita i tentativi verso un'API ancora giù
+    private final PromemoriaTemporaneo<Integer> aggiornamentiFalliti = new PromemoriaTemporaneo<>(ATTESA_DOPO_ERRORE);
 
     // carte in cui compare il Pokémon, dalla più recente; alla prima apertura si importano da pokemontcg.io.
     // client: IP del visitatore, per il limite sugli import
@@ -75,13 +85,29 @@ public class PokedexService {
             }
             throw ex;
         }
-        pokemonTcgService.importaPokemon(numero);
+        try {
+            pokemonTcgService.importaPokemon(numero);
+        } catch (ServizioEsternoException ex) {
+            // stesso criterio del limite: con pokemontcg.io giù l'aggiornamento settimanale si rinvia e si
+            // mostrano le carte già scaricate. La data non cambia, così alla prossima visita si riprova.
+            // Alla prima apertura non c'è niente da mostrare: resta il 502
+            if (pokemonImportatoRepository.existsById(numero)) {
+                log.warn("Aggiornamento delle carte del Pokémon #{} non riuscito ({}): si mostrano quelle già salvate, "
+                        + "si riprova tra {} minuti", numero, ex.getMessage(), ATTESA_DOPO_ERRORE.toMinutes());
+                aggiornamentiFalliti.annota(numero);
+                return;
+            }
+            throw ex;
+        }
+        aggiornamentiFalliti.dimentica(numero);
         pokemonImportatoRepository.save(new PokemonImportato(numero, Instant.now()));
     }
 
+    // mai importato, oppure importato da più di una settimana e senza un aggiornamento fallito da poco
     private boolean daImportare(int numero) {
         return pokemonImportatoRepository.findById(numero)
-                .map(importato -> importato.getImportatoIl().isBefore(Instant.now().minus(VALIDITA_IMPORT)))
+                .map(importato -> importato.getImportatoIl().isBefore(Instant.now().minus(VALIDITA_IMPORT))
+                        && !aggiornamentiFalliti.isRecente(numero))
                 .orElse(true);
     }
 

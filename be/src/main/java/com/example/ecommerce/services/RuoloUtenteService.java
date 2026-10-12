@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -38,15 +39,29 @@ public class RuoloUtenteService {
     public void revocaAdmin(UUID utenteId) {
         Utente utente = utenteService.findById(utenteId);
 
-        RuoloUtente ruoloAdmin = ruoloUtenteRepository.findByUtenteIdAndRuoloNome(utenteId, NomiRuolo.ADMIN)
-                .orElseThrow(() -> new NotFoundException("L'utente " + utente.getUsername() + " non ha il ruolo ADMIN"));
+        boolean tolto = togliAdmin(utenteId, "Impossibile revocare il ruolo ADMIN a " + utente.getUsername()
+                + ": è l'ultimo admin rimasto");
+        if (!tolto) {
+            throw new NotFoundException("L'utente " + utente.getUsername() + " non ha il ruolo ADMIN");
+        }
+    }
+
+    // Toglie il ruolo ADMIN, ma mai all'ultimo admin rimasto: senza nessun admin non si potrebbe più
+    // nominarne uno. Unico punto della regola: la usano la revoca e la cancellazione dell'account.
+    // false se l'utente non era admin; messaggioSeUltimo è il motivo del rifiuto, diverso per chi lo chiede
+    @Transactional
+    public boolean togliAdmin(UUID utenteId, String messaggioSeUltimo) {
+        Optional<RuoloUtente> ruoloAdmin = ruoloUtenteRepository.findByUtenteIdAndRuoloNome(utenteId, NomiRuolo.ADMIN);
+        if (ruoloAdmin.isEmpty()) {
+            return false;
+        }
 
         // l'utente è admin, quindi il conteggio è almeno 1: se è esattamente 1 è lui l'ultimo
         if (ruoloUtenteRepository.countByRuoloNome(NomiRuolo.ADMIN) <= 1) {
-            throw new ConflictException("Impossibile revocare il ruolo ADMIN a " + utente.getUsername()
-                    + ": è l'ultimo admin rimasto");
+            throw new ConflictException(messaggioSeUltimo);
         }
 
-        ruoloUtenteRepository.delete(ruoloAdmin);
+        ruoloUtenteRepository.delete(ruoloAdmin.get());
+        return true;
     }
 }

@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -90,16 +91,7 @@ public class PokemonTcgService {
         int dimensione = Math.min(size, MAX_SIZE);
 
         // l'API esterna numera le pagine da 1, la nostra PageResponse da 0
-        RispostaRicerca risposta = chiama(() -> pokemonTcgRestClient.get()
-                        .uri(uri -> uri.path("/cards")
-                                .queryParam("q", "{q}")
-                                .queryParam("page", page + 1)
-                                .queryParam("pageSize", dimensione)
-                                .queryParam("select", CAMPI_RICHIESTI)
-                                .build(Map.of("q", creaQuery(nomePulito))))
-                        .retrieve()
-                        .body(RispostaRicerca.class),
-                "Ricerca non disponibile");
+        RispostaRicerca risposta = cercaCarte(creaQuery(nomePulito), page + 1, dimensione, null, "Ricerca non disponibile");
 
         List<Carta> carte = risposta.data() == null ? List.of() : risposta.data();
         List<String> idEsterni = carte.stream().map(Carta::id).toList();
@@ -136,7 +128,7 @@ public class PokemonTcgService {
                     + PREZZO_MASSIMO + ": indica il prezzo a mano nel body, es. {\"prezzo\": 999.99}");
         }
 
-        String nome = nomeLibero(carta, new HashSet<>());
+        String nome = nomeLibero(carta, nomiOccupati(List.of(componiNome(carta))));
 
         // flush immediato: così createdAt è valorizzato nella risposta
         Oggetto oggetto = nuovoOggetto(carta, nome, prezzo, salvaEspansione(carta.set()));
@@ -190,7 +182,13 @@ public class PokemonTcgService {
                 Map<String, Oggetto> giaImportate = oggettoRepository.findByIdEsternoIn(carte.stream().map(Carta::id).toList())
                         .stream()
                         .collect(Collectors.toMap(Oggetto::getIdEsterno, Function.identity()));
-                Set<String> nomiUsati = new HashSet<>();
+                // nomi già nel catalogo tra quelli delle carte nuove, letti tutti insieme; nomeLibero ci
+                // aggiunge man mano quelli assegnati in questo import, non ancora salvati
+                Set<String> nomiUsati = nomiOccupati(carte.stream()
+                        .filter(carta -> carta.set() != null && carta.set().id() != null)
+                        .filter(carta -> !giaImportate.containsKey(carta.id()))
+                        .map(this::componiNome)
+                        .collect(Collectors.toSet()));
                 List<Oggetto> nuovi = new ArrayList<>();
                 int saltate = 0;
                 int scartate = 0;
@@ -302,16 +300,7 @@ public class PokemonTcgService {
         long totale;
         do {
             int numeroPagina = pagina;
-            RispostaRicerca risposta = conTentativi(() -> chiama(() -> pokemonTcgRestClient.get()
-                            .uri(uri -> uri.path("/cards")
-                                    .queryParam("q", "{q}")
-                                    .queryParam("page", numeroPagina)
-                                    .queryParam("pageSize", PAGINA_SET)
-                                    .queryParam("select", CAMPI_RICHIESTI)
-                                    .queryParam("orderBy", "id")
-                                    .build(Map.of("q", query)))
-                            .retrieve()
-                            .body(RispostaRicerca.class),
+            RispostaRicerca risposta = conTentativi(() -> cercaCarte(query, numeroPagina, PAGINA_SET, "id",
                     "Carte non trovate su pokemontcg.io (" + descrizione + ")"), descrizione + " pagina " + numeroPagina);
             if (risposta.data() == null || risposta.data().isEmpty()) {
                 break;
@@ -327,6 +316,26 @@ public class PokemonTcgService {
         return new ArrayList<>(carte.values());
     }
 
+    // GET /cards con la sintassi di ricerca di pokemontcg.io (query passata come variabile, così i caratteri
+    // speciali vengono codificati). pagina parte da 1, come nell'API; orderBy null = ordine dell'API
+    private RispostaRicerca cercaCarte(String query, int pagina, int dimensione, String orderBy, String messaggioNonTrovato) {
+        return chiama(() -> pokemonTcgRestClient.get()
+                        .uri(uri -> {
+                            uri.path("/cards")
+                                    .queryParam("q", "{q}")
+                                    .queryParam("page", pagina)
+                                    .queryParam("pageSize", dimensione)
+                                    .queryParam("select", CAMPI_RICHIESTI);
+                            if (orderBy != null) {
+                                uri.queryParam("orderBy", orderBy);
+                            }
+                            return uri.build(Map.of("q", query));
+                        })
+                        .retrieve()
+                        .body(RispostaRicerca.class),
+                messaggioNonTrovato);
+    }
+
     // ritenta solo gli errori temporanei (5xx, 429, timeout); 404 e 400 non cambiano riprovando
     private <T> T conTentativi(Supplier<T> chiamata, String descrizione) {
         for (int tentativo = 1; ; tentativo++) {
@@ -340,8 +349,8 @@ public class PokemonTcgService {
                     throw ex;
                 }
                 long attesa = ATTESA_BASE_MS * tentativo;
-                log.warn("pokemontcg.io non disponibile ({}), tentativo {}/{} tra {} ms",
-                        descrizione, tentativo, TENTATIVI_SET, attesa);
+                log.warn("pokemontcg.io non disponibile ({}), tentativo {}/{} fallito, il prossimo tra {} ms: {}",
+                        descrizione, tentativo, TENTATIVI_SET, attesa, ex.getMessage());
                 try {
                     Thread.sleep(attesa);
                 } catch (InterruptedException interrotto) {
@@ -352,7 +361,9 @@ public class PokemonTcgService {
         }
     }
 
-    // traduce gli errori HTTP e di rete dell'API esterna nelle eccezioni dell'applicazione
+    // traduce gli errori HTTP e di rete dell'API esterna nelle eccezioni dell'applicazione. Niente log qui:
+    // il dettaglio viaggia nel messaggio dell'eccezione, e lo scrive una volta sola chi la gestisce
+    // (conTentativi per ogni tentativo, GlobalExceptionHandler per l'errore finale)
     private <T> T chiama(Supplier<T> chiamata, String messaggioNonTrovato) {
         T risposta;
         try {
@@ -362,18 +373,15 @@ public class PokemonTcgService {
         } catch (RestClientResponseException ex) {
             // 5xx, 429 (limite di richieste) e gli altri 4xx, che dipendono da configurazione o query errate
             String corpo = ex.getResponseBodyAsString();
-            log.error("pokemontcg.io ha risposto {}: {}", ex.getStatusCode(),
-                    corpo.length() > 500 ? corpo.substring(0, 500) + "..." : corpo);
-            throw new ServizioEsternoException("Errore HTTP da pokemontcg.io", ex);
+            throw new ServizioEsternoException("pokemontcg.io ha risposto " + ex.getStatusCode() + ": "
+                    + (corpo.length() > 500 ? corpo.substring(0, 500) + "..." : corpo), ex);
         } catch (RestClientException ex) {
             // timeout, connessione rifiutata, risposta non deserializzabile
-            log.error("Chiamata a pokemontcg.io fallita", ex);
-            throw new ServizioEsternoException("Chiamata a pokemontcg.io fallita", ex);
+            throw new ServizioEsternoException("Chiamata a pokemontcg.io fallita: " + ex.getMessage(), ex);
         }
 
         if (risposta == null) {
-            log.error("pokemontcg.io ha risposto senza body");
-            throw new ServizioEsternoException("Risposta vuota da pokemontcg.io", null);
+            throw new ServizioEsternoException("pokemontcg.io ha risposto senza body", null);
         }
         return risposta;
     }
@@ -445,17 +453,22 @@ public class PokemonTcgService {
     // Il nome dell'oggetto è unico, ma quello composto non sempre: due varianti della stessa carta con
     // stesso set e numero, o un oggetto creato a mano con quel nome. Prima la carta veniva saltata in
     // silenzio (e il set risultava importato lo stesso); ora entra col suo id di pokemontcg.io, che è unico.
-    // nomiUsati: i nomi già assegnati nello stesso import, non ancora salvati
+    // nomiUsati: i nomi già nel catalogo (vedi nomiOccupati) più quelli assegnati nello stesso import
     private String nomeLibero(Carta carta, Set<String> nomiUsati) {
         String nome = componiNome(carta);
-        if (!nomiUsati.contains(nome) && !oggettoRepository.existsByNome(nome)) {
-            nomiUsati.add(nome);
+        if (nomiUsati.add(nome)) {
             return nome;
         }
         String alternativo = nome + " [" + carta.id() + "]";
         nomiUsati.add(alternativo);
         log.info("Nome '{}' già usato: la carta {} entra come '{}'", nome, carta.id(), alternativo);
         return alternativo;
+    }
+
+    // tra i nomi candidati, quelli già usati nel catalogo, con una sola query invece di una per carta.
+    // Insieme modificabile: nomeLibero ci aggiunge i nomi assegnati man mano
+    private Set<String> nomiOccupati(Collection<String> candidati) {
+        return candidati.isEmpty() ? new HashSet<>() : new HashSet<>(oggettoRepository.findNomiPresenti(candidati));
     }
 
     // es. "Charizard (Base 4/102)", oppure "Charizard (Base 4)" se il totale non è disponibile

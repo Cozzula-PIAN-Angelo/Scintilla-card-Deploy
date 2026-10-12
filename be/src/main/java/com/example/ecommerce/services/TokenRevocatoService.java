@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -18,16 +19,17 @@ public class TokenRevocatoService {
     private final TokenRevocatoRepository tokenRevocatoRepository;
 
     @Transactional
-    public void revoca(String token, Instant scadenza) {
-        // un secondo logout con lo stesso token non deve violare il vincolo UNIQUE
-        if (!tokenRevocatoRepository.existsByToken(token)) {
-            tokenRevocatoRepository.save(new TokenRevocato(token, scadenza));
+    // jti: l'id del token (vedi JWTTools); scadenza: quella del token, per la pulizia notturna
+    public void revoca(UUID jti, Instant scadenza) {
+        // un secondo logout con lo stesso token non deve violare la chiave primaria
+        if (!tokenRevocatoRepository.existsById(jti)) {
+            tokenRevocatoRepository.save(new TokenRevocato(jti, scadenza));
         }
     }
 
     @Transactional(readOnly = true)
-    public boolean isRevocato(String token) {
-        return tokenRevocatoRepository.existsByToken(token);
+    public boolean isRevocato(UUID jti) {
+        return tokenRevocatoRepository.existsById(jti);
     }
 
     // ogni giorno alle 3:00. Un token scaduto viene già rifiutato dalla validazione del JWT,

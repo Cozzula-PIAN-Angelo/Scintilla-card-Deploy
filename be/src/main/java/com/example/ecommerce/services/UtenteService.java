@@ -30,6 +30,8 @@ public class UtenteService {
 
     // limite di BCrypt
     private static final int MASSIMO_BYTE_PASSWORD = 72;
+    // come @Size(min = 3) di RegistrazioneDTO, ma dopo il trim
+    private static final int LUNGHEZZA_MINIMA_USERNAME = 3;
 
     private final UtenteRepository utenteRepository;
     private final RuoloUtenteRepository ruoloUtenteRepository;
@@ -43,8 +45,15 @@ public class UtenteService {
             throw new BadRequestException("La password è troppo lunga: lettere accentate ed emoji occupano più spazio, "
                     + "accorciala o usa meno caratteri speciali");
         }
-        if (utenteRepository.existsByUsername(body.username())) {
-            throw new ConflictException("Lo username '" + body.username() + "' è già in uso");
+        // senza spazi ai bordi, come l'identificativo al login (che li toglie): " mario" non entrerebbe più.
+        // @Size li conta, quindi la lunghezza si ricontrolla qui
+        String username = body.username().trim();
+        if (username.length() < LUNGHEZZA_MINIMA_USERNAME) {
+            throw new BadRequestException("Lo username deve avere tra 3 e 30 caratteri, spazi esclusi");
+        }
+        // IgnoreCase: "Mario" e "mario" sarebbero due account indistinguibili. Si salva com'è scritto
+        if (utenteRepository.existsByUsernameIgnoreCase(username)) {
+            throw new ConflictException("Lo username '" + username + "' è già in uso");
         }
         String email = Utente.normalizzaEmail(body.email());
         // IgnoreCase: copre anche gli account registrati prima, con le maiuscole nell'email
@@ -53,7 +62,7 @@ public class UtenteService {
         }
 
         Utente utente = utenteRepository.save(
-                new Utente(body.username(), email, passwordEncoder.encode(body.password())));
+                new Utente(username, email, passwordEncoder.encode(body.password())));
 
         // la registrazione assegna sempre e solo il ruolo UTENTE
         ruoloUtenteRepository.save(new RuoloUtente(utente, ruoloService.findByNome(NomiRuolo.UTENTE)));
@@ -66,13 +75,6 @@ public class UtenteService {
     public Utente findById(UUID id) {
         return utenteRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Utente con id " + id + " non trovato"));
-    }
-
-    // uso interno
-    @Transactional(readOnly = true)
-    public Utente findByEmail(String email) {
-        return utenteRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Utente con email " + email + " non trovato"));
     }
 
     @Transactional(readOnly = true)

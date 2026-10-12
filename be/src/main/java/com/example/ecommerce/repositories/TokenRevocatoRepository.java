@@ -8,7 +8,5 @@ import java.util.UUID;
 
 public interface TokenRevocatoRepository extends JpaRepository<TokenRevocato, UUID> {
 
-    boolean existsByToken(String token);
-
     long deleteByScadenzaBefore(Instant istante);
 }
