@@ -76,15 +76,27 @@ public class CollezioneService {
             }
             quantita = risultato.get(0);
         } else {
-            // chi scenderebbe a 0 o sotto sparisce; gli altri vengono aggiornati
-            jdbc.update("DELETE FROM collezione WHERE id_utente = ? AND id_oggetto = ? AND variante = ? AND quantita + ? <= 0",
-                    utente.getId(), oggettoId, variante, delta);
-            List<Integer> risultato = jdbc.queryForList("""
-                    UPDATE collezione SET quantita = quantita + ?, aggiornata_il = now()
+            // lock di riga prima di decidere: senza, due "−" contemporanei (READ COMMITTED) vedrebbero entrambi
+            // la quantità vecchia e il secondo la porterebbe a 0 violando il CHECK. Col lock il secondo attende
+            // il primo e poi legge il valore aggiornato
+            List<Integer> attuale = jdbc.queryForList("""
+                    SELECT quantita FROM collezione
                     WHERE id_utente = ? AND id_oggetto = ? AND variante = ?
-                    RETURNING quantita
-                    """, Integer.class, delta, utente.getId(), oggettoId, variante);
-            quantita = risultato.isEmpty() ? 0 : risultato.get(0);
+                    FOR UPDATE
+                    """, Integer.class, utente.getId(), oggettoId, variante);
+            if (attuale.isEmpty()) {
+                quantita = 0;
+            } else if (attuale.get(0) + delta <= 0) {
+                // scende a 0 o sotto: la riga sparisce
+                jdbc.update("DELETE FROM collezione WHERE id_utente = ? AND id_oggetto = ? AND variante = ?",
+                        utente.getId(), oggettoId, variante);
+                quantita = 0;
+            } else {
+                quantita = attuale.get(0) + delta;
+                jdbc.update("UPDATE collezione SET quantita = ?, aggiornata_il = now() "
+                        + "WHERE id_utente = ? AND id_oggetto = ? AND variante = ?",
+                        quantita, utente.getId(), oggettoId, variante);
+            }
         }
         return new CopiaDTO(oggettoId, body.variante(), quantita);
     }

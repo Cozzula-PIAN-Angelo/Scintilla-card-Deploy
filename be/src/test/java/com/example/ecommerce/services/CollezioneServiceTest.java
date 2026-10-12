@@ -16,9 +16,18 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +45,9 @@ class CollezioneServiceTest {
     private CollezioneRepository collezioneRepository;
     @Autowired
     private OggettoRepository oggettoRepository;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private JdbcTemplate jdbc;
     private CollezioneService service;
@@ -134,6 +146,41 @@ class CollezioneServiceTest {
     void filtroMancanteODoppio() {
         assertThatThrownBy(() -> service.copie(utente, null, null)).isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> service.copie(utente, "base1", 25)).isInstanceOf(BadRequestException.class);
+    }
+
+    // due "−1" davvero contemporanei da quantità 2, ognuno in una transazione sua e committata:
+    // nessuno deve andare in errore (prima il secondo portava la quantità a 0 violando il CHECK) e la riga sparisce.
+    // Fuori dalla transazione di test: il @BeforeEach scrive già in autocommit, quindi alla fine si pulisce a mano
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void dueMenoContemporaneiNonDannoErrore() throws Exception {
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        try {
+            for (int giro = 0; giro < 100; giro++) {
+                jdbc.update("DELETE FROM collezione");
+                scrivi(carta, 2);
+                CyclicBarrier via = new CyclicBarrier(2);
+                List<Future<CopiaDTO>> esiti = new ArrayList<>();
+                for (int i = 0; i < 2; i++) {
+                    esiti.add(pool.submit(() -> {
+                        via.await();
+                        return tx.execute(st -> service.modifica(utente, delta(carta, -1)));
+                    }));
+                }
+                for (Future<CopiaDTO> esito : esiti) {
+                    esito.get(); // rilancia l'eventuale eccezione del thread
+                }
+                assertThat(righe()).isZero();
+            }
+        } finally {
+            pool.shutdownNow();
+            jdbc.update("DELETE FROM collezione");
+            jdbc.update("DELETE FROM oggetti_pokedex");
+            jdbc.update("DELETE FROM oggetti");
+            jdbc.update("DELETE FROM espansioni");
+            jdbc.update("DELETE FROM utenti");
+        }
     }
 
     private ModificaCollezioneDTO delta(UUID oggetto, int delta) {
