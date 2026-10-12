@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { cn } from '../utils/cn'
-import type { Cornice } from '../features/collezione/varianti'
 import { Anello, Fulmine, Scintilla, Stella } from './Forme'
 
 interface Props {
@@ -8,21 +7,12 @@ interface Props {
   alt: string
   className?: string
   priorita?: boolean
-  // riflesso olografico (usa --mx, --my, --riflesso di un HoloCard antenato): 'holo' arcobaleno su bordo e disegno,
-  // 'reverse' a specchio sulla sola cornice
-  riflesso?: 'holo' | 'reverse' | null
-  // cornice misurata della carta: decide la maschera di holo e reverse; null = nessuna maschera, effetto su tutta la carta
-  cornice?: Cornice | null
-}
-
-// maschera dell'holo per tipo di cornice; senza cornice misurata l'holo copre tutta la carta
-const MASCHERA_HOLO: Record<Cornice, string> = {
-  normale: 'solo-bordo-e-disegno',
-  ex: 'holo-cornice-ex',
+  // riflesso olografico (usa --mx, --my, --riflesso di un HoloCard antenato): 'arcobaleno' o 'specchio', su tutta l'immagine
+  riflesso?: 'arcobaleno' | 'specchio' | null
 }
 
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato
-export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null, cornice = null }: Props) {
+export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null }: Props) {
   // stato legato allo src: se cambia, si riparte da "non caricata"
   const [srcCaricata, setSrcCaricata] = useState<string | null>(null)
   const [srcInErrore, setSrcInErrore] = useState<string | null>(null)
@@ -45,15 +35,8 @@ export function ImmagineCarta({ src, alt, className, priorita = false, riflesso 
           caricata ? 'opacity-100' : 'opacity-0',
         )}
       />
-      {riflesso === 'reverse' && caricata && (
-        <div
-          aria-hidden
-          className={cn('holo-reverse pointer-events-none absolute inset-0', cornice === 'normale' && 'senza-disegno')}
-        />
-      )}
-      {riflesso === 'holo' && caricata && (
-        <div aria-hidden className={cn('holo-riflesso pointer-events-none absolute inset-0', cornice && MASCHERA_HOLO[cornice])} />
-      )}
+      {riflesso === 'specchio' && caricata && <div aria-hidden className="holo-reverse pointer-events-none absolute inset-0" />}
+      {riflesso === 'arcobaleno' && caricata && <div aria-hidden className="holo-riflesso pointer-events-none absolute inset-0" />}
     </div>
   )
 }

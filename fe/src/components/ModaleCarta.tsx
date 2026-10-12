@@ -1,7 +1,7 @@
 import { BadgeCheck, CalendarDays } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { riflessoPer, varianteEffetto } from '../features/collezione/conteggi'
-import { cornice } from '../features/collezione/varianti'
+import { effettoCarta } from '../features/collezione/conteggi'
+import { piuPregiata } from '../features/collezione/varianti'
 import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
 import type { Oggetto, Variante } from '../types/api'
 import { formattaData, formattaPrezzo } from '../utils/formato'
@@ -41,11 +41,11 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
     if (idCorrente !== null) setScelta(null)
   }
   const perVariante = mostrato && collezione ? collezione.perVariante(mostrato.id) : undefined
-  const effetto = mostrato
-    ? scelta?.id === mostrato.id
-      ? scelta.variante
-      : varianteEffetto(mostrato, perVariante)
-    : null
+  // la riga scelta comanda lo specchio sulle carte di base; sulle rare l'arcobaleno non dipende dalla scelta
+  const varianteScelta = mostrato && scelta?.id === mostrato.id ? scelta.variante : undefined
+  const effetto = mostrato ? effettoCarta(mostrato, perVariante, varianteScelta) : null
+  // riga evidenziata: quella cliccata, se no la più pregiata posseduta
+  const selezionata = varianteScelta ?? piuPregiata([...(perVariante?.keys() ?? [])].filter((v) => (perVariante?.get(v) ?? 0) > 0))
 
   return (
     <Modale aperto={oggetto !== null} onChiudi={onChiudi} larghezza="max-w-4xl">
@@ -56,8 +56,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
               src={mostrato.immagineUrl}
               alt={mostrato.nome}
               priorita
-              riflesso={riflessoPer(effetto)}
-              cornice={cornice(mostrato)}
+              riflesso={effetto}
               className="aspect-[63/88] w-full rounded-3xl shadow-2xl shadow-ombra/30"
             />
           </HoloCard>
@@ -88,7 +87,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
                 oggetto={mostrato}
                 perVariante={perVariante}
                 onModifica={(variante, delta) => collezione.modifica(mostrato, variante, delta)}
-                selezionata={effetto}
+                selezionata={selezionata}
                 onSeleziona={(variante) => setScelta({ id: mostrato.id, variante })}
               />
             )}

@@ -1,5 +1,4 @@
 import type { Copia, Oggetto, Variante } from '../../types/api'
-import { piuPregiata } from './varianti'
 
 // carta -> variante -> quantità (solo righe con almeno una copia)
 export type MappaCopie = Map<string, Map<Variante, number>>
@@ -45,15 +44,27 @@ export function vuotoFiltro(filtro: Filtro): { titolo: string; testo: string } |
   return undefined
 }
 
-// variante che dà l'effetto alla carta: la più pregiata posseduta, se no la più pregiata suggerita, se no null
-export function varianteEffetto(oggetto: Oggetto, perVariante?: Map<Variante, number>): Variante | null {
-  const possedute = [...(perVariante?.keys() ?? [])].filter((v) => (perVariante?.get(v) ?? 0) > 0)
-  return piuPregiata(possedute) ?? piuPregiata(oggetto.varianti ?? [])
-}
+// rarità "di base": su queste l'effetto lo decide la copia posseduta. Ogni altra rarità (Rare Holo, Double Rare,
+// Illustration Rare, Ultra Rare, ...) è "più rara" e ha sempre l'arcobaleno. Rarità null o '' (anche le carte
+// create a mano) contano come di base
+const RARITA_DI_BASE = new Set(['Common', 'Uncommon', 'Rare'])
 
-// tipo di riflesso olografico da disegnare nell'immagine per una variante (null = nessuno)
-export function riflessoPer(variante: Variante | null): 'holo' | 'reverse' | null {
-  if (variante === 'HOLO' || variante === 'PRIMA_EDIZIONE_HOLO') return 'holo'
-  if (variante === 'REVERSE_HOLO') return 'reverse'
+// le varianti lucide danno lo specchio sulle carte di base; Normale e 1ª edizione no
+const VARIANTI_LUCIDE = new Set<Variante>(['REVERSE_HOLO', 'HOLO', 'PRIMA_EDIZIONE_HOLO'])
+
+// effetto olografico della carta. Carte più rare: arcobaleno per tutti. Carte di base: specchio se la variante
+// scelta (riga cliccata nel dettaglio) è lucida; senza scelta, se tra le copie possedute ce n'è una lucida;
+// altrimenti (solo Normale, nessuna copia, ospite) nessun effetto
+export function effettoCarta(
+  oggetto: Pick<Oggetto, 'rarita'>,
+  perVariante?: Map<Variante, number>,
+  variante?: Variante,
+): 'arcobaleno' | 'specchio' | null {
+  const rarita = oggetto.rarita ?? ''
+  if (rarita !== '' && !RARITA_DI_BASE.has(rarita)) return 'arcobaleno'
+  if (variante) return VARIANTI_LUCIDE.has(variante) ? 'specchio' : null
+  for (const [v, quantita] of perVariante ?? []) {
+    if (quantita > 0 && VARIANTI_LUCIDE.has(v)) return 'specchio'
+  }
   return null
 }

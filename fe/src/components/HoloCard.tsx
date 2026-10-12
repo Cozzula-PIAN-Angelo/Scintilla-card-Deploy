@@ -13,7 +13,7 @@ interface Props {
 const INCLINAZIONE_MASSIMA = 16
 
 // effetto "carta olografica": inclinazione 3D che segue il cursore. Non disegna nessun riflesso: espone
-// --mx, --my e --riflesso sul proprio elemento, e lo strato (holo o reverse) sta dentro l'immagine della carta (vedi ImmagineCarta).
+// --mx, --my e --riflesso sul proprio elemento, e lo strato (arcobaleno o specchio) sta dentro l'immagine della carta (vedi ImmagineCarta).
 // Solo con puntatore fine (mouse) e senza "riduci movimento"
 export function HoloCard({ children, className, sopra }: Props) {
   const puntatoreFine = useMediaQuery('(hover: hover) and (pointer: fine)')

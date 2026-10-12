@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import { CalendarHeart, Plus } from 'lucide-react'
-import { riflessoPer, varianteEffetto } from '../features/collezione/conteggi'
-import { cornice } from '../features/collezione/varianti'
+import { effettoCarta } from '../features/collezione/conteggi'
 import type { CollezioneGriglia } from '../features/collezione/useCollezione'
 import type { Oggetto, Variante } from '../types/api'
 import { elementoGriglia } from '../theme/motion'
@@ -17,7 +16,7 @@ interface Props {
   onTogglePreferito: () => void
   onApri: () => void
   aggiuntoIl?: string
-  // copie possedute per variante (se note): decidono l'effetto olografico
+  // copie possedute per variante (se note): decidono l'effetto olografico sulle carte di base
   perVariante?: Map<Variante, number>
   // se presente: badge delle copie, "+" rapido e carta in grigio se non posseduta
   collezione?: CollezioneGriglia
@@ -26,7 +25,7 @@ interface Props {
 export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl, perVariante, collezione }: Props) {
   const copie = collezione?.copie(oggetto.id) ?? 0
   const varianti = collezione ? collezione.perVariante(oggetto.id) : perVariante
-  const effetto = varianteEffetto(oggetto, varianti)
+  const effetto = effettoCarta(oggetto, varianti)
 
   return (
     <motion.li layout variants={elementoGriglia} exit="uscita" className="list-none">
@@ -68,8 +67,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
           <ImmagineCarta
             src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
             alt={oggetto.nome}
-            riflesso={riflessoPer(effetto)}
-            cornice={cornice(oggetto)}
+            riflesso={effetto}
             className={cn(
               'aspect-[63/88] w-full rounded-2xl transition-[filter] duration-300',
               // non posseduta: in grigio, a colori in hover o con il focus sulla carta
