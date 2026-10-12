@@ -43,12 +43,16 @@ public class JWTTools {
                 .compact();
     }
 
-    public void verificaToken(String token) {
-        leggiClaims(token);
-    }
-
-    public UUID estraiIdUtente(String token) {
-        return UUID.fromString(leggiClaims(token).getSubject());
+    // verifica firma e scadenza e restituisce l'id dell'utente, leggendo il token una volta sola:
+    // il JWTFilter la chiama a ogni richiesta autenticata
+    public UUID verificaEdEstraiIdUtente(String token) {
+        Claims claims = leggiClaims(token);
+        try {
+            return UUID.fromString(claims.getSubject());
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            // firma valida ma subject non è un id: non l'abbiamo emesso noi in questo formato
+            throw new UnauthorizedException("Token non valido o scaduto: effettua di nuovo il login");
+        }
     }
 
     public Instant estraiScadenza(String token) {
