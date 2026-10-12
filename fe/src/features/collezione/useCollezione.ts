@@ -6,7 +6,7 @@ import { selectToken } from '../auth/authSlice'
 import { useToast } from '../toast/useToast'
 import { copieTotali, creaMappa, type MappaCopie } from './conteggi'
 import { useGetCollezioneQuery, useModificaCollezioneMutation, type FiltroPagina } from './collezioneApi'
-import { ETICHETTE, primaSuggerita } from './varianti'
+import { ETICHETTE, varianteRapida } from './varianti'
 
 // ciò che la griglia delle carte usa della collezione (la prop facoltativa `collezione`)
 export interface CollezioneGriglia {
@@ -53,7 +53,7 @@ export function useCollezione(filtro: FiltroPagina | null) {
 
   const aggiungiRapido = useCallback(
     (oggetto: Oggetto) => {
-      const variante = primaSuggerita(oggetto)
+      const variante = varianteRapida(oggetto)
       void modifica(oggetto, variante, 1)
       toast.successo(`Aggiunta: ${ETICHETTE[variante]}`)
     },

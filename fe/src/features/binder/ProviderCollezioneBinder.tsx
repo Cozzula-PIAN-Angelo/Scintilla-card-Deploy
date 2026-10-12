@@ -3,7 +3,7 @@ import { messaggioErrore, statoErrore } from '../../app/errori'
 import type { Oggetto } from '../../types/api'
 import { copieTotali, creaMappa } from '../collezione/conteggi'
 import { useModificaCollezioneMutation } from '../collezione/collezioneApi'
-import { ETICHETTE, primaSuggerita } from '../collezione/varianti'
+import { ETICHETTE, varianteRapida } from '../collezione/varianti'
 import { useToast } from '../toast/useToast'
 import { useGetBinderDettaglioQuery } from './binderApi'
 import { ContestoCollezione, type ContestoCollezioneBinder } from './contestoCollezione'
@@ -22,7 +22,7 @@ export function ProviderCollezioneBinder({ id, children }: { id: string; childre
 
   const ceLho = useCallback(
     async (oggetto: Oggetto) => {
-      const variante = primaSuggerita(oggetto)
+      const variante = varianteRapida(oggetto)
       toast.successo(`Aggiunta alla collezione: ${ETICHETTE[variante]}`)
       try {
         await modificaCopia({ oggettoId: oggetto.id, variante, delta: 1, binderId: id }).unwrap()

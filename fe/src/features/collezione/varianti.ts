@@ -27,7 +27,10 @@ export function piuPregiata(varianti: Variante[]): Variante | null {
   return migliore
 }
 
-// variante del "+" rapido: la prima suggerita (la copia più comune in una bustina), NORMALE se sconosciute
-export function primaSuggerita(oggetto: Oggetto): Variante {
-  return oggetto.varianti?.[0] ?? 'NORMALE'
+// variante del "+" rapido: la copia che si trova nella bustina. NORMALE se esiste; altrimenti (carta solo holo,
+// per esempio) la più pregiata tra le suggerite. NORMALE anche se le varianti sono sconosciute o vuote
+export function varianteRapida(oggetto: Oggetto): Variante {
+  const suggerite = oggetto.varianti ?? []
+  if (suggerite.includes('NORMALE')) return 'NORMALE'
+  return piuPregiata(suggerite) ?? 'NORMALE'
 }
