@@ -1,11 +1,15 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Button, LinkBottone } from '../components/Button'
 import { GrigliaCartePaginata } from '../components/GrigliaCartePaginata'
 import { ModaleCarta } from '../components/ModaleCarta'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
+import { BarraCollezione } from '../features/collezione/BarraCollezione'
+import { conteggio, filtra, type Filtro } from '../features/collezione/conteggi'
+import { useCollezione } from '../features/collezione/useCollezione'
+import { useFiltroCollezione } from '../features/collezione/useFiltroCollezione'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon } from '../features/pokedex/pokedex'
 import { useGetCartePokemonQuery } from '../features/pokedex/pokedexApi'
@@ -24,6 +28,10 @@ export function PokemonPage() {
   const isLoading = data === undefined && !isError
   const { isPreferito, toggle } = usePreferiti()
   const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
+  const { filtro, setFiltro, master, setMaster } = useFiltroCollezione()
+  const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
+  const collezione = useCollezione(filtroPagina)
+  const carte = useMemo(() => (data ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.mappa, filtro])
   const location = useLocation()
   const navigate = useNavigate()
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
@@ -94,9 +102,19 @@ export function PokemonPage() {
         </div>
       </header>
 
+      {collezione.attiva && data && (
+        <BarraCollezione
+          {...conteggio(data, collezione.mappa, master)}
+          master={master}
+          onMaster={setMaster}
+          filtro={filtro}
+          onFiltro={setFiltro}
+        />
+      )}
+
       <GrigliaCartePaginata
         chiave={`pokemon-${pokemon.numero}`}
-        carte={data}
+        carte={carte}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}
@@ -112,11 +130,20 @@ export function PokemonPage() {
         isPreferito={isPreferito}
         onTogglePreferito={toggle}
         onApri={apri}
+        collezione={collezione.attiva ? collezione : undefined}
+        vuotoFiltro={collezione.attiva && data && data.length > 0 ? vuotoFiltro(filtro) : undefined}
       />
 
       <ModaleCarta {...modale} />
     </PaginaAnimata>
   )
+}
+
+// messaggio della griglia quando il filtro non lascia carte
+function vuotoFiltro(filtro: Filtro) {
+  if (filtro === 'mancanti') return { titolo: 'Nessuna carta mancante', testo: 'Hai tutte le carte di questa pagina.' }
+  if (filtro === 'possedute') return { titolo: 'Nessuna carta posseduta', testo: 'Usa il + su una carta per aggiungerla alla collezione.' }
+  return undefined
 }
 
 interface PropsFreccia {

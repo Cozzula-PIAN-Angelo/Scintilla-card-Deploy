@@ -8,6 +8,13 @@ import { copieTotali, creaMappa, type MappaCopie } from './conteggi'
 import { useGetCollezioneQuery, useModificaCollezioneMutation, type FiltroPagina } from './collezioneApi'
 import { ETICHETTE, primaSuggerita } from './varianti'
 
+// ciò che la griglia delle carte usa della collezione (la prop facoltativa `collezione`)
+export interface CollezioneGriglia {
+  copie(id: string): number
+  perVariante(id: string): Map<Variante, number>
+  aggiungiRapido(oggetto: Oggetto): void
+}
+
 const VUOTA: MappaCopie = new Map()
 const NESSUNA = new Map<Variante, number>()
 
