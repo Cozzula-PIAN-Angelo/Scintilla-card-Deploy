@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { CalendarHeart, Plus } from 'lucide-react'
 import { effettoCarta } from '../features/collezione/conteggi'
 import type { CollezioneGriglia } from '../features/collezione/useCollezione'
-import type { Oggetto, Variante } from '../types/api'
+import type { Oggetto } from '../types/api'
 import { elementoGriglia } from '../theme/motion'
 import { cn } from '../utils/cn'
 import { formattaData, formattaPrezzo } from '../utils/formato'
@@ -16,15 +16,13 @@ interface Props {
   onTogglePreferito: () => void
   onApri: () => void
   aggiuntoIl?: string
-  // copie possedute per variante (se note): decidono l'effetto olografico sulle carte di base
-  perVariante?: Map<Variante, number>
   // se presente: badge delle copie, "+" rapido e carta in grigio se non posseduta
   collezione?: CollezioneGriglia
 }
 
-export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl, perVariante, collezione }: Props) {
+export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl, collezione }: Props) {
   const copie = collezione?.copie(oggetto.id) ?? 0
-  const varianti = collezione ? collezione.perVariante(oggetto.id) : perVariante
+  const varianti = collezione?.perVariante(oggetto.id)
   const effetto = effettoCarta(oggetto, varianti)
 
   return (

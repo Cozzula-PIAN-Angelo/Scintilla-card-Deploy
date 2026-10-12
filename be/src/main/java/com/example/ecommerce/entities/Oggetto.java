@@ -81,15 +81,6 @@ public class Oggetto {
     @Column(length = 60)
     private String rarita;
 
-    // categoria secondo pokemontcg.io (Pokémon, Trainer, Energy): null = non ancora letta, '' = non indicata
-    @Column(length = 20)
-    private String categoria;
-
-    // sottotipi secondo pokemontcg.io (Basic, ex, Tera, ...): null = non ancora letti, lista vuota = non indicati
-    @Convert(converter = ConvertitoreSottotipi.class)
-    @Column(length = 200)
-    private List<String> sottotipi;
-
     public Oggetto(String nome, BigDecimal prezzo) {
         this.nome = nome;
         this.prezzo = prezzo;
