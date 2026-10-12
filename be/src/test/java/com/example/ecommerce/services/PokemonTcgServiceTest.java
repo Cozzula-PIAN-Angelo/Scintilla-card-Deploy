@@ -197,4 +197,20 @@ class PokemonTcgServiceTest {
 
         assertThat(esistente.getVarianti()).containsExactly(Variante.HOLO);
     }
+
+    // il job: le carte del set che pokemontcg.io non restituisce più escono dalla coda con lista vuota
+    @Test
+    void riempiVariantiSvuotaLeCarteNonPiuRestituite() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI, MediaType.APPLICATION_JSON));
+        Oggetto sparita = new Oggetto("Carta sparita (Base 9/102)", new java.math.BigDecimal("1.00"), null, "base1-9");
+        when(oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull("base1"))
+                .thenReturn(List.of(sparita));
+
+        service.riempiVarianti("base1");
+
+        assertThat(sparita.getVarianti()).isEmpty();
+        assertThat(sparita.getVarianti()).isNotNull();
+        pokemontcg.verify();
+    }
 }

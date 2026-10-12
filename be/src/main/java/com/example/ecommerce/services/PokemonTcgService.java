@@ -157,6 +157,18 @@ public class PokemonTcgService {
                 esito.rinominate());
     }
 
+    // riempie le varianti delle carte di un set già importato (le carte nuove non si aggiungono: non tocca
+    // "importata"). Quelle che pokemontcg.io non restituisce più ricevono la lista vuota, così il job
+    // non le ripropone a ogni giro
+    public void riempiVarianti(String setId) {
+        List<Carta> carte = scaricaCarte("set.id:" + setId, "set " + setId);
+        salvaCarte(carte);
+        transazione.executeWithoutResult(stato ->
+                oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull(setId)
+                        .forEach(oggetto -> oggetto.setVarianti(List.of())));
+        log.info("Varianti del set {} aggiornate ({} carte lette)", setId, carte.size());
+    }
+
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
     // Nessuna carta non è un errore: alcuni Pokémon non ne hanno ancora
     public EsitoImport importaPokemon(int numeroPokedex) {
@@ -172,7 +184,7 @@ public class PokemonTcgService {
     }
 
     // salva le carte scaricate: le nuove entrano nel catalogo, quelle già presenti ricevono i dati
-    // mancanti (espansione, numero, numeri di Pokédex). Le carte possono venire da set diversi
+    // mancanti (espansione, numero, numeri di Pokédex, varianti). Le carte possono venire da set diversi
     private EsitoImport salvaCarte(List<Carta> carte) {
         if (carte.isEmpty()) {
             return new EsitoImport(0, 0, 0, 0, 0);

@@ -1,6 +1,7 @@
 package com.example.ecommerce.repositories;
 
 import com.example.ecommerce.entities.Oggetto;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,4 +39,12 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     // tra gli idEsterno passati, quelli già importati: una sola query per un'intera pagina di risultati
     @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni")
     Set<String> findIdEsterniPresenti(@Param("idEsterni") Collection<String> idEsterni);
+
+    // set già importati con almeno una carta di pokemontcg.io le cui varianti non sono mai state lette
+    @Query("SELECT DISTINCT o.espansione.id FROM Oggetto o "
+            + "WHERE o.varianti IS NULL AND o.idEsterno IS NOT NULL AND o.espansione.importata = true")
+    List<String> findSetConVariantiMancanti(Limit limite);
+
+    // le carte di un set ancora senza varianti: dopo il riempimento sono quelle che pokemontcg.io non restituisce più
+    List<Oggetto> findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull(String espansioneId);
 }

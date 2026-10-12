@@ -1,6 +1,7 @@
 package com.example.ecommerce;
 
 import com.example.ecommerce.entities.TokenRevocato;
+import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.TokenRevocatoRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Limit;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -100,6 +102,19 @@ class MigrazioniTest {
     @Test
     void indiceCollezione() {
         assertThat(indici("collezione")).contains("ix_collezione_id_oggetto");
+    }
+
+    // coda del job delle varianti: solo i set importati con almeno una carta da leggere
+    @Test
+    void setConVariantiMancanti(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('sv1', 'Scarlet', false)");
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", null);
+        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "");
+        inserisciCartaDelSet("Carta C", "sv1-1", "sv1", null);
+
+        assertThat(oggettoRepository.findSetConVariantiMancanti(Limit.of(5))).containsExactly("base1");
     }
 
     @Test
@@ -204,5 +219,10 @@ class MigrazioniTest {
 
     private int contaRighe(String tabella) {
         return jdbc.queryForObject("SELECT count(*) FROM " + tabella, Integer.class);
+    }
+
+    private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti) {
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti) "
+                + "VALUES (?, ?, 1.00, now(), ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti);
     }
 }
