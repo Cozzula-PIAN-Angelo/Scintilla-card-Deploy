@@ -7,10 +7,12 @@ interface Props {
   alt: string
   className?: string
   priorita?: boolean
+  // reverse holo: riflesso a specchio sulla cornice (usa --mx, --my, --riflesso di un HoloCard antenato)
+  reverse?: boolean
 }
 
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato
-export function ImmagineCarta({ src, alt, className, priorita = false }: Props) {
+export function ImmagineCarta({ src, alt, className, priorita = false, reverse = false }: Props) {
   // stato legato allo src: se cambia, si riparte da "non caricata"
   const [srcCaricata, setSrcCaricata] = useState<string | null>(null)
   const [srcInErrore, setSrcInErrore] = useState<string | null>(null)
@@ -33,6 +35,9 @@ export function ImmagineCarta({ src, alt, className, priorita = false }: Props) 
           caricata ? 'opacity-100' : 'opacity-0',
         )}
       />
+      {reverse && caricata && (
+        <div aria-hidden className="holo-reverse senza-disegno pointer-events-none absolute inset-0" />
+      )}
     </div>
   )
 }

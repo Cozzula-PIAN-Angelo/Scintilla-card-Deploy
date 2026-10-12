@@ -180,19 +180,42 @@
     mix-blend-mode: color-dodge;
   }
 
-  /* scintillio della reverse holo: grana fine su tutta la carta, con un bagliore che segue --mx e --my */
+  /* reverse holo a specchio: lamina iridescente sulla sola cornice dell'immagine, il disegno resta fuori.
+     Lo strato sta dentro il contenitore dell'immagine e legge --mx, --my e --riflesso (0..1) esposti da HoloCard.
+     Intensità 70%: a riflesso pieno l'opacità vale 0,7 (si moltiplica l'opacità animata, senza ritoccare le alfa).
+     Colori: rosa, acqua, oro e viola scuro più saturi di circa un terzo rispetto alla prova; punto di luce e fasce scure invariati */
   .holo-reverse {
-    background-image:
+    opacity: calc(var(--riflesso, 0) * 0.7);
+    background:
       radial-gradient(
         circle at var(--mx, 50%) var(--my, 50%),
-        color-mix(in srgb, var(--color-white) 55%, transparent) 0%,
-        transparent 55%
+        rgb(255 255 255 / 0.95),
+        rgb(255 255 255 / 0.35) 16%,
+        transparent 38%
       ),
-      radial-gradient(circle, color-mix(in srgb, var(--color-white) 85%, transparent) 0 0.6px, transparent 1.2px),
-      radial-gradient(circle, color-mix(in srgb, var(--color-blu-50) 75%, transparent) 0 0.5px, transparent 1px);
-    background-size: 100% 100%, 7px 7px, 11px 11px;
-    background-position: center, 0 0, 3px 5px;
-    mix-blend-mode: color-dodge;
+      linear-gradient(
+          115deg,
+          rgb(0 0 0 / 0.45) 0%,
+          rgb(255 120 185 / 0.67) 18%,
+          rgb(255 255 255 / 0.95) 30%,
+          rgb(60 90 140 / 0.55) 38%,
+          rgb(110 255 225 / 1) 50%,
+          rgb(50 0 90 / 0.53) 62%,
+          rgb(255 215 90 / 1) 76%,
+          rgb(0 0 0 / 0.45) 100%
+        )
+        var(--mx, 50%) var(--my, 50%) / 260% 260%;
+    mix-blend-mode: hard-light;
+  }
+
+  /* maschera della finestra del disegno: resta fuori dal riflesso. Misurata sui pixel di carte Scarlatto e Violetto:
+     x 7,9%..92,9% (larghezza 85%), y 9,9%..47,4% (altezza 37,5%) dell'immagine.
+     Posizione % di una maschera = inizio / (100% - dimensione): x 7,9 / 15 = 52,67%, y 9,9 / 62,5 = 15,84% */
+  .senza-disegno {
+    -webkit-mask: linear-gradient(#000 0 0), linear-gradient(#000 0 0) 52.67% 15.84% / 85% 37.5% no-repeat;
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0), linear-gradient(#000 0 0) 52.67% 15.84% / 85% 37.5% no-repeat;
+    mask-composite: exclude;
   }
 
   /* fondo della pagina per ciò che la copre per intero; di notte vi si aggiungono le stelle (più sotto) */

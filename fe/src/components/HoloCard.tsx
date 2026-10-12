@@ -17,12 +17,12 @@ const INCLINAZIONE_MASSIMA = 16
 
 function classePerVariante(variante: Variante | null | undefined): string | null {
   if (variante === 'HOLO' || variante === 'PRIMA_EDIZIONE_HOLO') return 'holo-riflesso'
-  if (variante === 'REVERSE_HOLO') return 'holo-reverse'
   return null
 }
 
 // effetto "carta olografica": inclinazione 3D che segue il cursore e, secondo la variante,
-// riflesso arcobaleno (holo) o scintillio a grana fine (reverse holo).
+// riflesso arcobaleno (holo). Per la reverse holo non disegna nulla: espone --mx, --my e --riflesso
+// sul proprio elemento, e lo strato a specchio sta dentro l'immagine della carta (vedi ImmagineCarta).
 // Solo con puntatore fine (mouse) e senza "riduci movimento"
 export function HoloCard({ children, className, sopra, variante }: Props) {
   const classeRiflesso = classePerVariante(variante)
@@ -73,7 +73,7 @@ export function HoloCard({ children, className, sopra, variante }: Props) {
       onPointerMove={muovi}
       onPointerLeave={esci}
       whileHover={{ scale: 1.03 }}
-      style={{ rotateX: rotazioneX, rotateY: rotazioneY, transformPerspective: 900 }}
+      style={{ rotateX: rotazioneX, rotateY: rotazioneY, transformPerspective: 900, '--mx': mx, '--my': my, '--riflesso': opacita } as MotionStyle}
       className={cn('relative will-change-transform', className)}
     >
       {children}
@@ -81,7 +81,7 @@ export function HoloCard({ children, className, sopra, variante }: Props) {
         <motion.div
           aria-hidden
           className={cn(classeRiflesso, 'pointer-events-none absolute inset-0 rounded-[inherit]')}
-          style={{ opacity: opacita, '--mx': mx, '--my': my } as MotionStyle}
+          style={{ opacity: opacita }}
         />
       )}
       {sopra}

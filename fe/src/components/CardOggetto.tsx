@@ -25,12 +25,13 @@ interface Props {
 export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl, perVariante, collezione }: Props) {
   const copie = collezione?.copie(oggetto.id) ?? 0
   const varianti = collezione ? collezione.perVariante(oggetto.id) : perVariante
+  const effetto = varianteEffetto(oggetto, varianti)
 
   return (
     <motion.li layout variants={elementoGriglia} exit="uscita" className="list-none">
       <HoloCard
         className="rounded-3xl"
-        variante={varianteEffetto(oggetto, varianti)}
+        variante={effetto}
         sopra={
           <div className="absolute right-5 top-5 z-10 flex items-center gap-2">
             {collezione && copie > 0 && (
@@ -67,6 +68,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
           <ImmagineCarta
             src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
             alt={oggetto.nome}
+            reverse={effetto === 'REVERSE_HOLO'}
             className={cn(
               'aspect-[63/88] w-full rounded-2xl transition-[filter] duration-300',
               // non posseduta: in grigio, a colori in hover o con il focus sulla carta

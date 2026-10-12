@@ -55,6 +55,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
               src={mostrato.immagineUrl}
               alt={mostrato.nome}
               priorita
+              reverse={effetto === 'REVERSE_HOLO'}
               className="aspect-[63/88] w-full rounded-3xl shadow-2xl shadow-ombra/30"
             />
           </HoloCard>
