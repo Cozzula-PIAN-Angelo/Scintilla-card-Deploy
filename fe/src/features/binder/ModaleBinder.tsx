@@ -103,7 +103,16 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
     }
     setErrori({})
     setSalvataggio(true)
-    const dati: DatiBinder = { nome: nomePulito, tasche, pagine, colore, motivo, cartaCopertinaId: carta?.id ?? null }
+    const dati: DatiBinder = {
+      nome: nomePulito,
+      tasche,
+      pagine,
+      colore,
+      motivo,
+      cartaCopertinaId: carta?.id ?? null,
+      // la casella arriva più avanti: per ora si conserva il valore del binder (nuovo: acceso)
+      mostraMancanti: (binder ?? creato)?.mostraMancanti ?? true,
+    }
     try {
       // binder già creato in un tentativo precedente (fallito sull'immagine): si modifica quello,
       // altrimenti un nuovo clic su "Crea binder" ne creerebbe un doppione
