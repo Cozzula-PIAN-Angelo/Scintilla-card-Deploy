@@ -1,11 +1,15 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Button, LinkBottone } from '../components/Button'
 import { GrigliaCartePaginata } from '../components/GrigliaCartePaginata'
 import { ModaleCarta } from '../components/ModaleCarta'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
+import { BarraCollezione } from '../features/collezione/BarraCollezione'
+import { conteggio, filtra, vuotoFiltro } from '../features/collezione/conteggi'
+import { useCollezione } from '../features/collezione/useCollezione'
+import { useFiltroCollezione } from '../features/collezione/useFiltroCollezione'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon } from '../features/pokedex/pokedex'
 import { useGetCartePokemonQuery } from '../features/pokedex/pokedexApi'
@@ -23,7 +27,11 @@ export function PokemonPage() {
   const { currentData: data, isFetching, isError, error, refetch } = useGetCartePokemonQuery(numero, { skip: !pokemon })
   const isLoading = data === undefined && !isError
   const { isPreferito, toggle } = usePreferiti()
-  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
+  const { filtro, setFiltro } = useFiltroCollezione()
+  const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
+  const collezione = useCollezione(filtroPagina)
+  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione.pronta ? collezione : undefined)
+  const carte = useMemo(() => (data && collezione.pronta ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.pronta, collezione.mappa, filtro])
   const location = useLocation()
   const navigate = useNavigate()
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
@@ -94,9 +102,17 @@ export function PokemonPage() {
         </div>
       </header>
 
+      {collezione.pronta && data && (
+        <BarraCollezione
+          {...conteggio(data, collezione.mappa)}
+          filtro={filtro}
+          onFiltro={setFiltro}
+        />
+      )}
+
       <GrigliaCartePaginata
         chiave={`pokemon-${pokemon.numero}`}
-        carte={data}
+        carte={carte}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}
@@ -112,6 +128,8 @@ export function PokemonPage() {
         isPreferito={isPreferito}
         onTogglePreferito={toggle}
         onApri={apri}
+        collezione={collezione.pronta ? collezione : undefined}
+        vuotoFiltro={collezione.pronta && data && data.length > 0 ? vuotoFiltro(filtro) : undefined}
       />
 
       <ModaleCarta {...modale} />

@@ -8,6 +8,7 @@ import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.repositories.BinderRepository;
+import com.example.ecommerce.repositories.CollezioneRepository;
 import com.example.ecommerce.repositories.ImmagineBinderRepository;
 import com.example.ecommerce.repositories.RuoloUtenteRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
@@ -44,6 +45,8 @@ class CancellazioneUtenteServiceTest {
     @Mock
     private ImmagineBinderRepository immagineRepository;
     @Mock
+    private CollezioneRepository collezioneRepository;
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -67,7 +70,7 @@ class CancellazioneUtenteServiceTest {
         // e i test sotto ne controllano l'effetto sul repository
         RuoloUtenteService ruoloUtenteService = new RuoloUtenteService(ruoloUtenteRepository, utenteService, ruoloService);
         service = new CancellazioneUtenteService(utenteRepository, ruoloUtenteService, binderRepository,
-                immagineRepository, passwordEncoder);
+                immagineRepository, collezioneRepository, passwordEncoder);
     }
 
     @Test
@@ -83,6 +86,8 @@ class CancellazioneUtenteServiceTest {
         assertThat(utente.getPassword()).isEqualTo("hash-casuale");
         assertThat(utente.isAnonimizzato()).isTrue();
         verify(immagineRepository).deleteByUtenteId(id);
+        // la riga utente resta, quindi il CASCADE del DB non scatta: la collezione si cancella a mano
+        verify(collezioneRepository).deleteByUtenteId(id);
         verify(binderRepository).anonimizzaByUtenteId(eq(id), anyString());
         // la riga non si cancella: è il punto dell'anonimizzazione
         verify(utenteRepository, never()).delete(any());

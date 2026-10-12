@@ -3,6 +3,7 @@ import { CardOggetto } from '../../components/CardOggetto'
 import type { Oggetto } from '../../types/api'
 import { griglia } from '../../theme/motion'
 import { cn } from '../../utils/cn'
+import type { CollezioneGriglia } from '../collezione/useCollezione'
 
 interface Props {
   elementi: Array<{ oggetto: Oggetto; aggiuntoIl?: string }>
@@ -14,9 +15,10 @@ interface Props {
   inAggiornamento?: boolean
   // accanto a una colonna laterale: al massimo 3 carte per riga, altrimenti i nomi si tagliano
   stretta?: boolean
+  collezione?: CollezioneGriglia
 }
 
-export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferito, onApri, inAggiornamento, stretta }: Props) {
+export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferito, onApri, inAggiornamento, stretta, collezione }: Props) {
   return (
     <motion.ul
       key={chiave}
@@ -39,6 +41,7 @@ export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferit
             preferito={isPreferito(oggetto.id)}
             onTogglePreferito={() => onTogglePreferito(oggetto)}
             onApri={() => onApri(oggetto)}
+            collezione={collezione}
           />
         ))}
       </AnimatePresence>

@@ -2,6 +2,7 @@ package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.entities.Variante;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
@@ -57,7 +58,7 @@ import java.util.stream.Stream;
 public class PokemonTcgService {
 
     private static final int MAX_SIZE = 50;
-    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers";
+    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers,tcgplayer";
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
     // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
@@ -156,6 +157,36 @@ public class PokemonTcgService {
                 esito.rinominate());
     }
 
+    // riempie varianti e rarità delle carte di un set già importato. Passa da salvaCarte come un import, quindi
+    // le carte nuove del set entrano nel catalogo; non tocca "importata". Solo se il download è completo
+    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota e la rarità '', così il job non
+    // le ripropone a ogni giro; con un download parziale restano da leggere e si riprovano al giro dopo
+    public void riempiVarianti(String setId) {
+        Download download = scarica("set.id:" + setId, "set " + setId);
+        List<Carta> carte = download.carte();
+        if (carte.isEmpty()) {
+            // il set è nel catalogo: nessuna carta è una risposta anomala, non un set vuoto
+            throw new ServizioEsternoException("Nessuna carta restituita da pokemontcg.io per il set " + setId
+                    + ": varianti non aggiornate", null);
+        }
+        salvaCarte(carte);
+        if (carte.size() < download.totale()) {
+            log.warn("Varianti del set {}: lette {} carte su {}, le altre si riprovano al giro dopo",
+                    setId, carte.size(), download.totale());
+            return;
+        }
+        transazione.executeWithoutResult(stato ->
+                oggettoRepository.findCarteDaRiempireDelSet(setId).forEach(oggetto -> {
+                    if (oggetto.getVarianti() == null) {
+                        oggetto.setVarianti(List.of());
+                    }
+                    if (oggetto.getRarita() == null) {
+                        oggetto.setRarita("");
+                    }
+                }));
+        log.info("Varianti e rarità del set {} aggiornate ({} carte lette)", setId, carte.size());
+    }
+
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
     // Nessuna carta non è un errore: alcuni Pokémon non ne hanno ancora
     public EsitoImport importaPokemon(int numeroPokedex) {
@@ -171,7 +202,7 @@ public class PokemonTcgService {
     }
 
     // salva le carte scaricate: le nuove entrano nel catalogo, quelle già presenti ricevono i dati
-    // mancanti (espansione, numero, numeri di Pokédex). Le carte possono venire da set diversi
+    // mancanti (espansione, numero, numeri di Pokédex, varianti). Le carte possono venire da set diversi
     private EsitoImport salvaCarte(List<Carta> carte) {
         if (carte.isEmpty()) {
             return new EsitoImport(0, 0, 0, 0, 0);
@@ -210,6 +241,14 @@ public class PokemonTcgService {
                         }
                         if (esistente.getNumeriPokedex().isEmpty() && carta.nationalPokedexNumbers() != null) {
                             esistente.getNumeriPokedex().addAll(carta.nationalPokedexNumbers());
+                        }
+                        // varianti mai lette: si riempiono; quelle già note (anche corrette a mano) restano
+                        if (esistente.getVarianti() == null) {
+                            esistente.setVarianti(varianti(carta));
+                        }
+                        // stesso schema per la rarità: si riempie solo se mai letta
+                        if (esistente.getRarita() == null) {
+                            esistente.setRarita(rarita(carta));
                         }
                         saltate++;
                         continue;
@@ -289,15 +328,37 @@ public class PokemonTcgService {
         if (carta.nationalPokedexNumbers() != null) {
             oggetto.getNumeriPokedex().addAll(carta.nationalPokedexNumbers());
         }
+        oggetto.setVarianti(varianti(carta));
+        oggetto.setRarita(rarita(carta));
         return oggetto;
+    }
+
+    // senza rarità nella risposta '' (carta letta, nessuna indicata)
+    private String rarita(Carta carta) {
+        return carta.rarity() == null ? "" : carta.rarity();
+    }
+
+    // varianti suggerite dalle chiavi di tcgplayer.prices; senza tcgplayer lista vuota (carta letta, nessuna indicata)
+    private List<Variante> varianti(Carta carta) {
+        Map<String, Object> prezzi = carta.tcgplayer() == null ? null : carta.tcgplayer().prices();
+        return Variante.daChiaviTcgplayer(prezzi == null ? null : prezzi.keySet());
+    }
+
+    private List<Carta> scaricaCarte(String query, String descrizione) {
+        return scarica(query, descrizione).carte();
+    }
+
+    // carte scaricate (senza doppioni) e totale dichiarato da pokemontcg.io (totalCount, 0 se nessuna
+    // pagina ha dati): meno carte del totale = download interrotto da una pagina vuota o senza carte nuove
+    private record Download(List<Carta> carte, long totale) {
     }
 
     // orderBy=id: con orderBy=number pokemontcg.io pagina in modo instabile (la pagina 2 ripete
     // carte della 1 e altre si perdono). Per sicurezza i doppioni si scartano comunque per id
-    private List<Carta> scaricaCarte(String query, String descrizione) {
+    private Download scarica(String query, String descrizione) {
         Map<String, Carta> carte = new LinkedHashMap<>();
         int pagina = 1;
-        long totale;
+        long totale = 0;
         do {
             int numeroPagina = pagina;
             RispostaRicerca risposta = conTentativi(() -> cercaCarte(query, numeroPagina, PAGINA_SET, "id",
@@ -313,7 +374,7 @@ public class PokemonTcgService {
             totale = risposta.totalCount();
             pagina++;
         } while (carte.size() < totale);
-        return new ArrayList<>(carte.values());
+        return new Download(new ArrayList<>(carte.values()), totale);
     }
 
     // GET /cards con la sintassi di ricerca di pokemontcg.io (query passata come variabile, così i caratteri

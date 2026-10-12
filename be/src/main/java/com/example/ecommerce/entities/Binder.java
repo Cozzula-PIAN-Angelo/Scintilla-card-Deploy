@@ -69,6 +69,11 @@ public class Binder {
     @Column(name = "immagine_aggiornata_il")
     private Instant immagineAggiornataIl;
 
+    // se true, nel binder le carte non possedute si vedono in grigio (con "Ce l'ho"); se false si vedono
+    // a colori come le altre, per un binder da vetrina
+    @Column(name = "mostra_mancanti", nullable = false)
+    private boolean mostraMancanti = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)

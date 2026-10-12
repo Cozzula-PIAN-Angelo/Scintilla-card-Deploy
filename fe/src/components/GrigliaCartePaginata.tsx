@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useLocation, useSearchParams } from 'react-router'
 import { messaggioErrore } from '../app/errori'
+import type { CollezioneGriglia } from '../features/collezione/useCollezione'
 import { GrigliaOggetti } from '../features/oggetti/GrigliaOggetti'
 import type { Oggetto } from '../types/api'
 import { Paginazione } from './Paginazione'
@@ -27,6 +28,9 @@ interface Props {
   onTogglePreferito: (oggetto: Oggetto) => void
   onApri: (oggetto: Oggetto) => void
   stretta?: boolean
+  collezione?: CollezioneGriglia
+  // al posto di `vuoto` quando le carte sono finite per colpa del filtro (es. nessuna mancante)
+  vuotoFiltro?: { titolo: string; testo: string }
 }
 
 // griglia di carte con paginazione; la pagina sta nell'URL (?page=, numerata da 0 come nel resto
@@ -46,6 +50,8 @@ export function GrigliaCartePaginata({
   onTogglePreferito,
   onApri,
   stretta,
+  collezione,
+  vuotoFiltro,
 }: Props) {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
@@ -94,6 +100,7 @@ export function GrigliaCartePaginata({
     return <StatoErrore messaggio={messaggioErrore(error, erroreGenerico)} onRiprova={refetch} />
   }
   if (!carte || carte.length === 0) {
+    if (vuotoFiltro) return <StatoVuoto icona={vuoto.icona} titolo={vuotoFiltro.titolo} testo={vuotoFiltro.testo} />
     return <StatoVuoto icona={vuoto.icona} titolo={vuoto.titolo} testo={vuoto.testo} />
   }
 
@@ -112,6 +119,7 @@ export function GrigliaCartePaginata({
         onApri={onApri}
         inAggiornamento={isFetching}
         stretta={stretta}
+        collezione={collezione}
       />
       <Paginazione pagina={pagina} totalePagine={totalePagine} onCambia={vaiAPagina} />
     </div>

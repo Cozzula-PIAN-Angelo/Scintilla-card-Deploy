@@ -21,6 +21,16 @@ export interface Utente {
   ruoli: string[]
 }
 
+// varianti di stampa di una carta (stessi valori dell'enum del backend)
+export type Variante = 'NORMALE' | 'REVERSE_HOLO' | 'PRIMA_EDIZIONE'
+
+// copie possedute di una carta in una variante (le righe a quantità 0 non esistono)
+export interface Copia {
+  oggettoId: string
+  variante: Variante
+  quantita: number
+}
+
 export interface Oggetto {
   id: string
   nome: string
@@ -30,6 +40,10 @@ export interface Oggetto {
   // versione leggera per griglie e miniature; la grande resta per il dettaglio
   immagineUrlPiccola: string | null
   idEsterno: string | null
+  // varianti suggerite da pokemontcg.io; null = non ancora lette, [] = non indicate
+  varianti: Variante[] | null
+  // rarità di pokemontcg.io (es. "Double Rare"); null = non ancora letta, '' = non indicata
+  rarita: string | null
 }
 
 // espansione (set) di pokemontcg.io; importata = carte già nel catalogo
@@ -63,6 +77,8 @@ export interface Binder {
   // null senza immagine di copertina caricata; altrimenti fa da versione
   immagineAggiornataIl: string | null
   carteInserite: number
+  // le carte non possedute si vedono in grigio nelle tasche
+  mostraMancanti: boolean
   createdAt: string
 }
 
@@ -76,6 +92,8 @@ export interface SlotBinder {
 export interface BinderDettaglio {
   binder: Binder
   slot: SlotBinder[]
+  // copie possedute delle carte inserite nel binder
+  collezione: Copia[]
 }
 
 // impostazioni inviate in creazione e in modifica (sempre tutte)
@@ -86,6 +104,7 @@ export interface DatiBinder {
   colore: string
   motivo: MotivoBinder
   cartaCopertinaId: string | null
+  mostraMancanti: boolean
 }
 
 export interface CartaEsterna {

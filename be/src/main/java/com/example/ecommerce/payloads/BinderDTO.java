@@ -33,6 +33,9 @@ public record BinderDTO(
         @NotNull(message = "Il motivo della copertina è obbligatorio")
         MotivoBinder motivo,
 
-        UUID cartaCopertinaId
+        UUID cartaCopertinaId,
+
+        @NotNull(message = "Indica se mostrare le mancanti in grigio")
+        Boolean mostraMancanti
 ) {
 }

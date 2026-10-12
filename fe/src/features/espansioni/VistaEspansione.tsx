@@ -1,6 +1,11 @@
 import { motion } from 'framer-motion'
+import { useMemo } from 'react'
 import { Layers } from 'lucide-react'
 import { GrigliaCartePaginata } from '../../components/GrigliaCartePaginata'
+import { BarraCollezione } from '../collezione/BarraCollezione'
+import { conteggio, filtra, vuotoFiltro } from '../collezione/conteggi'
+import { useCollezione } from '../collezione/useCollezione'
+import { useFiltroCollezione } from '../collezione/useFiltroCollezione'
 import type { Espansione, Oggetto } from '../../types/api'
 import { useGetCarteEspansioneQuery } from './espansioniApi'
 
@@ -14,6 +19,10 @@ interface Props {
 // intestazione e carte di un solo set
 export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, onApri }: Props) {
   const { data, isLoading, isFetching, isError, error, refetch } = useGetCarteEspansioneQuery(espansione.id)
+  const { filtro, setFiltro } = useFiltroCollezione()
+  const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
+  const collezione = useCollezione(filtroPagina)
+  const carte = useMemo(() => (data && collezione.pronta ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.pronta, collezione.mappa, filtro])
   const anno = espansione.dataUscita?.slice(0, 4)
   const totale = data?.length ?? espansione.totaleCarte
 
@@ -42,9 +51,17 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
         </div>
       </header>
 
+      {collezione.pronta && data && (
+        <BarraCollezione
+          {...conteggio(data, collezione.mappa)}
+          filtro={filtro}
+          onFiltro={setFiltro}
+        />
+      )}
+
       <GrigliaCartePaginata
         chiave={espansione.id}
-        carte={data}
+        carte={carte}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}
@@ -61,6 +78,8 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
         onTogglePreferito={onTogglePreferito}
         onApri={onApri}
         stretta
+        collezione={collezione.pronta ? collezione : undefined}
+        vuotoFiltro={collezione.pronta && data && data.length > 0 ? vuotoFiltro(filtro) : undefined}
       />
     </motion.div>
   )

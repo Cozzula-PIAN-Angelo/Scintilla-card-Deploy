@@ -47,14 +47,15 @@ export const binderApi = api.injectEndpoints({
     }),
 
     // Le tre operazioni sulle tasche aggiornano subito il binder aperto e tornano indietro
-    // solo se la richiesta fallisce; la lista si ricarica per il conteggio delle carte
+    // solo se la richiesta fallisce; la lista si ricarica per il conteggio delle carte. Dopo un inserimento
+    // si rilegge anche il binder: il dettaglio porta le copie possedute della carta nuova
     inserisciCarta: build.mutation<void, { binderId: string; oggetto: Oggetto } & Posizione>({
       query: ({ binderId, pagina, posizione, oggetto }) => ({
         url: `/me/binder/${binderId}/slot`,
         method: 'POST',
         body: { pagina, posizione, oggettoId: oggetto.id },
       }),
-      invalidatesTags: [{ type: 'Binder', id: 'LISTA' }],
+      invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
       async onQueryStarted({ binderId, pagina, posizione, oggetto }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {
@@ -68,7 +69,8 @@ export const binderApi = api.injectEndpoints({
     }),
     svuotaTasca: build.mutation<void, { binderId: string } & Posizione>({
       query: ({ binderId, pagina, posizione }) => ({ url: `/me/binder/${binderId}/slot/${pagina}/${posizione}`, method: 'DELETE' }),
-      invalidatesTags: [{ type: 'Binder', id: 'LISTA' }],
+      // il dettaglio si rilegge a operazioni finite: una GET partita prima non sovrascrive la modifica
+      invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
       async onQueryStarted({ binderId, pagina, posizione }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {
@@ -85,6 +87,7 @@ export const binderApi = api.injectEndpoints({
         method: 'POST',
         body: { daPagina: da.pagina, daPosizione: da.posizione, aPagina: a.pagina, aPosizione: a.posizione },
       }),
+      invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: binderId }],
       async onQueryStarted({ binderId, da, a }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {

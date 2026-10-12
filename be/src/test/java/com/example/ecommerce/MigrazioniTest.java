@@ -1,6 +1,7 @@
 package com.example.ecommerce;
 
 import com.example.ecommerce.entities.TokenRevocato;
+import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.TokenRevocatoRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 // Migrazioni Flyway su un PostgreSQL vero (embedded-postgres, senza Docker). Il contesto parte solo se
 // Flyway applica le migrazioni e Hibernate, in validate, trova lo schema identico alle entity.
@@ -28,16 +31,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MigrazioniTest {
 
     // "tabella.colonna" -> regola ON DELETE attesa, come nelle annotazioni @OnDelete delle entity
-    private static final Map<String, String> ATTESE = Map.of(
-            "ruoli_utenti.id_utente", "CASCADE",
-            "ruoli_utenti.id_ruolo", "CASCADE",
-            "utenti_oggetti_preferiti.id_utente", "CASCADE",
-            "utenti_oggetti_preferiti.id_oggetto", "CASCADE",
-            "binder.id_utente", "CASCADE",
-            "binder.id_carta_copertina", "SET NULL",
-            "binder_immagini.id_binder", "CASCADE",
-            "binder_slot.id_binder", "CASCADE",
-            "binder_slot.id_oggetto", "CASCADE");
+    private static final Map<String, String> ATTESE = Map.ofEntries(
+            Map.entry("ruoli_utenti.id_utente", "CASCADE"),
+            Map.entry("ruoli_utenti.id_ruolo", "CASCADE"),
+            Map.entry("utenti_oggetti_preferiti.id_utente", "CASCADE"),
+            Map.entry("utenti_oggetti_preferiti.id_oggetto", "CASCADE"),
+            Map.entry("binder.id_utente", "CASCADE"),
+            Map.entry("binder.id_carta_copertina", "SET NULL"),
+            Map.entry("binder_immagini.id_binder", "CASCADE"),
+            Map.entry("binder_slot.id_binder", "CASCADE"),
+            Map.entry("binder_slot.id_oggetto", "CASCADE"),
+            Map.entry("collezione.id_utente", "CASCADE"),
+            Map.entry("collezione.id_oggetto", "CASCADE"));
 
     private static final String REGOLE = """
             SELECT c.conrelid::regclass::text AS tabella, a.attname AS colonna,
@@ -67,7 +72,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -92,6 +97,36 @@ class MigrazioniTest {
         assertThat(indici("oggetti_pokedex")).contains("ix_oggetti_pokedex_oggetto_id", "pk_oggetti_pokedex");
     }
 
+    // la ricerca delle righe di una carta (cancellazione dal catalogo) non scorre tutta la collezione
+    @Test
+    void indiceCollezione() {
+        assertThat(indici("collezione")).contains("ix_collezione_id_oggetto");
+    }
+
+    // coda del job delle varianti: solo i set importati con almeno una carta da leggere
+    @Test
+    void setConVariantiMancanti(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('sv1', 'Scarlet', false)");
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", null, "");
+        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "");
+        inserisciCartaDelSet("Carta C", "sv1-1", "sv1", null, "");
+
+        assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
+    }
+
+    // basta la sola rarità da leggere perché il set torni in coda
+    @Test
+    void setConSolaRaritaMancante(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", "", null);
+        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "Rare");
+
+        assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
+    }
+
     @Test
     void regoleOnDelete() {
         assertThat(regolePresenti()).containsAllEntriesOf(ATTESE);
@@ -106,6 +141,7 @@ class MigrazioniTest {
 
         assertThat(contaRighe("binder_slot")).isZero();
         assertThat(contaRighe("utenti_oggetti_preferiti")).isZero();
+        assertThat(contaRighe("collezione")).isZero();
         assertThat(jdbc.queryForObject("SELECT id_carta_copertina FROM binder WHERE id = ?", UUID.class, binder)).isNull();
     }
 
@@ -117,6 +153,49 @@ class MigrazioniTest {
 
         assertThat(contaRighe("binder_slot")).isZero();
         assertThat(contaRighe("binder_immagini")).isZero();
+    }
+
+    @Test
+    void cancellareUnUtenteTogliLaCollezione() {
+        inserisciUtenteCartaEBinder();
+
+        jdbc.update("DELETE FROM utenti WHERE id = ?", utente);
+
+        assertThat(contaRighe("collezione")).isZero();
+    }
+
+    @Test
+    void vincoliDellaCollezione() {
+        inserisciUtenteCartaEBinder();
+
+        assertViolazione(() -> inserisciInCollezione("NORMALE", 0));
+        assertViolazione(() -> inserisciInCollezione("NORMALE", 1000));
+        assertViolazione(() -> inserisciInCollezione("SHADOWLESS", 1));
+        // tolte dalla V6
+        assertViolazione(() -> inserisciInCollezione("HOLO", 1));
+        assertViolazione(() -> inserisciInCollezione("PRIMA_EDIZIONE_HOLO", 1));
+        // la terna (utente, carta, variante) esiste già: REVERSE_HOLO è nella riga inserita dal setup
+        assertViolazione(() -> inserisciInCollezione("REVERSE_HOLO", 1));
+    }
+
+    // dopo un errore PostgreSQL annulla la transazione del test: un savepoint la tiene viva per il controllo successivo
+    private void assertViolazione(Runnable inserimento) {
+        jdbc.execute("SAVEPOINT prima");
+        assertThatThrownBy(inserimento::run).isInstanceOf(DataIntegrityViolationException.class);
+        jdbc.execute("ROLLBACK TO SAVEPOINT prima");
+    }
+
+    // i binder creati prima della V4 non indicano la colonna: devono continuare a mostrare le mancanti
+    @Test
+    void binderEsistentiMostranoLeMancanti() {
+        inserisciUtenteCartaEBinder();
+
+        assertThat(jdbc.queryForObject("SELECT mostra_mancanti FROM binder WHERE id = ?", Boolean.class, binder)).isTrue();
+    }
+
+    private void inserisciInCollezione(String variante, int quantita) {
+        jdbc.update("INSERT INTO collezione (id, id_utente, id_oggetto, variante, quantita, aggiornata_il) VALUES (?, ?, ?, ?, ?, now())",
+                UUID.randomUUID(), utente, carta, variante, quantita);
     }
 
     // un utente con un binder (carta in copertina e in una tasca, immagine caricata) e la stessa carta nei preferiti
@@ -132,6 +211,7 @@ class MigrazioniTest {
                 binder, new byte[]{1, 2, 3});
         jdbc.update("INSERT INTO utenti_oggetti_preferiti (id, id_utente, id_oggetto, created_at) VALUES (?, ?, ?, now())",
                 UUID.randomUUID(), utente, carta);
+        inserisciInCollezione("REVERSE_HOLO", 2);
     }
 
     private List<String> versioniApplicate() {
@@ -152,5 +232,10 @@ class MigrazioniTest {
 
     private int contaRighe(String tabella) {
         return jdbc.queryForObject("SELECT count(*) FROM " + tabella, Integer.class);
+    }
+
+    private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti, String rarita) {
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti, rarita) "
+                + "VALUES (?, ?, 1.00, now(), ?, ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti, rarita);
     }
 }

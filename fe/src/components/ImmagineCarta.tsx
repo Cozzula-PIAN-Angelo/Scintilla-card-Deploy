@@ -7,10 +7,12 @@ interface Props {
   alt: string
   className?: string
   priorita?: boolean
+  // riflesso olografico (usa --mx, --my, --riflesso di un HoloCard antenato): 'arcobaleno' o 'specchio', su tutta l'immagine
+  riflesso?: 'arcobaleno' | 'specchio' | null
 }
 
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato
-export function ImmagineCarta({ src, alt, className, priorita = false }: Props) {
+export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null }: Props) {
   // stato legato allo src: se cambia, si riparte da "non caricata"
   const [srcCaricata, setSrcCaricata] = useState<string | null>(null)
   const [srcInErrore, setSrcInErrore] = useState<string | null>(null)
@@ -33,6 +35,8 @@ export function ImmagineCarta({ src, alt, className, priorita = false }: Props) 
           caricata ? 'opacity-100' : 'opacity-0',
         )}
       />
+      {riflesso === 'specchio' && caricata && <div aria-hidden className="holo-reverse pointer-events-none absolute inset-0" />}
+      {riflesso === 'arcobaleno' && caricata && <div aria-hidden className="holo-riflesso pointer-events-none absolute inset-0" />}
     </div>
   )
 }

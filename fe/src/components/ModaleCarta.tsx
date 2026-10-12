@@ -1,24 +1,51 @@
 import { BadgeCheck, CalendarDays } from 'lucide-react'
-import { useRef } from 'react'
-import type { Oggetto } from '../types/api'
+import { useRef, useState } from 'react'
+import { effettoCarta } from '../features/collezione/conteggi'
+import { piuPregiata } from '../features/collezione/varianti'
+import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
+import type { Oggetto, Variante } from '../types/api'
 import { formattaData, formattaPrezzo } from '../utils/formato'
 import { HoloCard } from './HoloCard'
 import { ImmagineCarta } from './ImmagineCarta'
 import { Modale } from './Modale'
 import { PulsanteCuore } from './PulsanteCuore'
 
+// ciò che il dettaglio usa della collezione; senza (ospite, altre pagine) la sezione non c'è
+export interface CollezioneModale {
+  perVariante(id: string): Map<Variante, number>
+  modifica(oggetto: Oggetto, variante: Variante, delta: number): void
+}
+
 interface Props {
   oggetto: Oggetto | null
   preferito: boolean
   onTogglePreferito: (oggetto: Oggetto) => void
   onChiudi: () => void
+  collezione?: CollezioneModale
 }
 
-export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi }: Props) {
+export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, collezione }: Props) {
   // l'ultimo oggetto resta visibile durante l'animazione di chiusura
   const ultimo = useRef<Oggetto | null>(null)
   if (oggetto) ultimo.current = oggetto
   const mostrato = ultimo.current
+  // variante scelta con un clic su una riga; vale solo per la carta per cui è stata scelta,
+  // così aprendo un'altra carta si riparte dalla regola di default
+  const [scelta, setScelta] = useState<{ id: string; variante: Variante } | null>(null)
+  // a ogni apertura (anche della stessa carta) la scelta riparte da zero; alla chiusura no,
+  // così durante l'animazione la carta resta com'era
+  const [idAperto, setIdAperto] = useState<string | null>(null)
+  const idCorrente = oggetto?.id ?? null
+  if (idCorrente !== idAperto) {
+    setIdAperto(idCorrente)
+    if (idCorrente !== null) setScelta(null)
+  }
+  const perVariante = mostrato && collezione ? collezione.perVariante(mostrato.id) : undefined
+  // la riga scelta comanda lo specchio sulle carte di base; sulle rare l'arcobaleno non dipende dalla scelta
+  const varianteScelta = mostrato && scelta?.id === mostrato.id ? scelta.variante : undefined
+  const effetto = mostrato ? effettoCarta(mostrato, perVariante, varianteScelta) : null
+  // riga evidenziata: quella cliccata, se no la più pregiata posseduta
+  const selezionata = varianteScelta ?? piuPregiata([...(perVariante?.keys() ?? [])].filter((v) => (perVariante?.get(v) ?? 0) > 0))
 
   return (
     <Modale aperto={oggetto !== null} onChiudi={onChiudi} larghezza="max-w-4xl">
@@ -29,6 +56,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi }:
               src={mostrato.immagineUrl}
               alt={mostrato.nome}
               priorita
+              riflesso={effetto}
               className="aspect-[63/88] w-full rounded-3xl shadow-2xl shadow-ombra/30"
             />
           </HoloCard>
@@ -54,6 +82,15 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi }:
                 {preferito ? 'Nei tuoi preferiti' : 'Aggiungi ai preferiti'}
               </span>
             </div>
+            {collezione && perVariante && (
+              <SezioneCollezione
+                oggetto={mostrato}
+                perVariante={perVariante}
+                onModifica={(variante, delta) => collezione.modifica(mostrato, variante, delta)}
+                selezionata={selezionata}
+                onSeleziona={(variante) => setScelta({ id: mostrato.id, variante })}
+              />
+            )}
           </div>
         </div>
       )}

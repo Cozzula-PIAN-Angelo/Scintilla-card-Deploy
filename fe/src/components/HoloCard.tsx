@@ -12,7 +12,8 @@ interface Props {
 
 const INCLINAZIONE_MASSIMA = 16
 
-// effetto "carta olografica": inclinazione 3D che segue il cursore e riflesso arcobaleno.
+// effetto "carta olografica": inclinazione 3D che segue il cursore. Non disegna nessun riflesso: espone
+// --mx, --my e --riflesso sul proprio elemento, e lo strato (arcobaleno o specchio) sta dentro l'immagine della carta (vedi ImmagineCarta).
 // Solo con puntatore fine (mouse) e senza "riduci movimento"
 export function HoloCard({ children, className, sopra }: Props) {
   const puntatoreFine = useMediaQuery('(hover: hover) and (pointer: fine)')
@@ -62,15 +63,10 @@ export function HoloCard({ children, className, sopra }: Props) {
       onPointerMove={muovi}
       onPointerLeave={esci}
       whileHover={{ scale: 1.03 }}
-      style={{ rotateX: rotazioneX, rotateY: rotazioneY, transformPerspective: 900 }}
+      style={{ rotateX: rotazioneX, rotateY: rotazioneY, transformPerspective: 900, '--mx': mx, '--my': my, '--riflesso': opacita } as MotionStyle}
       className={cn('relative will-change-transform', className)}
     >
       {children}
-      <motion.div
-        aria-hidden
-        className="holo-riflesso pointer-events-none absolute inset-0 rounded-[inherit]"
-        style={{ opacity: opacita, '--mx': mx, '--my': my } as MotionStyle}
-      />
       {sopra}
     </motion.div>
   )

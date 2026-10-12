@@ -159,6 +159,7 @@
 
   /* riflesso della carta olografica: la posizione segue il cursore tramite --mx e --my */
   .holo-riflesso {
+    opacity: var(--riflesso, 0);
     background-image:
       radial-gradient(
         circle at var(--mx, 50%) var(--my, 50%),
@@ -178,6 +179,35 @@
     background-size: 100% 100%, 260% 260%;
     background-position: center, var(--mx, 50%) var(--my, 50%);
     mix-blend-mode: color-dodge;
+  }
+
+  /* reverse holo a specchio: lamina iridescente su tutta l'immagine.
+     Lo strato sta dentro il contenitore dell'immagine e legge --mx, --my e --riflesso (0..1) esposti da HoloCard.
+     Intensità 70%: a riflesso pieno l'opacità vale 0,7 (si moltiplica l'opacità animata, senza ritoccare le alfa).
+     Poco bianco (punto di luce e fascia chiara tenui) e colori pieni: con hard-light schiariscono meno la carta e ne
+     ravvivano il colore; le fasce scure danno il contrasto dello specchio */
+  .holo-reverse {
+    opacity: calc(var(--riflesso, 0) * 0.7);
+    background:
+      radial-gradient(
+        circle at var(--mx, 50%) var(--my, 50%),
+        rgb(255 255 255 / 0.55),
+        rgb(255 255 255 / 0.15) 16%,
+        transparent 36%
+      ),
+      linear-gradient(
+          115deg,
+          rgb(0 0 0 / 0.45) 0%,
+          rgb(235 70 150 / 0.67) 18%,
+          rgb(225 230 255 / 0.5) 30%,
+          rgb(60 90 140 / 0.55) 38%,
+          rgb(40 200 180 / 1) 50%,
+          rgb(50 0 90 / 0.53) 62%,
+          rgb(240 175 30 / 1) 76%,
+          rgb(0 0 0 / 0.45) 100%
+        )
+        var(--mx, 50%) var(--my, 50%) / 260% 260%;
+    mix-blend-mode: hard-light;
   }
 
   /* fondo della pagina per ciò che la copre per intero; di notte vi si aggiungono le stelle (più sotto) */
