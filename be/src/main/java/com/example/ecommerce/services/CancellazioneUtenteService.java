@@ -1,13 +1,10 @@
 package com.example.ecommerce.services;
 
-import com.example.ecommerce.entities.NomiRuolo;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.exceptions.BadRequestException;
-import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.ImmagineBinderRepository;
-import com.example.ecommerce.repositories.RuoloUtenteRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +27,7 @@ public class CancellazioneUtenteService {
     private static final String NOME_BINDER_ANONIMO = "Binder";
 
     private final UtenteRepository utenteRepository;
-    private final RuoloUtenteRepository ruoloUtenteRepository;
+    private final RuoloUtenteService ruoloUtenteService;
     private final BinderRepository binderRepository;
     private final ImmagineBinderRepository immagineRepository;
     private final PasswordEncoder passwordEncoder;
@@ -62,14 +59,9 @@ public class CancellazioneUtenteService {
     private void anonimizza(Utente utente) {
         UUID id = utente.getId();
 
-        // il ruolo ADMIN si toglie, ma mai all'ultimo admin rimasto (come in RuoloUtenteService)
-        ruoloUtenteRepository.findByUtenteIdAndRuoloNome(id, NomiRuolo.ADMIN).ifPresent(ruoloAdmin -> {
-            if (ruoloUtenteRepository.countByRuoloNome(NomiRuolo.ADMIN) <= 1) {
-                throw new ConflictException("Impossibile cancellare l'account di " + utente.getUsername()
-                        + ": è l'ultimo admin rimasto. Nomina prima un altro admin");
-            }
-            ruoloUtenteRepository.delete(ruoloAdmin);
-        });
+        // il ruolo ADMIN si toglie, ma mai all'ultimo admin rimasto
+        ruoloUtenteService.togliAdmin(id, "Impossibile cancellare l'account di " + utente.getUsername()
+                + ": è l'ultimo admin rimasto. Nomina prima un altro admin");
 
         // segnaposto unici e non riutilizzabili: senza '@' nello username (vedi RegistrazioneDTO)
         // e con il dominio riservato .invalid, che non riceve posta. Email e username originali

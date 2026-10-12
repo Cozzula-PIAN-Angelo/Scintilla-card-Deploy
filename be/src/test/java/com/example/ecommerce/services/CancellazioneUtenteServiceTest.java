@@ -14,7 +14,6 @@ import com.example.ecommerce.repositories.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,7 +46,11 @@ class CancellazioneUtenteServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @InjectMocks
+    @Mock
+    private UtenteService utenteService;
+    @Mock
+    private RuoloService ruoloService;
+
     private CancellazioneUtenteService service;
 
     private Utente utente;
@@ -60,6 +63,11 @@ class CancellazioneUtenteServiceTest {
         // l'id lo genera Hibernate: nel test si imposta a mano
         ReflectionTestUtils.setField(utente, "id", id);
         when(utenteRepository.findById(id)).thenReturn(Optional.of(utente));
+        // RuoloUtenteService vero sul repository finto: la regola dell'ultimo admin è la sua,
+        // e i test sotto ne controllano l'effetto sul repository
+        RuoloUtenteService ruoloUtenteService = new RuoloUtenteService(ruoloUtenteRepository, utenteService, ruoloService);
+        service = new CancellazioneUtenteService(utenteRepository, ruoloUtenteService, binderRepository,
+                immagineRepository, passwordEncoder);
     }
 
     @Test
