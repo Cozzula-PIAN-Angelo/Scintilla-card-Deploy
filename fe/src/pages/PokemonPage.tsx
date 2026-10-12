@@ -27,7 +27,7 @@ export function PokemonPage() {
   const { currentData: data, isFetching, isError, error, refetch } = useGetCartePokemonQuery(numero, { skip: !pokemon })
   const isLoading = data === undefined && !isError
   const { isPreferito, toggle } = usePreferiti()
-  const { filtro, setFiltro, master, setMaster } = useFiltroCollezione()
+  const { filtro, setFiltro } = useFiltroCollezione()
   const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
   const collezione = useCollezione(filtroPagina)
   const { apri, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione.pronta ? collezione : undefined)
@@ -104,9 +104,7 @@ export function PokemonPage() {
 
       {collezione.pronta && data && (
         <BarraCollezione
-          {...conteggio(data, collezione.mappa, master)}
-          master={master}
-          onMaster={setMaster}
+          {...conteggio(data, collezione.mappa)}
           filtro={filtro}
           onFiltro={setFiltro}
         />

@@ -4,8 +4,6 @@ import type { Filtro } from './conteggi'
 interface Props {
   possedute: number
   totale: number
-  master: boolean
-  onMaster: (attivo: boolean) => void
   filtro: Filtro
   onFiltro: (filtro: Filtro) => void
 }
@@ -16,34 +14,17 @@ const FILTRI: Array<{ valore: Filtro; etichetta: string }> = [
   { valore: 'mancanti', etichetta: 'Mancanti' },
 ]
 
-// avanzamento della collezione di un set o di un Pokémon, con Master set e filtro
-export function BarraCollezione({ possedute, totale, master, onMaster, filtro, onFiltro }: Props) {
+// avanzamento della collezione di un set o di un Pokémon, con filtro
+export function BarraCollezione({ possedute, totale, filtro, onFiltro }: Props) {
   const percentuale = totale > 0 ? Math.round((possedute / totale) * 100) : 0
 
   return (
     <section aria-label="La tua collezione" className="mb-8 rounded-3xl bg-superficie p-4 shadow-lg shadow-ombra/10 ring-1 ring-linea/5">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <p className="text-lg font-semibold text-testo">
-          {possedute} / {totale} {master ? 'varianti' : 'carte'}
+          {possedute} / {totale} carte
         </p>
         <div className="flex flex-wrap items-center gap-4">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={master}
-            onClick={() => onMaster(!master)}
-            className="flex items-center gap-2 text-sm font-semibold text-testo-2"
-          >
-            <span className={cn('relative h-6 w-11 rounded-full transition-colors', master ? 'bg-blu-500' : 'bg-tenue')}>
-              <span
-                className={cn(
-                  'absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition-transform',
-                  master && 'translate-x-5',
-                )}
-              />
-            </span>
-            Master set
-          </button>
           <div role="group" aria-label="Filtra le carte" className="flex gap-1 rounded-full bg-tenue p-1">
             {FILTRI.map(({ valore, etichetta }) => (
               <button

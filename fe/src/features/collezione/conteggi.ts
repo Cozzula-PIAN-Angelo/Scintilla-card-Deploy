@@ -23,28 +23,14 @@ export function copieTotali(mappa: MappaCopie, id: string): number {
   return totale
 }
 
-// Normale: carte con almeno una copia / carte. Master set: voci = varianti suggerite più quelle possedute
-// non suggerite; una carta con varianti sconosciute o vuote e nessuna copia vale una voce
-export function conteggio(carte: Oggetto[], mappa: MappaCopie, master: boolean): { possedute: number; totale: number } {
+// carte con almeno una copia / carte
+export function conteggio(carte: Oggetto[], mappa: MappaCopie): { possedute: number; totale: number } {
   let possedute = 0
-  let totale = 0
   for (const carta of carte) {
     const mie = mappa.get(carta.id)
-    if (!master) {
-      totale += 1
-      if (mie && mie.size > 0) possedute += 1
-      continue
-    }
-    const voci = new Set<Variante>(carta.varianti ?? [])
-    for (const v of mie?.keys() ?? []) voci.add(v)
-    if (voci.size === 0) {
-      totale += 1
-      continue
-    }
-    totale += voci.size
-    for (const v of voci) if (mie?.has(v)) possedute += 1
+    if (mie && mie.size > 0) possedute += 1
   }
-  return { possedute, totale }
+  return { possedute, totale: carte.length }
 }
 
 export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro): Oggetto[] {

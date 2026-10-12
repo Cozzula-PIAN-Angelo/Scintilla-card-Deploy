@@ -19,7 +19,7 @@ interface Props {
 // intestazione e carte di un solo set
 export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, onApri }: Props) {
   const { data, isLoading, isFetching, isError, error, refetch } = useGetCarteEspansioneQuery(espansione.id)
-  const { filtro, setFiltro, master, setMaster } = useFiltroCollezione()
+  const { filtro, setFiltro } = useFiltroCollezione()
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
   const collezione = useCollezione(filtroPagina)
   const carte = useMemo(() => (data && collezione.pronta ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.pronta, collezione.mappa, filtro])
@@ -53,9 +53,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
 
       {collezione.pronta && data && (
         <BarraCollezione
-          {...conteggio(data, collezione.mappa, master)}
-          master={master}
-          onMaster={setMaster}
+          {...conteggio(data, collezione.mappa)}
           filtro={filtro}
           onFiltro={setFiltro}
         />
