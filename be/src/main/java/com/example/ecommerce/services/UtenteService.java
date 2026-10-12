@@ -68,13 +68,6 @@ public class UtenteService {
                 .orElseThrow(() -> new NotFoundException("Utente con id " + id + " non trovato"));
     }
 
-    // uso interno
-    @Transactional(readOnly = true)
-    public Utente findByEmail(String email) {
-        return utenteRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("Utente con email " + email + " non trovato"));
-    }
-
     @Transactional(readOnly = true)
     public List<String> getNomiRuoli(UUID utenteId) {
         return ruoloUtenteRepository.findByUtenteId(utenteId).stream()

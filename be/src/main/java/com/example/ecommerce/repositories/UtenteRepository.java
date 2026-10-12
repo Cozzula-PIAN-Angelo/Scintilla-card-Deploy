@@ -11,8 +11,6 @@ import java.util.UUID;
 
 public interface UtenteRepository extends JpaRepository<Utente, UUID> {
 
-    Optional<Utente> findByEmail(String email);
-
     Optional<Utente> findByUsername(String username);
 
     // le email si salvano in minuscolo, ma gli account registrati prima possono averle con le maiuscole:
