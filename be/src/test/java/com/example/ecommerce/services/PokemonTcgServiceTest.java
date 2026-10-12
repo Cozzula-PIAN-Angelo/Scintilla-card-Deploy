@@ -25,6 +25,9 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -86,7 +89,9 @@ class PokemonTcgServiceTest {
     // un import in blocco controlla i nomi già usati con una sola query, non una per carta
     @Test
     void importControllaINomiConUnaSolaQuery() {
-        pokemontcg.expect(requestTo(startsWith(BASE_URL + "/cards")))
+        // orderBy=id: con l'ordine di default pokemontcg.io pagina in modo instabile (vedi scaricaCarte)
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("orderBy=id"),
+                        containsString("page=1"), containsString("pageSize=100"))))
                 .andRespond(withSuccess(RISPOSTA_PIKACHU, MediaType.APPLICATION_JSON));
         when(oggettoRepository.findNomiPresenti(any())).thenReturn(Set.of("Pikachu (Base 58/102)"));
 
@@ -109,7 +114,9 @@ class PokemonTcgServiceTest {
     // (GlobalExceptionHandler): il service non scrive più un ERROR a ogni tentativo
     @Test
     void erroreHttpHaIlDettaglioNelMessaggioESenzaLogNelService(CapturedOutput log) {
-        pokemontcg.expect(requestTo(startsWith(BASE_URL + "/cards")))
+        // la ricerca admin: pagina 0 per noi, 1 per l'API, e senza orderBy
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("page=1"),
+                        containsString("pageSize=10"), not(containsString("orderBy")))))
                 .andRespond(withServerError().body("{\"error\":\"database pokemontcg in manutenzione\"}"));
 
         assertThatThrownBy(() -> service.cerca("pikachu", 0, 10))

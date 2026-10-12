@@ -91,16 +91,7 @@ public class PokemonTcgService {
         int dimensione = Math.min(size, MAX_SIZE);
 
         // l'API esterna numera le pagine da 1, la nostra PageResponse da 0
-        RispostaRicerca risposta = chiama(() -> pokemonTcgRestClient.get()
-                        .uri(uri -> uri.path("/cards")
-                                .queryParam("q", "{q}")
-                                .queryParam("page", page + 1)
-                                .queryParam("pageSize", dimensione)
-                                .queryParam("select", CAMPI_RICHIESTI)
-                                .build(Map.of("q", creaQuery(nomePulito))))
-                        .retrieve()
-                        .body(RispostaRicerca.class),
-                "Ricerca non disponibile");
+        RispostaRicerca risposta = cercaCarte(creaQuery(nomePulito), page + 1, dimensione, null, "Ricerca non disponibile");
 
         List<Carta> carte = risposta.data() == null ? List.of() : risposta.data();
         List<String> idEsterni = carte.stream().map(Carta::id).toList();
@@ -309,16 +300,7 @@ public class PokemonTcgService {
         long totale;
         do {
             int numeroPagina = pagina;
-            RispostaRicerca risposta = conTentativi(() -> chiama(() -> pokemonTcgRestClient.get()
-                            .uri(uri -> uri.path("/cards")
-                                    .queryParam("q", "{q}")
-                                    .queryParam("page", numeroPagina)
-                                    .queryParam("pageSize", PAGINA_SET)
-                                    .queryParam("select", CAMPI_RICHIESTI)
-                                    .queryParam("orderBy", "id")
-                                    .build(Map.of("q", query)))
-                            .retrieve()
-                            .body(RispostaRicerca.class),
+            RispostaRicerca risposta = conTentativi(() -> cercaCarte(query, numeroPagina, PAGINA_SET, "id",
                     "Carte non trovate su pokemontcg.io (" + descrizione + ")"), descrizione + " pagina " + numeroPagina);
             if (risposta.data() == null || risposta.data().isEmpty()) {
                 break;
@@ -332,6 +314,26 @@ public class PokemonTcgService {
             pagina++;
         } while (carte.size() < totale);
         return new ArrayList<>(carte.values());
+    }
+
+    // GET /cards con la sintassi di ricerca di pokemontcg.io (query passata come variabile, così i caratteri
+    // speciali vengono codificati). pagina parte da 1, come nell'API; orderBy null = ordine dell'API
+    private RispostaRicerca cercaCarte(String query, int pagina, int dimensione, String orderBy, String messaggioNonTrovato) {
+        return chiama(() -> pokemonTcgRestClient.get()
+                        .uri(uri -> {
+                            uri.path("/cards")
+                                    .queryParam("q", "{q}")
+                                    .queryParam("page", pagina)
+                                    .queryParam("pageSize", dimensione)
+                                    .queryParam("select", CAMPI_RICHIESTI);
+                            if (orderBy != null) {
+                                uri.queryParam("orderBy", orderBy);
+                            }
+                            return uri.build(Map.of("q", query));
+                        })
+                        .retrieve()
+                        .body(RispostaRicerca.class),
+                messaggioNonTrovato);
     }
 
     // ritenta solo gli errori temporanei (5xx, 429, timeout); 404 e 400 non cambiano riprovando
