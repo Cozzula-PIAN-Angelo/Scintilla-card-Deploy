@@ -33,8 +33,10 @@ Non serve impostare variabili: senza `SPRING_PROFILES_ACTIVE` parte il profilo
 
 Le tabelle le crea Flyway al primo avvio, con le migrazioni in `be/src/main/resources/db/migration`
 (`V1__schema_iniziale.sql`, `V2__...`). Hibernate non modifica mai lo schema (`ddl-auto=validate`):
-controlla solo che corrisponda alle entity, e se non corrisponde l'app non parte. Una modifica allo
-schema è sempre una nuova migrazione `V<n>__descrizione.sql`, mai la modifica di una già applicata.
+all'avvio controlla che tabelle e colonne delle entity esistano con tipi compatibili, e altrimenti l'app
+non parte. Non controlla vincoli (NOT NULL, UNIQUE, foreign key, ON DELETE) né indici: quelli li verifica
+`MigrazioniTest`. Una modifica allo schema è sempre una nuova migrazione `V<n>__descrizione.sql`, mai la
+modifica di una già applicata (Flyway ne controlla il checksum e rifiuterebbe i database già migrati).
 
 Un database creato prima di Flyway (tabelle senza `flyway_schema_history`) fa fermare l'avvio con
 `Found non-empty schema(s) "public" but no schema history table`. Si resetta una volta, perdendo i dati:
@@ -108,15 +110,20 @@ aprono tutte le carte in cui compare, dalla più recente.
 Il database di Render creato prima di Flyway ha le tabelle ma non la storia di Flyway: il nuovo
 backend non parte finché non lo si resetta (i dati si perdono). In quest'ordine:
 
-1. pannello di Render > `scintilla-db` > **Connect** > **External Connection**: copiare il comando `PSQL Command`;
-2. eseguirlo nel terminale (serve `psql`, es. `C:\Program Files\PostgreSQL\18\bin\psql.exe`), poi:
+1. pannello di Render > `scintilla-be` > **Settings** > **Suspend Web Service**: il backend vecchio va
+   fermato, altrimenti la prima visita lo risveglia (piano free) e con `ddl-auto=update` ricrea le
+   tabelle vecchie subito dopo il reset;
+2. pannello di Render > `scintilla-db` > **Connect** > **External Connection**: copiare il comando `PSQL Command`;
+3. eseguirlo nel terminale (serve `psql`, es. `C:\Program Files\PostgreSQL\18\bin\psql.exe`), poi:
    ```
    DROP SCHEMA public CASCADE; CREATE SCHEMA public;
    ```
-3. merge su `main`: il deploy parte, Flyway crea le tabelle e i seeder ripopolano.
+4. merge su `main`, poi `scintilla-be` > **Resume Web Service**: il deploy parte, Flyway crea le
+   tabelle e i seeder ripopolano.
 
-Se il deploy parte prima del reset, fallisce con `non-empty schema ... no schema history table` e
-Render tiene online la versione precedente: basta fare il reset e un **Manual Deploy**.
+Se il deploy fallisce con `non-empty schema ... no schema history table`, nel database ci sono di nuovo
+tabelle senza la storia di Flyway (reset non fatto, o ricreate dalla versione vecchia): Render tiene
+online la versione precedente. Si sospende il servizio, si rifà il reset e si lancia un **Manual Deploy**.
 
 ## Struttura
 
