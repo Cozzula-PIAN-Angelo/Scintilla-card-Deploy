@@ -28,6 +28,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -178,17 +179,19 @@ class CollezioneServiceTest {
                 List<Future<CopiaDTO>> esiti = new ArrayList<>();
                 for (int i = 0; i < 2; i++) {
                     esiti.add(pool.submit(() -> {
-                        via.await();
+                        via.await(10, TimeUnit.SECONDS);
                         return tx.execute(st -> service.modifica(utente, delta(carta, -1)));
                     }));
                 }
                 for (Future<CopiaDTO> esito : esiti) {
-                    esito.get(); // rilancia l'eventuale eccezione del thread
+                    // attese limitate: un blocco fa fallire il test invece di fermare la suite
+                    esito.get(10, TimeUnit.SECONDS); // rilancia l'eventuale eccezione del thread
                 }
                 assertThat(righe()).isZero();
             }
         } finally {
             pool.shutdownNow();
+            pool.awaitTermination(10, TimeUnit.SECONDS);
             jdbc.update("DELETE FROM collezione");
             jdbc.update("DELETE FROM oggetti_pokedex");
             jdbc.update("DELETE FROM oggetti");
