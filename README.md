@@ -29,6 +29,23 @@ Avviabile in locale e pronto per il deploy su Render.
 Non serve impostare variabili: senza `SPRING_PROFILES_ACTIVE` parte il profilo
 `local` (`application-local.properties`) con secret JWT e password admin di sviluppo.
 
+### Schema del database (Flyway)
+
+Le tabelle le crea Flyway al primo avvio, con le migrazioni in `be/src/main/resources/db/migration`
+(`V1__schema_iniziale.sql`, `V2__...`). Hibernate non modifica mai lo schema (`ddl-auto=validate`):
+controlla solo che corrisponda alle entity, e se non corrisponde l'app non parte. Una modifica allo
+schema è sempre una nuova migrazione `V<n>__descrizione.sql`, mai la modifica di una già applicata.
+
+Un database creato prima di Flyway (tabelle senza `flyway_schema_history`) fa fermare l'avvio con
+`Found non-empty schema(s) "public" but no schema history table`. Si resetta una volta, perdendo i dati:
+```
+psql -U postgres -d naso-commers -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+```
+Al riavvio Flyway ricrea le tabelle e i seeder ruoli, admin, espansioni e il set `base1`.
+
+I test delle migrazioni (`MigrazioniTest`) girano su un PostgreSQL vero scaricato da Maven
+(embedded-postgres): non servono Docker né un database di test.
+
 ## Vetrina ed espansioni
 
 La vetrina mostra tutte le espansioni di pokemontcg.io (circa 180), raggruppate per
@@ -86,6 +103,21 @@ aprono tutte le carte in cui compare, dalla più recente.
 
 4. **Manual Deploy** di entrambi (`VITE_API_URL` è letta in fase di build).
 
+### Primo deploy con Flyway su un database già esistente
+
+Il database di Render creato prima di Flyway ha le tabelle ma non la storia di Flyway: il nuovo
+backend non parte finché non lo si resetta (i dati si perdono). In quest'ordine:
+
+1. pannello di Render > `scintilla-db` > **Connect** > **External Connection**: copiare il comando `PSQL Command`;
+2. eseguirlo nel terminale (serve `psql`, es. `C:\Program Files\PostgreSQL\18\bin\psql.exe`), poi:
+   ```
+   DROP SCHEMA public CASCADE; CREATE SCHEMA public;
+   ```
+3. merge su `main`: il deploy parte, Flyway crea le tabelle e i seeder ripopolano.
+
+Se il deploy parte prima del reset, fallisce con `non-empty schema ... no schema history table` e
+Render tiene online la versione precedente: basta fare il reset e un **Manual Deploy**.
+
 ## Struttura
 
 ```
@@ -101,6 +133,7 @@ be/
   src/main/resources/
     application.properties        configurazione comune (variabili d'ambiente)
     application-local.properties  valori di sviluppo, profilo di default
+    db/migration/                 migrazioni Flyway dello schema (V1, V2, ...)
 fe/
   src/app/api.ts            base delle chiamate, da VITE_API_URL
   .env.example
