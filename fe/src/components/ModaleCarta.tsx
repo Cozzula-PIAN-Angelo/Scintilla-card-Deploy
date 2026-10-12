@@ -1,6 +1,6 @@
 import { BadgeCheck, CalendarDays } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { varianteEffetto } from '../features/collezione/conteggi'
+import { riflessoPer, varianteEffetto } from '../features/collezione/conteggi'
 import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
 import type { Oggetto, Variante } from '../types/api'
 import { formattaData, formattaPrezzo } from '../utils/formato'
@@ -50,12 +50,12 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
     <Modale aperto={oggetto !== null} onChiudi={onChiudi} larghezza="max-w-4xl">
       {mostrato && (
         <div className="grid items-center gap-8 md:grid-cols-[1.1fr_1fr]">
-          <HoloCard className="mx-auto w-full max-w-sm rounded-3xl" variante={effetto}>
+          <HoloCard className="mx-auto w-full max-w-sm rounded-3xl">
             <ImmagineCarta
               src={mostrato.immagineUrl}
               alt={mostrato.nome}
               priorita
-              reverse={effetto === 'REVERSE_HOLO'}
+              riflesso={riflessoPer(effetto)}
               className="aspect-[63/88] w-full rounded-3xl shadow-2xl shadow-ombra/30"
             />
           </HoloCard>

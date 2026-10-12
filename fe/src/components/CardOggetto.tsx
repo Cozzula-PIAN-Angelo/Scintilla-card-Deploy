@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { CalendarHeart, Plus } from 'lucide-react'
-import { varianteEffetto } from '../features/collezione/conteggi'
+import { riflessoPer, varianteEffetto } from '../features/collezione/conteggi'
 import type { CollezioneGriglia } from '../features/collezione/useCollezione'
 import type { Oggetto, Variante } from '../types/api'
 import { elementoGriglia } from '../theme/motion'
@@ -31,7 +31,6 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
     <motion.li layout variants={elementoGriglia} exit="uscita" className="list-none">
       <HoloCard
         className="rounded-3xl"
-        variante={effetto}
         sopra={
           <div className="absolute right-5 top-5 z-10 flex items-center gap-2">
             {collezione && copie > 0 && (
@@ -68,7 +67,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
           <ImmagineCarta
             src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
             alt={oggetto.nome}
-            reverse={effetto === 'REVERSE_HOLO'}
+            riflesso={riflessoPer(effetto)}
             className={cn(
               'aspect-[63/88] w-full rounded-2xl transition-[filter] duration-300',
               // non posseduta: in grigio, a colori in hover o con il focus sulla carta

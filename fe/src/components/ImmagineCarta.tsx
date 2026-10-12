@@ -7,12 +7,13 @@ interface Props {
   alt: string
   className?: string
   priorita?: boolean
-  // reverse holo: riflesso a specchio sulla cornice (usa --mx, --my, --riflesso di un HoloCard antenato)
-  reverse?: boolean
+  // riflesso olografico (usa --mx, --my, --riflesso di un HoloCard antenato): 'holo' arcobaleno su bordo e disegno,
+  // 'reverse' a specchio sulla sola cornice
+  riflesso?: 'holo' | 'reverse' | null
 }
 
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato
-export function ImmagineCarta({ src, alt, className, priorita = false, reverse = false }: Props) {
+export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null }: Props) {
   // stato legato allo src: se cambia, si riparte da "non caricata"
   const [srcCaricata, setSrcCaricata] = useState<string | null>(null)
   const [srcInErrore, setSrcInErrore] = useState<string | null>(null)
@@ -35,8 +36,11 @@ export function ImmagineCarta({ src, alt, className, priorita = false, reverse =
           caricata ? 'opacity-100' : 'opacity-0',
         )}
       />
-      {reverse && caricata && (
+      {riflesso === 'reverse' && caricata && (
         <div aria-hidden className="holo-reverse senza-disegno pointer-events-none absolute inset-0" />
+      )}
+      {riflesso === 'holo' && caricata && (
+        <div aria-hidden className="holo-riflesso solo-bordo-e-disegno pointer-events-none absolute inset-0" />
       )}
     </div>
   )

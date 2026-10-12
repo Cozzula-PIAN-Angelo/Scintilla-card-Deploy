@@ -50,3 +50,10 @@ export function varianteEffetto(oggetto: Oggetto, perVariante?: Map<Variante, nu
   const possedute = [...(perVariante?.keys() ?? [])].filter((v) => (perVariante?.get(v) ?? 0) > 0)
   return piuPregiata(possedute) ?? piuPregiata(oggetto.varianti ?? [])
 }
+
+// tipo di riflesso olografico da disegnare nell'immagine per una variante (null = nessuno)
+export function riflessoPer(variante: Variante | null): 'holo' | 'reverse' | null {
+  if (variante === 'HOLO' || variante === 'PRIMA_EDIZIONE_HOLO') return 'holo'
+  if (variante === 'REVERSE_HOLO') return 'reverse'
+  return null
+}

@@ -1,7 +1,6 @@
 import { motion, useMotionTemplate, useMotionValue, useReducedMotion, useSpring, type MotionStyle } from 'framer-motion'
 import { useRef, type PointerEvent, type ReactNode } from 'react'
 import { useMediaQuery } from '../hooks/useMediaQuery'
-import type { Variante } from '../types/api'
 import { cn } from '../utils/cn'
 
 interface Props {
@@ -9,23 +8,14 @@ interface Props {
   className?: string
   // elementi sopra il riflesso (es. il cuore), così restano nitidi e cliccabili
   sopra?: ReactNode
-  // variante da mostrare: decide il riflesso (assente o senza effetto = solo inclinazione)
-  variante?: Variante | null
 }
 
 const INCLINAZIONE_MASSIMA = 16
 
-function classePerVariante(variante: Variante | null | undefined): string | null {
-  if (variante === 'HOLO' || variante === 'PRIMA_EDIZIONE_HOLO') return 'holo-riflesso'
-  return null
-}
-
-// effetto "carta olografica": inclinazione 3D che segue il cursore e, secondo la variante,
-// riflesso arcobaleno (holo). Per la reverse holo non disegna nulla: espone --mx, --my e --riflesso
-// sul proprio elemento, e lo strato a specchio sta dentro l'immagine della carta (vedi ImmagineCarta).
+// effetto "carta olografica": inclinazione 3D che segue il cursore. Non disegna nessun riflesso: espone
+// --mx, --my e --riflesso sul proprio elemento, e lo strato (holo o reverse) sta dentro l'immagine della carta (vedi ImmagineCarta).
 // Solo con puntatore fine (mouse) e senza "riduci movimento"
-export function HoloCard({ children, className, sopra, variante }: Props) {
-  const classeRiflesso = classePerVariante(variante)
+export function HoloCard({ children, className, sopra }: Props) {
   const puntatoreFine = useMediaQuery('(hover: hover) and (pointer: fine)')
   const movimentoRidotto = useReducedMotion()
   const attivo = puntatoreFine && !movimentoRidotto
@@ -77,13 +67,6 @@ export function HoloCard({ children, className, sopra, variante }: Props) {
       className={cn('relative will-change-transform', className)}
     >
       {children}
-      {classeRiflesso && (
-        <motion.div
-          aria-hidden
-          className={cn(classeRiflesso, 'pointer-events-none absolute inset-0 rounded-[inherit]')}
-          style={{ opacity: opacita }}
-        />
-      )}
       {sopra}
     </motion.div>
   )
