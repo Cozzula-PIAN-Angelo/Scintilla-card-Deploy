@@ -87,6 +87,22 @@ aprono tutte le carte in cui compare, dalla più recente.
 - Ogni carta salva i numeri di Pokédex dei Pokémon raffigurati (tabella `oggetti_pokedex`).
 - L'elenco dei nomi è in `fe/src/features/pokedex/pokedex.json`, generato da PokeAPI.
 
+### Collezione e varianti
+
+Da loggati si segna quali carte si possiedono, in quante copie e in quale variante (Normale,
+Reverse holo, Holo, 1a edizione, 1a edizione holo). Nelle pagine di un set e di un Pokémon le
+carte non possedute sono in grigio, c'è il contatore «X / N carte», il filtro Tutte, Possedute,
+Mancanti e l'interruttore **Master set**, che conta ogni variante come carta da avere. Nel binder
+le mancanti si possono mostrare in grigio (impostazione del binder) e il menu della tasca ha «Ce l'ho».
+
+- `GET /me/collezione?espansione=` o `?pokemon=` restituisce le copie possedute; `PATCH /me/collezione`
+  (`oggettoId`, `variante`, `delta`) le aggiunge o le toglie. Solo per utenti autenticati.
+- Le varianti di una carta si leggono dai prezzi TCGplayer di pokemontcg.io e si salvano insieme
+  alla carta: decidono l'effetto holo e la variante registrata dal «+». Per i set già importati
+  prima di questa funzione le riempie il job orario, **5 set per giro e solo mentre il backend è
+  sveglio** (su Render gratuito si addormenta): finché un set non è stato riempito non ha l'effetto
+  holo e il «+» registra «Normale». Le carte create a mano non hanno varianti suggerite.
+
 ## Deploy su Render
 
 1. Repository Git con `be/`, `fe/`, `render.yaml` nella radice.
