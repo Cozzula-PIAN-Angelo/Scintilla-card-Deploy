@@ -56,6 +56,8 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
           {...conteggio(data, collezione.mappa)}
           filtro={filtro}
           onFiltro={setFiltro}
+          aColori={collezione.aColori}
+          onAlternaColori={collezione.alternaColori}
         />
       )}
 

@@ -68,8 +68,8 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
             riflesso={effetto}
             className={cn(
               'aspect-[63/88] w-full rounded-2xl transition-[filter] duration-300',
-              // non posseduta: in grigio, a colori in hover o con il focus sulla carta
-              collezione && copie === 0 && 'grayscale group-hover:grayscale-0 group-focus-visible:grayscale-0',
+              // non posseduta: in grigio (salvo la scelta «Mancanti a colori»), a colori in hover o con il focus sulla carta
+              collezione && !collezione.aColori && copie === 0 && 'grayscale group-hover:grayscale-0 group-focus-visible:grayscale-0',
             )}
           />
           <div className="mt-3 flex items-start justify-between gap-3 px-1">
