@@ -7,7 +7,7 @@ import { ModaleCarta } from '../components/ModaleCarta'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
 import { BarraCollezione } from '../features/collezione/BarraCollezione'
-import { conteggio, filtra, type Filtro } from '../features/collezione/conteggi'
+import { conteggio, filtra, vuotoFiltro } from '../features/collezione/conteggi'
 import { useCollezione } from '../features/collezione/useCollezione'
 import { useFiltroCollezione } from '../features/collezione/useFiltroCollezione'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
@@ -31,7 +31,7 @@ export function PokemonPage() {
   const { filtro, setFiltro, master, setMaster } = useFiltroCollezione()
   const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
   const collezione = useCollezione(filtroPagina)
-  const carte = useMemo(() => (data ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.mappa, filtro])
+  const carte = useMemo(() => (data && collezione.pronta ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.pronta, collezione.mappa, filtro])
   const location = useLocation()
   const navigate = useNavigate()
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
@@ -102,7 +102,7 @@ export function PokemonPage() {
         </div>
       </header>
 
-      {collezione.attiva && data && (
+      {collezione.pronta && data && (
         <BarraCollezione
           {...conteggio(data, collezione.mappa, master)}
           master={master}
@@ -130,20 +130,13 @@ export function PokemonPage() {
         isPreferito={isPreferito}
         onTogglePreferito={toggle}
         onApri={apri}
-        collezione={collezione.attiva ? collezione : undefined}
-        vuotoFiltro={collezione.attiva && data && data.length > 0 ? vuotoFiltro(filtro) : undefined}
+        collezione={collezione.pronta ? collezione : undefined}
+        vuotoFiltro={collezione.pronta && data && data.length > 0 ? vuotoFiltro(filtro) : undefined}
       />
 
       <ModaleCarta {...modale} />
     </PaginaAnimata>
   )
-}
-
-// messaggio della griglia quando il filtro non lascia carte
-function vuotoFiltro(filtro: Filtro) {
-  if (filtro === 'mancanti') return { titolo: 'Nessuna carta mancante', testo: 'Hai tutte le carte di questa pagina.' }
-  if (filtro === 'possedute') return { titolo: 'Nessuna carta posseduta', testo: 'Usa il + su una carta per aggiungerla alla collezione.' }
-  return undefined
 }
 
 interface PropsFreccia {

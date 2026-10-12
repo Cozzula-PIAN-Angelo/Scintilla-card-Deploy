@@ -54,5 +54,8 @@ export function useCollezione(filtro: FiltroPagina | null) {
     [modifica, toast],
   )
 
-  return { attiva, mappa, perVariante, copie, modifica, aggiungiRapido }
+  // pronta: dati arrivati. Durante il caricamento o dopo un errore la pagina resta come per un ospite
+  const pronta = attiva && data !== undefined
+
+  return { attiva, pronta, mappa, perVariante, copie, modifica, aggiungiRapido }
 }

@@ -52,6 +52,13 @@ export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro): Ogg
   return carte.filter((c) => (copieTotali(mappa, c.id) > 0) === (filtro === 'possedute'))
 }
 
+// messaggio della griglia quando il filtro non lascia carte (undefined = nessun filtro attivo)
+export function vuotoFiltro(filtro: Filtro): { titolo: string; testo: string } | undefined {
+  if (filtro === 'mancanti') return { titolo: 'Nessuna carta mancante', testo: 'Hai tutte le carte di questa pagina.' }
+  if (filtro === 'possedute') return { titolo: 'Nessuna carta posseduta', testo: 'Usa il + su una carta per aggiungerla alla collezione.' }
+  return undefined
+}
+
 // variante che dà l'effetto alla carta: la più pregiata posseduta, se no la più pregiata suggerita, se no null
 export function varianteEffetto(oggetto: Oggetto, perVariante?: Map<Variante, number>): Variante | null {
   const possedute = [...(perVariante?.keys() ?? [])].filter((v) => (perVariante?.get(v) ?? 0) > 0)

@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { Layers } from 'lucide-react'
 import { GrigliaCartePaginata } from '../../components/GrigliaCartePaginata'
 import { BarraCollezione } from '../collezione/BarraCollezione'
-import { conteggio, filtra, type Filtro } from '../collezione/conteggi'
+import { conteggio, filtra, vuotoFiltro } from '../collezione/conteggi'
 import { useCollezione } from '../collezione/useCollezione'
 import { useFiltroCollezione } from '../collezione/useFiltroCollezione'
 import type { Espansione, Oggetto } from '../../types/api'
@@ -22,7 +22,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
   const { filtro, setFiltro, master, setMaster } = useFiltroCollezione()
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
   const collezione = useCollezione(filtroPagina)
-  const carte = useMemo(() => (data ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.mappa, filtro])
+  const carte = useMemo(() => (data && collezione.pronta ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.pronta, collezione.mappa, filtro])
   const anno = espansione.dataUscita?.slice(0, 4)
   const totale = data?.length ?? espansione.totaleCarte
 
@@ -51,7 +51,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
         </div>
       </header>
 
-      {collezione.attiva && data && (
+      {collezione.pronta && data && (
         <BarraCollezione
           {...conteggio(data, collezione.mappa, master)}
           master={master}
@@ -80,16 +80,9 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
         onTogglePreferito={onTogglePreferito}
         onApri={onApri}
         stretta
-        collezione={collezione.attiva ? collezione : undefined}
-        vuotoFiltro={collezione.attiva && data && data.length > 0 ? vuotoFiltro(filtro) : undefined}
+        collezione={collezione.pronta ? collezione : undefined}
+        vuotoFiltro={collezione.pronta && data && data.length > 0 ? vuotoFiltro(filtro) : undefined}
       />
     </motion.div>
   )
-}
-
-// messaggio della griglia quando il filtro non lascia carte
-function vuotoFiltro(filtro: Filtro) {
-  if (filtro === 'mancanti') return { titolo: 'Nessuna carta mancante', testo: 'Hai tutte le carte di questa pagina.' }
-  if (filtro === 'possedute') return { titolo: 'Nessuna carta posseduta', testo: 'Usa il + su una carta per aggiungerla alla collezione.' }
-  return undefined
 }
