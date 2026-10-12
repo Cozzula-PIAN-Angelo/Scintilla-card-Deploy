@@ -69,7 +69,8 @@ public class Binder {
     @Column(name = "immagine_aggiornata_il")
     private Instant immagineAggiornataIl;
 
-    // se false, nel binder le tasche delle carte non possedute restano vuote invece di mostrarle in grigio
+    // se true, nel binder le carte non possedute si vedono in grigio (con "Ce l'ho"); se false si vedono
+    // a colori come le altre, per un binder da vetrina
     @Column(name = "mostra_mancanti", nullable = false)
     private boolean mostraMancanti = true;
 
