@@ -58,6 +58,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
   const [pagine, setPagine] = useState(binder?.pagine ?? 10)
   const [colore, setColore] = useState(binder?.colore ?? COLORI_BINDER[0].valore)
   const [motivo, setMotivo] = useState<MotivoBinder>(binder?.motivo ?? 'STELLE')
+  const [mostraMancanti, setMostraMancanti] = useState(binder?.mostraMancanti ?? true)
   const [carta, setCarta] = useState<Oggetto | null>(binder?.cartaCopertina ?? null)
   const [immagine, setImmagine] = useState<StatoImmagine>(binder?.immagineAggiornataIl ? { tipo: 'esistente' } : { tipo: 'nessuna' })
   const [sceltaCarta, setSceltaCarta] = useState(false)
@@ -110,8 +111,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
       colore,
       motivo,
       cartaCopertinaId: carta?.id ?? null,
-      // la casella arriva più avanti: per ora si conserva il valore del binder (nuovo: acceso)
-      mostraMancanti: (binder ?? creato)?.mostraMancanti ?? true,
+      mostraMancanti,
     }
     try {
       // binder già creato in un tentativo precedente (fallito sull'immagine): si modifica quello,
@@ -260,6 +260,11 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
             <p className="mt-2 text-xs text-testo/60">Con un'immagine caricata il motivo resta nascosto sotto di essa.</p>
           )}
         </fieldset>
+
+        <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-testo has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-giallo-400">
+          <input type="checkbox" checked={mostraMancanti} onChange={(e) => setMostraMancanti(e.target.checked)} className="size-4 accent-blu-500" />
+          Mostra le mancanti in grigio
+        </label>
 
         <section aria-labelledby="titolo-carta-copertina">
           <div className="mb-2 flex items-center justify-between gap-3">

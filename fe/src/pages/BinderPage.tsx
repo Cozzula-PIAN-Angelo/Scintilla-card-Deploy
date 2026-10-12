@@ -7,6 +7,7 @@ import { PaginaAnimata } from '../components/PaginaAnimata'
 import { BinderAperto } from '../features/binder/BinderAperto'
 import { Mensola } from '../features/binder/Mensola'
 import { ModaleBinder } from '../features/binder/ModaleBinder'
+import { ProviderCollezioneBinder } from '../features/binder/ProviderCollezioneBinder'
 import { useTitolo } from '../hooks/useTitolo'
 import type { Binder } from '../types/api'
 
@@ -27,7 +28,9 @@ export function BinderPage() {
       <AnimatePresence mode="wait" initial={false}>
         {id ? (
           <motion.div key={`binder-${id}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <BinderAperto id={id} onChiuso={() => navigate('/binder')} onImpostazioni={apriImpostazioni} />
+            <ProviderCollezioneBinder id={id}>
+              <BinderAperto id={id} onChiuso={() => navigate('/binder')} onImpostazioni={apriImpostazioni} />
+            </ProviderCollezioneBinder>
           </motion.div>
         ) : (
           <motion.div key="mensola" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Eye, Move, Plus, Trash2 } from 'lucide-react'
+import { Check, Eye, Move, Plus, Trash2 } from 'lucide-react'
 import { useState, type DragEvent, type ReactNode } from 'react'
 import type { Oggetto } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { stessaPosizione, TIPO_TRASCINAMENTO, useContestoBinder } from './contesto'
+import { useCollezioneBinder } from './contestoCollezione'
 
 interface Props {
   pagina: number
@@ -15,6 +16,7 @@ interface Props {
 // oppure, con un tocco, la carta "in mano". Piena, un tocco apre il menu: guarda, sposta, togli
 export function Tasca({ pagina, posizione, oggetto }: Props) {
   const binder = useContestoBinder()
+  const collezione = useCollezioneBinder()
   const [sopra, setSopra] = useState(false)
   const qui = { pagina, posizione }
   const menuAperto = oggetto !== null && stessaPosizione(binder.tascaAttiva, qui)
@@ -22,6 +24,8 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
   // la carta in mano è proprio questa: niente destinazione su se stessa
   const eOrigine = inMano?.tipo === 'tasca' && stessaPosizione(inMano, qui)
   const inAttesa = inMano !== null && !eOrigine
+  // carta non posseduta: in grigio se il binder lo prevede ('Ce l'ho' la porta a colori)
+  const mancante = oggetto !== null && !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id)
 
   function tocca() {
     if (inAttesa) {
@@ -88,7 +92,7 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
             alt=""
             draggable={false}
             loading="lazy"
-            className="h-full w-full object-cover"
+            className={cn('h-full w-full object-cover transition', mancante && 'grayscale')}
           />
         ) : (
           <span
@@ -126,6 +130,11 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
             >
               <Move className="size-full" />
             </AzioneTasca>
+            {mancante && collezione && (
+              <AzioneTasca etichetta="Ce l'ho" onClick={() => collezione.ceLho(oggetto)}>
+                <Check className="size-full" />
+              </AzioneTasca>
+            )}
             <AzioneTasca etichetta="Togli dal binder" pericolo onClick={() => binder.togli(qui)}>
               <Trash2 className="size-full" />
             </AzioneTasca>
