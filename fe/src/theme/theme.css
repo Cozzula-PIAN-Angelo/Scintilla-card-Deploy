@@ -224,20 +224,24 @@
      centrale con attacchi e testo resta senza riflesso. Misurata sui pixel di carte Scarlatto e Violetto:
      - rettangolo interno x 4,0%..96,0% (larghezza 92%), y 2,9%..96,0% (altezza 93,1%): posizione x 4 / 8 = 50%, y 2,9 / 6,9 = 42,03%
      - finestra del disegno x 7,9%..92,9% (85%), y 9,9%..47,4% (37,5%): posizione 52,67% 15,84%
-     Livelli dall'alto: disegno, rettangolo interno, pieno. Ogni livello si compone con quelli sotto di sé:
-     il rettangolo interno in "exclude" sul pieno lascia solo la cornice (pieno - interno), poi il disegno in "add" si somma.
-     Risultato: cornice unione disegno */
+     - striscia argentata sotto il disegno ("NO. 0026 …") x 5,1%..95,0% (89,9%), y 47,4%..49,9% (2,5%):
+       posizione x 5,1 / 10,1 = 50,5%, y 47,4 / 97,5 = 48,62%
+     Livelli dall'alto: striscia, disegno, rettangolo interno, pieno. Ogni livello si compone con quelli sotto di sé:
+     il rettangolo interno in "exclude" sul pieno lascia solo la cornice (pieno - interno), poi disegno e striscia
+     in "add" si sommano. Risultato: cornice unione disegno unione striscia */
   .solo-bordo-e-disegno {
     -webkit-mask:
+      linear-gradient(#000 0 0) 50.5% 48.62% / 89.9% 2.5% no-repeat,
       linear-gradient(#000 0 0) 52.67% 15.84% / 85% 37.5% no-repeat,
       linear-gradient(#000 0 0) 50% 42.03% / 92% 93.1% no-repeat,
       linear-gradient(#000 0 0);
-    -webkit-mask-composite: source-over, xor, source-over;
+    -webkit-mask-composite: source-over, source-over, xor, source-over;
     mask:
+      linear-gradient(#000 0 0) 50.5% 48.62% / 89.9% 2.5% no-repeat,
       linear-gradient(#000 0 0) 52.67% 15.84% / 85% 37.5% no-repeat,
       linear-gradient(#000 0 0) 50% 42.03% / 92% 93.1% no-repeat,
       linear-gradient(#000 0 0);
-    mask-composite: add, exclude, add;
+    mask-composite: add, add, exclude, add;
   }
 
   /* maschera dell'holo delle carte con cornice ex: arcobaleno su tutto tranne il riquadro del testo, perché il
