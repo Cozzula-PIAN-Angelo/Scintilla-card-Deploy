@@ -27,10 +27,10 @@ export function PokemonPage() {
   const { currentData: data, isFetching, isError, error, refetch } = useGetCartePokemonQuery(numero, { skip: !pokemon })
   const isLoading = data === undefined && !isError
   const { isPreferito, toggle } = usePreferiti()
-  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
   const { filtro, setFiltro, master, setMaster } = useFiltroCollezione()
   const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
   const collezione = useCollezione(filtroPagina)
+  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione.pronta ? collezione : undefined)
   const carte = useMemo(() => (data && collezione.pronta ? filtra(data, collezione.mappa, filtro) : data), [data, collezione.pronta, collezione.mappa, filtro])
   const location = useLocation()
   const navigate = useNavigate()

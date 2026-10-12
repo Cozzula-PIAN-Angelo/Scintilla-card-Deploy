@@ -1,31 +1,48 @@
 import { BadgeCheck, CalendarDays } from 'lucide-react'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { varianteEffetto } from '../features/collezione/conteggi'
-import type { Oggetto } from '../types/api'
+import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
+import type { Oggetto, Variante } from '../types/api'
 import { formattaData, formattaPrezzo } from '../utils/formato'
 import { HoloCard } from './HoloCard'
 import { ImmagineCarta } from './ImmagineCarta'
 import { Modale } from './Modale'
 import { PulsanteCuore } from './PulsanteCuore'
 
+// ciò che il dettaglio usa della collezione; senza (ospite, altre pagine) la sezione non c'è
+export interface CollezioneModale {
+  perVariante(id: string): Map<Variante, number>
+  modifica(oggetto: Oggetto, variante: Variante, delta: number): void
+}
+
 interface Props {
   oggetto: Oggetto | null
   preferito: boolean
   onTogglePreferito: (oggetto: Oggetto) => void
   onChiudi: () => void
+  collezione?: CollezioneModale
 }
 
-export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi }: Props) {
+export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, collezione }: Props) {
   // l'ultimo oggetto resta visibile durante l'animazione di chiusura
   const ultimo = useRef<Oggetto | null>(null)
   if (oggetto) ultimo.current = oggetto
   const mostrato = ultimo.current
+  // variante scelta con un clic su una riga; vale solo per la carta per cui è stata scelta,
+  // così aprendo un'altra carta si riparte dalla regola di default
+  const [scelta, setScelta] = useState<{ id: string; variante: Variante } | null>(null)
+  const perVariante = mostrato && collezione ? collezione.perVariante(mostrato.id) : undefined
+  const effetto = mostrato
+    ? scelta?.id === mostrato.id
+      ? scelta.variante
+      : varianteEffetto(mostrato, perVariante)
+    : null
 
   return (
     <Modale aperto={oggetto !== null} onChiudi={onChiudi} larghezza="max-w-4xl">
       {mostrato && (
         <div className="grid items-center gap-8 md:grid-cols-[1.1fr_1fr]">
-          <HoloCard className="mx-auto w-full max-w-sm rounded-3xl" variante={varianteEffetto(mostrato)}>
+          <HoloCard className="mx-auto w-full max-w-sm rounded-3xl" variante={effetto}>
             <ImmagineCarta
               src={mostrato.immagineUrl}
               alt={mostrato.nome}
@@ -55,6 +72,15 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi }:
                 {preferito ? 'Nei tuoi preferiti' : 'Aggiungi ai preferiti'}
               </span>
             </div>
+            {collezione && perVariante && (
+              <SezioneCollezione
+                oggetto={mostrato}
+                perVariante={perVariante}
+                onModifica={(variante, delta) => collezione.modifica(mostrato, variante, delta)}
+                selezionata={effetto}
+                onSeleziona={(variante) => setScelta({ id: mostrato.id, variante })}
+              />
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ChevronDown, Layers, Sparkles } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { messaggioErrore } from '../app/errori'
 import { Button, LinkBottone } from '../components/Button'
@@ -8,6 +8,7 @@ import { ModaleCarta } from '../components/ModaleCarta'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { GrigliaSkeleton, Skeleton } from '../components/Skeleton'
 import { StatoErrore, StatoVuoto } from '../components/StatiPagina'
+import { useCollezione } from '../features/collezione/useCollezione'
 import { useGetEspansioniQuery } from '../features/espansioni/espansioniApi'
 import { ListaEspansioni } from '../features/espansioni/ListaEspansioni'
 import { memoriaElenco } from '../features/espansioni/memoriaElenco'
@@ -24,7 +25,10 @@ export function EspansionePage() {
   const { data, isLoading, isError, error, refetch } = useGetEspansioniQuery()
   const espansione = data?.find((e) => e.id === id)
   const { isPreferito, toggle } = usePreferiti()
-  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
+  // stessa collezione di VistaEspansione (stessi argomenti = stessa cache, nessuna richiesta in più)
+  const filtroPagina = useMemo(() => (espansione ? { espansione: espansione.id } : null), [espansione])
+  const collezione = useCollezione(filtroPagina)
+  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione.pronta ? collezione : undefined)
   const [listaMobileAperta, setListaMobileAperta] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
