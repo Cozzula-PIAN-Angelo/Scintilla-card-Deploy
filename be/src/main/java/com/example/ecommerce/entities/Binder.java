@@ -69,6 +69,10 @@ public class Binder {
     @Column(name = "immagine_aggiornata_il")
     private Instant immagineAggiornataIl;
 
+    // se false, nel binder le tasche delle carte non possedute restano vuote invece di mostrarle in grigio
+    @Column(name = "mostra_mancanti", nullable = false)
+    private boolean mostraMancanti = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     @Setter(AccessLevel.NONE)

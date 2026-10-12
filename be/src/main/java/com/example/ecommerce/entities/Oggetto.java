@@ -2,6 +2,7 @@ package com.example.ecommerce.entities;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,6 +21,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -68,6 +70,12 @@ public class Oggetto {
     @CollectionTable(name = "oggetti_pokedex", joinColumns = @JoinColumn(name = "oggetto_id"))
     @Column(name = "numero_pokedex", nullable = false)
     private Set<Integer> numeriPokedex = new HashSet<>();
+
+    // versioni in cui esiste la carta (normale, holo, ...): null = non ancora lette da pokemontcg.io,
+    // lista vuota = pokemontcg.io non ne indica
+    @Convert(converter = ConvertitoreVarianti.class)
+    @Column(length = 120)
+    private List<Variante> varianti;
 
     public Oggetto(String nome, BigDecimal prezzo) {
         this.nome = nome;
