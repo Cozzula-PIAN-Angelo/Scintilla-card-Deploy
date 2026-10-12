@@ -4,6 +4,7 @@ import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.repositories.BinderRepository;
+import com.example.ecommerce.repositories.CollezioneRepository;
 import com.example.ecommerce.repositories.ImmagineBinderRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.UUID;
 
 // Cancellazione di un account come anonimizzazione: la riga dell'utente resta, con lo stesso id,
 // così preferiti e binder restano collegati e le statistiche non cambiano. Spariscono i dati
-// personali: username, email, password, immagini di copertina caricate e nomi dei binder.
+// personali: username, email, password, immagini di copertina caricate, nomi dei binder e collezione.
 // I token già emessi smettono di valere subito: il JWTFilter rifiuta gli account anonimizzati
 @Slf4j
 @Service
@@ -30,6 +31,7 @@ public class CancellazioneUtenteService {
     private final RuoloUtenteService ruoloUtenteService;
     private final BinderRepository binderRepository;
     private final ImmagineBinderRepository immagineRepository;
+    private final CollezioneRepository collezioneRepository;
     private final PasswordEncoder passwordEncoder;
 
     // l'utente cancella il proprio account: serve la password, così un token rubato non basta
@@ -74,6 +76,8 @@ public class CancellazioneUtenteService {
         utente.setAnonimizzatoIl(Instant.now());
 
         immagineRepository.deleteByUtenteId(id);
+        // la riga utente resta, quindi il CASCADE del DB non scatta: la collezione si cancella a mano
+        collezioneRepository.deleteByUtenteId(id);
         binderRepository.anonimizzaByUtenteId(id, NOME_BINDER_ANONIMO);
 
         // solo l'id: username ed email sono proprio i dati da non conservare

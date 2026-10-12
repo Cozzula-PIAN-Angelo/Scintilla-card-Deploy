@@ -143,6 +143,20 @@ class CollezioneServiceTest {
     }
 
     @Test
+    void copieDelleCarteSoloQuelleRichieste() {
+        UUID raichu = UUID.randomUUID();
+        UUID giungla = UUID.randomUUID();
+        inserisciCarta(raichu, "Raichu", "base1", 26);
+        inserisciCarta(giungla, "Pikachu Giungla", "jungle", 25);
+        scrivi(carta, 3);
+        scrivi(raichu, 1);
+        scrivi(giungla, 2);
+
+        assertThat(service.copieDelleCarte(utente, List.of(carta, giungla))).containsExactlyInAnyOrder(
+                new CopiaDTO(carta, Variante.HOLO, 3), new CopiaDTO(giungla, Variante.HOLO, 2));
+    }
+
+    @Test
     void filtroMancanteODoppio() {
         assertThatThrownBy(() -> service.copie(utente, null, null)).isInstanceOf(BadRequestException.class);
         assertThatThrownBy(() -> service.copie(utente, "base1", 25)).isInstanceOf(BadRequestException.class);

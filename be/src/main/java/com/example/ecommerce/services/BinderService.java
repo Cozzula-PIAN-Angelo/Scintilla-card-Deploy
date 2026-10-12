@@ -11,6 +11,7 @@ import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.BinderDTO;
 import com.example.ecommerce.payloads.BinderDettaglioDTO;
 import com.example.ecommerce.payloads.BinderResponseDTO;
+import com.example.ecommerce.payloads.CopiaDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
@@ -43,6 +44,7 @@ public class BinderService {
     private final SlotBinderRepository slotRepository;
     private final ImmagineBinderRepository immagineRepository;
     private final OggettoRepository oggettoRepository;
+    private final CollezioneService collezioneService;
 
     @Transactional(readOnly = true)
     public List<BinderResponseDTO> getBinder(Utente utente) {
@@ -59,13 +61,17 @@ public class BinderService {
         List<SlotBinderResponseDTO> slot = slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(id).stream()
                 .map(SlotBinderResponseDTO::from)
                 .toList();
-        return new BinderDettaglioDTO(BinderResponseDTO.from(binder, slot.size()), slot);
+        // copie delle sole carte nelle tasche, una volta per carta anche se compare in più tasche
+        Set<UUID> carte = slot.stream().map(s -> s.oggetto().id()).collect(Collectors.toSet());
+        List<CopiaDTO> collezione = collezioneService.copieDelleCarte(utente, carte);
+        return new BinderDettaglioDTO(BinderResponseDTO.from(binder, slot.size()), slot, collezione);
     }
 
     @Transactional
     public BinderResponseDTO crea(Utente utente, BinderDTO body) {
         controllaTasche(body.tasche());
         Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), body.pagine(), body.colore().toLowerCase(), body.motivo());
+        binder.setMostraMancanti(body.mostraMancanti());
         binder.setCartaCopertina(cartaCopertina(body.cartaCopertinaId()));
         // flush immediato: così createdAt è valorizzato nella risposta
         return BinderResponseDTO.from(binderRepository.saveAndFlush(binder), 0);
@@ -89,6 +95,7 @@ public class BinderService {
         binder.setPagine(body.pagine());
         binder.setColore(body.colore().toLowerCase());
         binder.setMotivo(body.motivo());
+        binder.setMostraMancanti(body.mostraMancanti());
         binder.setCartaCopertina(cartaCopertina(body.cartaCopertinaId()));
 
         // entity gestita: le modifiche vengono salvate al commit
