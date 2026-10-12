@@ -183,25 +183,26 @@
   /* reverse holo a specchio: lamina iridescente sulla sola cornice dell'immagine, il disegno resta fuori.
      Lo strato sta dentro il contenitore dell'immagine e legge --mx, --my e --riflesso (0..1) esposti da HoloCard.
      Intensità 70%: a riflesso pieno l'opacità vale 0,7 (si moltiplica l'opacità animata, senza ritoccare le alfa).
-     Colori: rosa, acqua, oro e viola scuro più saturi di circa un terzo rispetto alla prova; punto di luce e fasce scure invariati */
+     Poco bianco (punto di luce e fascia chiara tenui) e colori pieni: con hard-light schiariscono meno la carta e ne
+     ravvivano il colore; le fasce scure danno il contrasto dello specchio */
   .holo-reverse {
     opacity: calc(var(--riflesso, 0) * 0.7);
     background:
       radial-gradient(
         circle at var(--mx, 50%) var(--my, 50%),
-        rgb(255 255 255 / 0.95),
-        rgb(255 255 255 / 0.35) 16%,
-        transparent 38%
+        rgb(255 255 255 / 0.55),
+        rgb(255 255 255 / 0.15) 16%,
+        transparent 36%
       ),
       linear-gradient(
           115deg,
           rgb(0 0 0 / 0.45) 0%,
-          rgb(255 120 185 / 0.67) 18%,
-          rgb(255 255 255 / 0.95) 30%,
+          rgb(235 70 150 / 0.67) 18%,
+          rgb(225 230 255 / 0.5) 30%,
           rgb(60 90 140 / 0.55) 38%,
-          rgb(110 255 225 / 1) 50%,
+          rgb(40 200 180 / 1) 50%,
           rgb(50 0 90 / 0.53) 62%,
-          rgb(255 215 90 / 1) 76%,
+          rgb(240 175 30 / 1) 76%,
           rgb(0 0 0 / 0.45) 100%
         )
         var(--mx, 50%) var(--my, 50%) / 260% 260%;
