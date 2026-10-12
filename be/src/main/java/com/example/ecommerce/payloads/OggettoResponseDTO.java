@@ -17,7 +17,9 @@ public record OggettoResponseDTO(UUID id,
                                  String immagineUrlPiccola,
                                  String idEsterno,
                                  // null = non ancora lette da pokemontcg.io
-                                 List<Variante> varianti) {
+                                 List<Variante> varianti,
+                                 // null = non ancora letta da pokemontcg.io
+                                 String rarita) {
 
     public static OggettoResponseDTO from(Oggetto oggetto) {
         return new OggettoResponseDTO(
@@ -28,7 +30,8 @@ public record OggettoResponseDTO(UUID id,
                 oggetto.getImmagineUrl(),
                 immaginePiccola(oggetto.getImmagineUrl()),
                 oggetto.getIdEsterno(),
-                oggetto.getVarianti()
+                oggetto.getVarianti(),
+                oggetto.getRarita()
         );
     }
 

@@ -77,6 +77,10 @@ public class Oggetto {
     @Column(length = 120)
     private List<Variante> varianti;
 
+    // rarità secondo pokemontcg.io (es. "Double Rare"): null = non ancora letta, '' = pokemontcg.io non la indica
+    @Column(length = 60)
+    private String rarita;
+
     public Oggetto(String nome, BigDecimal prezzo) {
         this.nome = nome;
         this.prezzo = prezzo;

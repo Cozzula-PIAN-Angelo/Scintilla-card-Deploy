@@ -72,7 +72,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -109,9 +109,20 @@ class MigrazioniTest {
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('sv1', 'Scarlet', false)");
-        inserisciCartaDelSet("Carta A", "base1-1", "base1", null);
-        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "");
-        inserisciCartaDelSet("Carta C", "sv1-1", "sv1", null);
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", null, "");
+        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "");
+        inserisciCartaDelSet("Carta C", "sv1-1", "sv1", null, "");
+
+        assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
+    }
+
+    // basta la sola rarità da leggere perché il set torni in coda
+    @Test
+    void setConSolaRaritaMancante(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", "", null);
+        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "Rare");
 
         assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
     }
@@ -220,8 +231,8 @@ class MigrazioniTest {
         return jdbc.queryForObject("SELECT count(*) FROM " + tabella, Integer.class);
     }
 
-    private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti) {
-        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti) "
-                + "VALUES (?, ?, 1.00, now(), ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti);
+    private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti, String rarita) {
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti, rarita) "
+                + "VALUES (?, ?, 1.00, now(), ?, ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti, rarita);
     }
 }

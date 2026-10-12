@@ -66,7 +66,7 @@ class PokemonTcgServiceTest {
     // due carte: la prima con le varianti di tcgplayer, la seconda senza il blocco tcgplayer
     private static final String RISPOSTA_CON_VARIANTI = """
             {"data": [
-              {"id": "sv1-1", "name": "Sprigatito", "number": "1",
+              {"id": "sv1-1", "name": "Sprigatito", "number": "1", "rarity": "Double Rare",
                "set": {"id": "sv1", "name": "Scarlet", "printedTotal": 198},
                "tcgplayer": {"prices": {"normal": {"low": 0.1}, "reverseHolofoil": {"low": 0.2}}},
                "cardmarket": {"prices": {"trendPrice": 0.5}}},
@@ -198,13 +198,79 @@ class PokemonTcgServiceTest {
         assertThat(esistente.getVarianti()).containsExactly(Variante.HOLO);
     }
 
+    @Test
+    void cartaNuovaHaLaRarita() {
+        rispondeConVarianti();
+
+        service.importaSet("sv1");
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        // senza rarità nella risposta resta '' (carta letta, nessuna indicata), non null
+        assertThat(salvati.getValue()).extracting(Oggetto::getRarita).containsExactly("Double Rare", "");
+        pokemontcg.verify();
+    }
+
+    @Test
+    void cartaEsistenteSenzaRaritaLaRiceve() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getRarita()).isEqualTo("Double Rare");
+    }
+
+    @Test
+    void cartaEsistenteConRaritaNonCambia() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        esistente.setRarita("Common");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getRarita()).isEqualTo("Common");
+    }
+
+    // download completo: le carte del set non più restituite portano a '' anche la rarità rimasta null
+    @Test
+    void riempiVariantiPortaAVuotaLaRaritaDelleCarteNonPiuRestituite() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI, MediaType.APPLICATION_JSON));
+        Oggetto sparita = new Oggetto("Carta sparita (Base 9/102)", new java.math.BigDecimal("1.00"), null, "base1-9");
+        when(oggettoRepository.findCarteDaRiempireDelSet("base1")).thenReturn(List.of(sparita));
+
+        service.riempiVarianti("base1");
+
+        assertThat(sparita.getRarita()).isEmpty();
+        pokemontcg.verify();
+    }
+
+    // download parziale: la rarità resta null e il job riprova al giro dopo
+    @Test
+    void riempiVariantiConDownloadParzialeLasciaNullLaRarita() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"), containsString("page=1"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI.replace("\"totalCount\": 2", "\"totalCount\": 5"),
+                        MediaType.APPLICATION_JSON));
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"), containsString("page=2"))))
+                .andRespond(withSuccess(PAGINA_VUOTA, MediaType.APPLICATION_JSON));
+        Oggetto nonLetta = new Oggetto("Carta non letta (Scarlet 3/198)", new java.math.BigDecimal("1.00"), null, "sv1-3");
+        lenient().when(oggettoRepository.findCarteDaRiempireDelSet("sv1")).thenReturn(List.of(nonLetta));
+
+        service.riempiVarianti("sv1");
+
+        assertThat(nonLetta.getRarita()).isNull();
+        pokemontcg.verify();
+    }
+
     // il job: le carte del set che pokemontcg.io non restituisce più escono dalla coda con lista vuota
     @Test
     void riempiVariantiSvuotaLeCarteNonPiuRestituite() {
         pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"))))
                 .andRespond(withSuccess(RISPOSTA_CON_VARIANTI, MediaType.APPLICATION_JSON));
         Oggetto sparita = new Oggetto("Carta sparita (Base 9/102)", new java.math.BigDecimal("1.00"), null, "base1-9");
-        when(oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull("base1"))
+        when(oggettoRepository.findCarteDaRiempireDelSet("base1"))
                 .thenReturn(List.of(sparita));
 
         service.riempiVarianti("base1");
@@ -224,7 +290,7 @@ class PokemonTcgServiceTest {
         pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"), containsString("page=2"))))
                 .andRespond(withSuccess(PAGINA_VUOTA, MediaType.APPLICATION_JSON));
         Oggetto nonLetta = new Oggetto("Carta non letta (Scarlet 3/198)", new java.math.BigDecimal("1.00"), null, "sv1-3");
-        lenient().when(oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull("sv1"))
+        lenient().when(oggettoRepository.findCarteDaRiempireDelSet("sv1"))
                 .thenReturn(List.of(nonLetta));
 
         service.riempiVarianti("sv1");
@@ -243,7 +309,7 @@ class PokemonTcgServiceTest {
         pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"))))
                 .andRespond(withSuccess(PAGINA_VUOTA, MediaType.APPLICATION_JSON));
         Oggetto nonLetta = new Oggetto("Carta non letta (Base 9/102)", new java.math.BigDecimal("1.00"), null, "base1-9");
-        lenient().when(oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull("base1"))
+        lenient().when(oggettoRepository.findCarteDaRiempireDelSet("base1"))
                 .thenReturn(List.of(nonLetta));
 
         assertThatThrownBy(() -> service.riempiVarianti("base1"))

@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-// Legge da pokemontcg.io le varianti delle carte già nel catalogo, qualche set alla volta.
+// Legge da pokemontcg.io varianti e rarità delle carte già nel catalogo, qualche set alla volta.
 // Non è notturno perché Render (piano free) dorme: un'ora di attività basta a un giro, ovunque cada.
 // Non passa dal LimitatoreImport: quello protegge gli import lanciati dagli admin, qui il ritmo
 // (5 set l'ora) lo decide già il job
@@ -27,7 +27,7 @@ public class RiempimentoVarianti {
             try {
                 pokemonTcgService.riempiVarianti(setId);
             } catch (RuntimeException ex) {
-                log.warn("Varianti del set {} non aggiornate: {}", setId, ex.getMessage());
+                log.warn("Varianti e rarità del set {} non aggiornate: {}", setId, ex.getMessage());
             }
         }
     }

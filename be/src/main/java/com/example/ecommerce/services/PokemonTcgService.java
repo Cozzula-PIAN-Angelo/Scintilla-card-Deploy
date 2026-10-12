@@ -157,10 +157,10 @@ public class PokemonTcgService {
                 esito.rinominate());
     }
 
-    // riempie le varianti delle carte di un set già importato. Passa da salvaCarte come un import, quindi
+    // riempie varianti e rarità delle carte di un set già importato. Passa da salvaCarte come un import, quindi
     // le carte nuove del set entrano nel catalogo; non tocca "importata". Solo se il download è completo
-    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota, così il job non le ripropone
-    // a ogni giro; con un download parziale restano senza varianti e si riprovano al giro dopo
+    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota e la rarità '', così il job non
+    // le ripropone a ogni giro; con un download parziale restano da leggere e si riprovano al giro dopo
     public void riempiVarianti(String setId) {
         Download download = scarica("set.id:" + setId, "set " + setId);
         List<Carta> carte = download.carte();
@@ -176,9 +176,15 @@ public class PokemonTcgService {
             return;
         }
         transazione.executeWithoutResult(stato ->
-                oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull(setId)
-                        .forEach(oggetto -> oggetto.setVarianti(List.of())));
-        log.info("Varianti del set {} aggiornate ({} carte lette)", setId, carte.size());
+                oggettoRepository.findCarteDaRiempireDelSet(setId).forEach(oggetto -> {
+                    if (oggetto.getVarianti() == null) {
+                        oggetto.setVarianti(List.of());
+                    }
+                    if (oggetto.getRarita() == null) {
+                        oggetto.setRarita("");
+                    }
+                }));
+        log.info("Varianti e rarità del set {} aggiornate ({} carte lette)", setId, carte.size());
     }
 
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
@@ -239,6 +245,10 @@ public class PokemonTcgService {
                         // varianti mai lette: si riempiono; quelle già note (anche corrette a mano) restano
                         if (esistente.getVarianti() == null) {
                             esistente.setVarianti(varianti(carta));
+                        }
+                        // stesso schema per la rarità: si riempie solo se mai letta
+                        if (esistente.getRarita() == null) {
+                            esistente.setRarita(rarita(carta));
                         }
                         saltate++;
                         continue;
@@ -319,7 +329,13 @@ public class PokemonTcgService {
             oggetto.getNumeriPokedex().addAll(carta.nationalPokedexNumbers());
         }
         oggetto.setVarianti(varianti(carta));
+        oggetto.setRarita(rarita(carta));
         return oggetto;
+    }
+
+    // senza rarità nella risposta '' (carta letta, nessuna indicata)
+    private String rarita(Carta carta) {
+        return carta.rarity() == null ? "" : carta.rarity();
     }
 
     // varianti suggerite dalle chiavi di tcgplayer.prices; senza tcgplayer lista vuota (carta letta, nessuna indicata)
