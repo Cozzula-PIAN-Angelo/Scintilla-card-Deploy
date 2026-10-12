@@ -20,7 +20,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 // non è un @Component: se lo fosse, Spring Boot lo registrerebbe anche come filtro servlet
 // fuori dalla catena di security. Viene istanziato in SecurityConfig
@@ -55,13 +54,13 @@ public class JWTFilter extends OncePerRequestFilter {
             }
             String token = header.substring(PREFISSO_BEARER.length()).trim();
 
-            UUID idUtente = jwtTools.verificaEdEstraiIdUtente(token);
-            if (tokenRevocatoService.isRevocato(token)) {
+            TokenVerificato verificato = jwtTools.verifica(token);
+            if (tokenRevocatoService.isRevocato(verificato.jti())) {
                 throw new UnauthorizedException("Token revocato: effettua di nuovo il login");
             }
 
             // utente e ruoli riletti dal DB a ogni richiesta: una revoca di ADMIN ha effetto subito
-            Utente utente = utenteService.findById(idUtente);
+            Utente utente = utenteService.findById(verificato.idUtente());
             // account cancellato: i token emessi prima della cancellazione non valgono più
             if (utente.isAnonimizzato()) {
                 throw new UnauthorizedException("Questo account è stato cancellato");

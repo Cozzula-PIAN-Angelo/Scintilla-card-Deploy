@@ -5,16 +5,12 @@ import com.example.ecommerce.exceptions.UnauthorizedException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -34,8 +30,8 @@ public class JWTTools {
         long adesso = System.currentTimeMillis();
         return Jwts.builder()
                 .subject(utente.getId().toString())
-                // id univoco: due login nello stesso secondo producono comunque token diversi,
-                // altrimenti un token appena revocato potrebbe coincidere con quello nuovo
+                // jti, id univoco del token: è quello che finisce in blacklist al logout, e due login
+                // nello stesso secondo producono comunque token diversi
                 .id(UUID.randomUUID().toString())
                 .issuedAt(new Date(adesso))
                 .expiration(new Date(adesso + durataMillis))
@@ -43,39 +39,19 @@ public class JWTTools {
                 .compact();
     }
 
-    // verifica firma e scadenza e restituisce l'id dell'utente, leggendo il token una volta sola:
-    // il JWTFilter la chiama a ogni richiesta autenticata
-    public UUID verificaEdEstraiIdUtente(String token) {
-        Claims claims = leggiClaims(token);
+    // verifica firma e scadenza e restituisce utente, jti e scadenza, leggendo il token una volta sola:
+    // il JWTFilter la chiama a ogni richiesta autenticata, il logout per sapere cosa revocare
+    public TokenVerificato verifica(String token) {
         try {
-            return UUID.fromString(claims.getSubject());
-        } catch (IllegalArgumentException | NullPointerException ex) {
-            // firma valida ma subject non è un id: non l'abbiamo emesso noi in questo formato
-            throw new UnauthorizedException("Token non valido o scaduto: effettua di nuovo il login");
-        }
-    }
-
-    public Instant estraiScadenza(String token) {
-        return leggiClaims(token).getExpiration().toInstant();
-    }
-
-    private Claims leggiClaims(String token) {
-        try {
-            verificaFirmaCanonica(token);
-            return Jwts.parser().verifyWith(chiave).build().parseSignedClaims(token).getPayload();
-        } catch (JwtException | IllegalArgumentException ex) {
+            Claims claims = Jwts.parser().verifyWith(chiave).build().parseSignedClaims(token).getPayload();
+            // subject o jti mancanti o non UUID: firma valida, ma non è un token emesso da noi in questo formato
+            return new TokenVerificato(
+                    UUID.fromString(claims.getSubject()),
+                    UUID.fromString(claims.getId()),
+                    claims.getExpiration().toInstant());
+        } catch (JwtException | IllegalArgumentException | NullPointerException ex) {
             // firma errata, token scaduto, malformato o vuoto
             throw new UnauthorizedException("Token non valido o scaduto: effettua di nuovo il login");
-        }
-    }
-
-    // il decoder Base64 di JJWT ignora caratteri in eccesso in fondo alla firma: "<token>x" risulterebbe
-    // valido pur essendo una stringa diversa, e aggirerebbe la blacklist che confronta il token testualmente.
-    // Si accetta solo la firma nella sua codifica canonica (header e payload sono già protetti dalla firma)
-    private void verificaFirmaCanonica(String token) {
-        String firma = token.substring(token.lastIndexOf('.') + 1);
-        if (!Encoders.BASE64URL.encode(Decoders.BASE64URL.decode(firma)).equals(firma)) {
-            throw new MalformedJwtException("Firma non in forma canonica");
         }
     }
 }

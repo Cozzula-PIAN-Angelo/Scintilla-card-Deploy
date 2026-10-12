@@ -1,5 +1,7 @@
 package com.example.ecommerce;
 
+import com.example.ecommerce.entities.TokenRevocato;
+import com.example.ecommerce.repositories.TokenRevocatoRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +50,8 @@ class MigrazioniTest {
 
     @Autowired
     private DataSource dataSource;
+    @Autowired
+    private TokenRevocatoRepository tokenRevocatoRepository;
 
     private JdbcTemplate jdbc;
 
@@ -62,7 +67,21 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1");
+        assertThat(versioniApplicate()).containsExactly("1", "2");
+    }
+
+    // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
+    @Test
+    void pulisciTokenScadutiSulloSchemaNuovo() {
+        UUID scaduto = UUID.randomUUID();
+        UUID valido = UUID.randomUUID();
+        tokenRevocatoRepository.save(new TokenRevocato(scaduto, Instant.now().minusSeconds(60)));
+        tokenRevocatoRepository.save(new TokenRevocato(valido, Instant.now().plusSeconds(3600)));
+        tokenRevocatoRepository.flush();
+
+        assertThat(tokenRevocatoRepository.deleteByScadenzaBefore(Instant.now())).isEqualTo(1);
+        assertThat(tokenRevocatoRepository.existsById(valido)).isTrue();
+        assertThat(tokenRevocatoRepository.existsById(scaduto)).isFalse();
     }
 
     @Test

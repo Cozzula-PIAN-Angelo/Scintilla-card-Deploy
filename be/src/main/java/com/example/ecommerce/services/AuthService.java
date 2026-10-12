@@ -6,6 +6,7 @@ import com.example.ecommerce.payloads.LoginDTO;
 import com.example.ecommerce.payloads.LoginResponseDTO;
 import com.example.ecommerce.repositories.UtenteRepository;
 import com.example.ecommerce.security.JWTTools;
+import com.example.ecommerce.security.TokenVerificato;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,7 @@ public class AuthService {
 
     // il token è già stato validato dal JWTFilter prima di arrivare qui
     public void logout(String token) {
-        tokenRevocatoService.revoca(token, jwtTools.estraiScadenza(token));
+        TokenVerificato verificato = jwtTools.verifica(token);
+        tokenRevocatoService.revoca(verificato.jti(), verificato.scadenza());
     }
 }
