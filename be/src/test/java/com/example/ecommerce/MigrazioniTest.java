@@ -72,7 +72,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -171,8 +171,11 @@ class MigrazioniTest {
         assertViolazione(() -> inserisciInCollezione("NORMALE", 0));
         assertViolazione(() -> inserisciInCollezione("NORMALE", 1000));
         assertViolazione(() -> inserisciInCollezione("SHADOWLESS", 1));
-        // la terna (utente, carta, variante) esiste già: HOLO è nella riga inserita dal setup
+        // tolte dalla V6
         assertViolazione(() -> inserisciInCollezione("HOLO", 1));
+        assertViolazione(() -> inserisciInCollezione("PRIMA_EDIZIONE_HOLO", 1));
+        // la terna (utente, carta, variante) esiste già: REVERSE_HOLO è nella riga inserita dal setup
+        assertViolazione(() -> inserisciInCollezione("REVERSE_HOLO", 1));
     }
 
     // dopo un errore PostgreSQL annulla la transazione del test: un savepoint la tiene viva per il controllo successivo
@@ -208,7 +211,7 @@ class MigrazioniTest {
                 binder, new byte[]{1, 2, 3});
         jdbc.update("INSERT INTO utenti_oggetti_preferiti (id, id_utente, id_oggetto, created_at) VALUES (?, ?, ?, now())",
                 UUID.randomUUID(), utente, carta);
-        inserisciInCollezione("HOLO", 2);
+        inserisciInCollezione("REVERSE_HOLO", 2);
     }
 
     private List<String> versioniApplicate() {

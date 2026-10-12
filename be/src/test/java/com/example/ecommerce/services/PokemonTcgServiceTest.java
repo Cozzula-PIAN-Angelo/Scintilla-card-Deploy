@@ -190,12 +190,12 @@ class PokemonTcgServiceTest {
     void cartaEsistenteConVariantiNonCambia() {
         rispondeConVarianti();
         Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
-        esistente.setVarianti(List.of(Variante.HOLO));
+        esistente.setVarianti(List.of(Variante.REVERSE_HOLO));
         when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
 
         service.importaSet("sv1");
 
-        assertThat(esistente.getVarianti()).containsExactly(Variante.HOLO);
+        assertThat(esistente.getVarianti()).containsExactly(Variante.REVERSE_HOLO);
     }
 
     @Test

@@ -17,14 +17,21 @@ class VarianteTest {
 
     @Test
     void chiaviEquivalentiSenzaDoppioni() {
-        assertThat(Variante.daChiaviTcgplayer(List.of("holofoil", "unlimitedHolofoil"))).containsExactly(Variante.HOLO);
         assertThat(Variante.daChiaviTcgplayer(List.of("normal", "unlimited"))).containsExactly(Variante.NORMALE);
+    }
+
+    // niente Holo: la stampa holofoil di una rara holo è la sua Normale
+    @Test
+    void holofoilContaComeNormale() {
+        assertThat(Variante.daChiaviTcgplayer(List.of("holofoil", "unlimitedHolofoil"))).containsExactly(Variante.NORMALE);
+        assertThat(Variante.daChiaviTcgplayer(List.of("normal", "holofoil", "reverseHolofoil")))
+                .containsExactly(Variante.NORMALE, Variante.REVERSE_HOLO);
     }
 
     @Test
     void primaEdizione() {
         assertThat(Variante.daChiaviTcgplayer(List.of("1stEditionHolofoil", "1stEditionNormal", "1stEdition")))
-                .containsExactly(Variante.PRIMA_EDIZIONE, Variante.PRIMA_EDIZIONE_HOLO);
+                .containsExactly(Variante.PRIMA_EDIZIONE);
     }
 
     @Test

@@ -76,7 +76,7 @@ class CollezioneServiceTest {
 
     @Test
     void piuCreaLaRiga() {
-        assertThat(service.modifica(utente, delta(carta, 1))).isEqualTo(new CopiaDTO(carta, Variante.HOLO, 1));
+        assertThat(service.modifica(utente, delta(carta, 1))).isEqualTo(new CopiaDTO(carta, Variante.REVERSE_HOLO, 1));
         assertThat(righe()).isEqualTo(1);
     }
 
@@ -137,10 +137,10 @@ class CollezioneServiceTest {
                 UUID.randomUUID(), idAltro, carta);
 
         assertThat(service.copie(utente, "base1", null)).containsExactlyInAnyOrder(
-                new CopiaDTO(carta, Variante.HOLO, 3), new CopiaDTO(raichu, Variante.HOLO, 1));
+                new CopiaDTO(carta, Variante.REVERSE_HOLO, 3), new CopiaDTO(raichu, Variante.REVERSE_HOLO, 1));
         assertThat(service.copie(utente, null, 25)).containsExactlyInAnyOrder(
-                new CopiaDTO(carta, Variante.HOLO, 3), new CopiaDTO(giungla, Variante.HOLO, 2));
-        assertThat(service.copieDelleCarte(utente, List.of(raichu))).containsExactly(new CopiaDTO(raichu, Variante.HOLO, 1));
+                new CopiaDTO(carta, Variante.REVERSE_HOLO, 3), new CopiaDTO(giungla, Variante.REVERSE_HOLO, 2));
+        assertThat(service.copieDelleCarte(utente, List.of(raichu))).containsExactly(new CopiaDTO(raichu, Variante.REVERSE_HOLO, 1));
     }
 
     @Test
@@ -154,7 +154,7 @@ class CollezioneServiceTest {
         scrivi(giungla, 2);
 
         assertThat(service.copieDelleCarte(utente, List.of(carta, giungla))).containsExactlyInAnyOrder(
-                new CopiaDTO(carta, Variante.HOLO, 3), new CopiaDTO(giungla, Variante.HOLO, 2));
+                new CopiaDTO(carta, Variante.REVERSE_HOLO, 3), new CopiaDTO(giungla, Variante.REVERSE_HOLO, 2));
     }
 
     @Test
@@ -206,7 +206,7 @@ class CollezioneServiceTest {
     }
 
     private ModificaCollezioneDTO delta(UUID oggetto, int delta) {
-        return new ModificaCollezioneDTO(oggetto, Variante.HOLO, delta);
+        return new ModificaCollezioneDTO(oggetto, Variante.REVERSE_HOLO, delta);
     }
 
     private int righe() {
@@ -214,7 +214,7 @@ class CollezioneServiceTest {
     }
 
     private void scrivi(UUID oggetto, int quantita) {
-        jdbc.update("INSERT INTO collezione (id, id_utente, id_oggetto, variante, quantita, aggiornata_il) VALUES (?, ?, ?, 'HOLO', ?, now())",
+        jdbc.update("INSERT INTO collezione (id, id_utente, id_oggetto, variante, quantita, aggiornata_il) VALUES (?, ?, ?, 'REVERSE_HOLO', ?, now())",
                 UUID.randomUUID(), idUtente, oggetto, quantita);
     }
 

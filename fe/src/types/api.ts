@@ -22,7 +22,7 @@ export interface Utente {
 }
 
 // varianti di stampa di una carta (stessi valori dell'enum del backend)
-export type Variante = 'NORMALE' | 'REVERSE_HOLO' | 'HOLO' | 'PRIMA_EDIZIONE' | 'PRIMA_EDIZIONE_HOLO'
+export type Variante = 'NORMALE' | 'REVERSE_HOLO' | 'PRIMA_EDIZIONE'
 
 // copie possedute di una carta in una variante (le righe a quantità 0 non esistono)
 export interface Copia {

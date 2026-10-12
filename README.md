@@ -90,7 +90,7 @@ aprono tutte le carte in cui compare, dalla più recente.
 ### Collezione e varianti
 
 Da loggati si segna quali carte si possiedono, in quante copie e in quale variante (Normale,
-Reverse holo, Holo, 1a edizione, 1a edizione holo). Nelle pagine di un set e di un Pokémon le
+Reverse holo, 1a edizione; la stampa holo di una rara holo conta come Normale). Nelle pagine di un set e di un Pokémon le
 carte non possedute sono in grigio, c'è il contatore «X / N carte», il filtro Tutte, Possedute,
 Mancanti. Nel binder
 le mancanti si possono mostrare in grigio (impostazione del binder) e il menu della tasca ha «Ce l'ho».

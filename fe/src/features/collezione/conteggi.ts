@@ -49,12 +49,9 @@ export function vuotoFiltro(filtro: Filtro): { titolo: string; testo: string } |
 // create a mano) contano come di base
 const RARITA_DI_BASE = new Set(['Common', 'Uncommon', 'Rare'])
 
-// le varianti lucide danno lo specchio sulle carte di base; Normale e 1ª edizione no
-const VARIANTI_LUCIDE = new Set<Variante>(['REVERSE_HOLO', 'HOLO', 'PRIMA_EDIZIONE_HOLO'])
-
 // effetto olografico della carta. Carte più rare: arcobaleno per tutti. Carte di base: specchio se la variante
-// scelta (riga cliccata nel dettaglio) è lucida; senza scelta, se tra le copie possedute ce n'è una lucida;
-// altrimenti (solo Normale, nessuna copia, ospite) nessun effetto
+// scelta (riga cliccata nel dettaglio) è la Reverse holo; senza scelta, se tra le copie possedute c'è una Reverse;
+// altrimenti (Normale, 1ª edizione, nessuna copia, ospite) nessun effetto
 export function effettoCarta(
   oggetto: Pick<Oggetto, 'rarita'>,
   perVariante?: Map<Variante, number>,
@@ -62,9 +59,6 @@ export function effettoCarta(
 ): 'arcobaleno' | 'specchio' | null {
   const rarita = oggetto.rarita ?? ''
   if (rarita !== '' && !RARITA_DI_BASE.has(rarita)) return 'arcobaleno'
-  if (variante) return VARIANTI_LUCIDE.has(variante) ? 'specchio' : null
-  for (const [v, quantita] of perVariante ?? []) {
-    if (quantita > 0 && VARIANTI_LUCIDE.has(v)) return 'specchio'
-  }
-  return null
+  if (variante) return variante === 'REVERSE_HOLO' ? 'specchio' : null
+  return (perVariante?.get('REVERSE_HOLO') ?? 0) > 0 ? 'specchio' : null
 }
