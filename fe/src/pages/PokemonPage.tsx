@@ -1,5 +1,5 @@
 import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Button, LinkBottone } from '../components/Button'
 import { GrigliaCartePaginata } from '../components/GrigliaCartePaginata'
@@ -10,8 +10,8 @@ import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon } from '../features/pokedex/pokedex'
 import { useGetCartePokemonQuery } from '../features/pokedex/pokedexApi'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
+import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useTitolo } from '../hooks/useTitolo'
-import type { Oggetto } from '../types/api'
 
 // tutte le carte in cui compare un Pokémon, dalla più recente
 export function PokemonPage() {
@@ -23,7 +23,7 @@ export function PokemonPage() {
   const { currentData: data, isFetching, isError, error, refetch } = useGetCartePokemonQuery(numero, { skip: !pokemon })
   const isLoading = data === undefined && !isError
   const { isPreferito, toggle } = usePreferiti()
-  const [selezionato, setSelezionato] = useState<Oggetto | null>(null)
+  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
   const location = useLocation()
   const navigate = useNavigate()
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
@@ -111,15 +111,10 @@ export function PokemonPage() {
         }}
         isPreferito={isPreferito}
         onTogglePreferito={toggle}
-        onApri={setSelezionato}
+        onApri={apri}
       />
 
-      <ModaleCarta
-        oggetto={selezionato}
-        preferito={selezionato ? isPreferito(selezionato.id) : false}
-        onTogglePreferito={toggle}
-        onChiudi={() => setSelezionato(null)}
-      />
+      <ModaleCarta {...modale} />
     </PaginaAnimata>
   )
 }

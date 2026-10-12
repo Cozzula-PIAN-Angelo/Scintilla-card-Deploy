@@ -1,5 +1,5 @@
 import { Heart } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { messaggioErrore } from '../app/errori'
 import { LinkBottone } from '../components/Button'
 import { ModaleCarta } from '../components/ModaleCarta'
@@ -12,9 +12,9 @@ import { GrigliaOggetti } from '../features/oggetti/GrigliaOggetti'
 import { ORDINAMENTI_PREFERITI, ORDINAMENTO_PREDEFINITO } from '../features/oggetti/ordinamenti'
 import { useGetPreferitiQuery } from '../features/preferiti/preferitiApi'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
+import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useParametriPagina } from '../hooks/useParametriPagina'
 import { useTitolo } from '../hooks/useTitolo'
-import type { Oggetto } from '../types/api'
 
 const PER_PAGINA = 12
 const VALORI_ORDINAMENTO = ORDINAMENTI_PREFERITI.map((o) => o.valore)
@@ -28,7 +28,7 @@ export function PreferitiPage() {
     sort: ordinamento,
   })
   const { isPreferito, toggle, idsCaricati } = usePreferiti()
-  const [selezionato, setSelezionato] = useState<Oggetto | null>(null)
+  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
 
   // la lista segue gli id aggiornati in modo ottimistico: una carta tolta esce subito con l'animazione
   const visibili = (data?.content ?? []).filter((preferito) => !idsCaricati || isPreferito(preferito.oggetto.id))
@@ -85,19 +85,14 @@ export function PreferitiPage() {
               elementi={visibili.map((preferito) => ({ oggetto: preferito.oggetto, aggiuntoIl: preferito.aggiuntoIl }))}
               isPreferito={isPreferito}
               onTogglePreferito={toggle}
-              onApri={setSelezionato}
+              onApri={apri}
             />
             {data && <Paginazione pagina={pagina} totalePagine={data.totalPages} onCambia={vaiAPagina} />}
           </>
         )}
       </section>
 
-      <ModaleCarta
-        oggetto={selezionato}
-        preferito={selezionato ? isPreferito(selezionato.id) : false}
-        onTogglePreferito={toggle}
-        onChiudi={() => setSelezionato(null)}
-      />
+      <ModaleCarta {...modale} />
     </PaginaAnimata>
   )
 }
