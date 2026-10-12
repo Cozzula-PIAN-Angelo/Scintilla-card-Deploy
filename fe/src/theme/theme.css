@@ -5,7 +5,7 @@
 
 /*
  * Tema unico dell'app: tutti i colori vivono qui. La palette di default di Tailwind
- * viene azzerata, così nel codice si possono usare solo i colori del negozio.
+ * viene azzerata, così nel codice si possono usare solo i colori del tema.
  *
  * Due livelli: la palette del marchio (blu, giallo, rosso), identica nei due temi, e i
  * colori "di ruolo" (sfondo, superficie, testo...) che la modalità scura ridefinisce più

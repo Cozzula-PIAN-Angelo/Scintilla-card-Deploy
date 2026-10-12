@@ -14,8 +14,8 @@
     <groupId>com.example</groupId>
     <artifactId>ecommerce</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ecommerce</name>
-    <description>Backend REST di un e-commerce vetrina</description>
+    <name>scintilla</name>
+    <description>Backend REST di Scintilla: vetrina di carte Pokémon, preferiti, binder e Pokédex</description>
 
     <properties>
         <java.version>21</java.version>
