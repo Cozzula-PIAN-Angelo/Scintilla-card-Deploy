@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Limit;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -114,7 +113,7 @@ class MigrazioniTest {
         inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "");
         inserisciCartaDelSet("Carta C", "sv1-1", "sv1", null);
 
-        assertThat(oggettoRepository.findSetConVariantiMancanti(Limit.of(5))).containsExactly("base1");
+        assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
     }
 
     @Test

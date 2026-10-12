@@ -157,12 +157,24 @@ public class PokemonTcgService {
                 esito.rinominate());
     }
 
-    // riempie le varianti delle carte di un set già importato (le carte nuove non si aggiungono: non tocca
-    // "importata"). Quelle che pokemontcg.io non restituisce più ricevono la lista vuota, così il job
-    // non le ripropone a ogni giro
+    // riempie le varianti delle carte di un set già importato. Passa da salvaCarte come un import, quindi
+    // le carte nuove del set entrano nel catalogo; non tocca "importata". Solo se il download è completo
+    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota, così il job non le ripropone
+    // a ogni giro; con un download parziale restano senza varianti e si riprovano al giro dopo
     public void riempiVarianti(String setId) {
-        List<Carta> carte = scaricaCarte("set.id:" + setId, "set " + setId);
+        Download download = scarica("set.id:" + setId, "set " + setId);
+        List<Carta> carte = download.carte();
+        if (carte.isEmpty()) {
+            // il set è nel catalogo: nessuna carta è una risposta anomala, non un set vuoto
+            throw new ServizioEsternoException("Nessuna carta restituita da pokemontcg.io per il set " + setId
+                    + ": varianti non aggiornate", null);
+        }
         salvaCarte(carte);
+        if (carte.size() < download.totale()) {
+            log.warn("Varianti del set {}: lette {} carte su {}, le altre si riprovano al giro dopo",
+                    setId, carte.size(), download.totale());
+            return;
+        }
         transazione.executeWithoutResult(stato ->
                 oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull(setId)
                         .forEach(oggetto -> oggetto.setVarianti(List.of())));
@@ -316,12 +328,21 @@ public class PokemonTcgService {
         return Variante.daChiaviTcgplayer(prezzi == null ? null : prezzi.keySet());
     }
 
+    private List<Carta> scaricaCarte(String query, String descrizione) {
+        return scarica(query, descrizione).carte();
+    }
+
+    // carte scaricate (senza doppioni) e totale dichiarato da pokemontcg.io (totalCount, 0 se nessuna
+    // pagina ha dati): meno carte del totale = download interrotto da una pagina vuota o senza carte nuove
+    private record Download(List<Carta> carte, long totale) {
+    }
+
     // orderBy=id: con orderBy=number pokemontcg.io pagina in modo instabile (la pagina 2 ripete
     // carte della 1 e altre si perdono). Per sicurezza i doppioni si scartano comunque per id
-    private List<Carta> scaricaCarte(String query, String descrizione) {
+    private Download scarica(String query, String descrizione) {
         Map<String, Carta> carte = new LinkedHashMap<>();
         int pagina = 1;
-        long totale;
+        long totale = 0;
         do {
             int numeroPagina = pagina;
             RispostaRicerca risposta = conTentativi(() -> cercaCarte(query, numeroPagina, PAGINA_SET, "id",
@@ -337,7 +358,7 @@ public class PokemonTcgService {
             totale = risposta.totalCount();
             pagina++;
         } while (carte.size() < totale);
-        return new ArrayList<>(carte.values());
+        return new Download(new ArrayList<>(carte.values()), totale);
     }
 
     // GET /cards con la sintassi di ricerca di pokemontcg.io (query passata come variabile, così i caratteri

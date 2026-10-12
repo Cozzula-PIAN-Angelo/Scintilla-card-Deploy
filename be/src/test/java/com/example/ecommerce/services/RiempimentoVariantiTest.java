@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.data.domain.Limit;
 
 import java.util.List;
 
@@ -31,18 +30,18 @@ class RiempimentoVariantiTest {
 
     @Test
     void alMassimoCinqueSetPerGiro() {
-        when(oggettoRepository.findSetConVariantiMancanti(Limit.of(5))).thenReturn(List.of("base1", "sv1"));
+        when(oggettoRepository.findSetConVariantiMancanti(5)).thenReturn(List.of("base1", "sv1"));
 
         riempimento.esegui();
 
-        verify(oggettoRepository).findSetConVariantiMancanti(Limit.of(5));
+        verify(oggettoRepository).findSetConVariantiMancanti(5);
         verify(pokemonTcgService).riempiVarianti("base1");
         verify(pokemonTcgService).riempiVarianti("sv1");
     }
 
     @Test
     void unErroreNonFermaGliAltri(CapturedOutput log) {
-        when(oggettoRepository.findSetConVariantiMancanti(Limit.of(5))).thenReturn(List.of("base1", "jungle", "sv1"));
+        when(oggettoRepository.findSetConVariantiMancanti(5)).thenReturn(List.of("base1", "jungle", "sv1"));
         doThrow(new ServizioEsternoException("giù", null)).when(pokemonTcgService).riempiVarianti("jungle");
 
         riempimento.esegui();
@@ -54,7 +53,7 @@ class RiempimentoVariantiTest {
 
     @Test
     void senzaSetNonChiamaPokemontcg() {
-        when(oggettoRepository.findSetConVariantiMancanti(Limit.of(5))).thenReturn(List.of());
+        when(oggettoRepository.findSetConVariantiMancanti(5)).thenReturn(List.of());
 
         riempimento.esegui();
 

@@ -213,4 +213,49 @@ class PokemonTcgServiceTest {
         assertThat(sparita.getVarianti()).isNotNull();
         pokemontcg.verify();
     }
+
+    // download incompleto (pokemontcg.io dice 5 carte, poi la pagina 2 arriva vuota): le carte non lette
+    // restano senza varianti, così il job le riprova al giro dopo invece di segnarle per sempre
+    @Test
+    void riempiVariantiConDownloadParzialeNonSvuotaLeAltre() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"), containsString("page=1"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI.replace("\"totalCount\": 2", "\"totalCount\": 5"),
+                        MediaType.APPLICATION_JSON));
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"), containsString("page=2"))))
+                .andRespond(withSuccess(PAGINA_VUOTA, MediaType.APPLICATION_JSON));
+        Oggetto nonLetta = new Oggetto("Carta non letta (Scarlet 3/198)", new java.math.BigDecimal("1.00"), null, "sv1-3");
+        lenient().when(oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull("sv1"))
+                .thenReturn(List.of(nonLetta));
+
+        service.riempiVarianti("sv1");
+
+        assertThat(nonLetta.getVarianti()).isNull();
+        // le carte lette ricevono comunque le loro varianti
+        verify(oggettoRepository).saveAll(salvati.capture());
+        assertThat(salvati.getValue()).extracting(Oggetto::getVarianti).containsExactly(
+                List.of(Variante.NORMALE, Variante.REVERSE_HOLO), List.of());
+        pokemontcg.verify();
+    }
+
+    // nessuna carta scaricata: errore, niente cambia e il set resta in coda per il giro dopo
+    @Test
+    void riempiVariantiSenzaCarteLanciaENonCambiaNulla() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"))))
+                .andRespond(withSuccess(PAGINA_VUOTA, MediaType.APPLICATION_JSON));
+        Oggetto nonLetta = new Oggetto("Carta non letta (Base 9/102)", new java.math.BigDecimal("1.00"), null, "base1-9");
+        lenient().when(oggettoRepository.findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull("base1"))
+                .thenReturn(List.of(nonLetta));
+
+        assertThatThrownBy(() -> service.riempiVarianti("base1"))
+                .isInstanceOf(ServizioEsternoException.class)
+                .hasMessageContaining("base1");
+
+        assertThat(nonLetta.getVarianti()).isNull();
+        verify(oggettoRepository, never()).saveAll(any());
+        pokemontcg.verify();
+    }
+
+    private static final String PAGINA_VUOTA = """
+            {"data": [], "page": 1, "pageSize": 100, "count": 0, "totalCount": 0}
+            """;
 }

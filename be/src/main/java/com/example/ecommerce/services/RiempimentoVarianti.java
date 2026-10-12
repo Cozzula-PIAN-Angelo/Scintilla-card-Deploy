@@ -3,7 +3,6 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.repositories.OggettoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Limit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +22,7 @@ public class RiempimentoVarianti {
 
     @Scheduled(fixedDelayString = "PT1H", initialDelayString = "PT5M")
     public void esegui() {
-        for (String setId : oggettoRepository.findSetConVariantiMancanti(Limit.of(SET_PER_GIRO))) {
+        for (String setId : oggettoRepository.findSetConVariantiMancanti(SET_PER_GIRO)) {
             // un set che fallisce non ferma gli altri: ci riprova al giro dopo
             try {
                 pokemonTcgService.riempiVarianti(setId);

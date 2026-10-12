@@ -1,7 +1,6 @@
 package com.example.ecommerce.repositories;
 
 import com.example.ecommerce.entities.Oggetto;
-import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,10 +39,12 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni")
     Set<String> findIdEsterniPresenti(@Param("idEsterni") Collection<String> idEsterni);
 
-    // set già importati con almeno una carta di pokemontcg.io le cui varianti non sono mai state lette
-    @Query("SELECT DISTINCT o.espansione.id FROM Oggetto o "
-            + "WHERE o.varianti IS NULL AND o.idEsterno IS NOT NULL AND o.espansione.importata = true")
-    List<String> findSetConVariantiMancanti(Limit limite);
+    // set già importati con almeno una carta di pokemontcg.io le cui varianti non sono mai state lette.
+    // Ordine casuale: i set che falliscono sempre (es. 404) non occupano ogni giro a danno degli altri
+    @Query(value = "SELECT o.espansione_id FROM oggetti o JOIN espansioni e ON e.id = o.espansione_id "
+            + "WHERE o.varianti IS NULL AND o.id_esterno IS NOT NULL AND e.importata "
+            + "GROUP BY o.espansione_id ORDER BY random() LIMIT :limite", nativeQuery = true)
+    List<String> findSetConVariantiMancanti(@Param("limite") int limite);
 
     // le carte di un set ancora senza varianti: dopo il riempimento sono quelle che pokemontcg.io non restituisce più
     List<Oggetto> findByEspansioneIdAndVariantiIsNullAndIdEsternoIsNotNull(String espansioneId);
