@@ -44,6 +44,10 @@ export interface Oggetto {
   varianti: Variante[] | null
   // rarità di pokemontcg.io (es. "Double Rare"); null = non ancora letta, '' = non indicata
   rarita: string | null
+  // categoria di pokemontcg.io (Pokémon, Trainer, Energy); null = non ancora letta, '' = non indicata
+  categoria: string | null
+  // sottotipi (Basic, ex, Tera, ...); null = non ancora letti, [] = non indicati
+  sottotipi: string[] | null
 }
 
 // espansione (set) di pokemontcg.io; importata = carte già nel catalogo
