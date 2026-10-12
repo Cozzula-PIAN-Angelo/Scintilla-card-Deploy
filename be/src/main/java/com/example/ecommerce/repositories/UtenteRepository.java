@@ -6,12 +6,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface UtenteRepository extends JpaRepository<Utente, UUID> {
 
-    Optional<Utente> findByUsername(String username);
+    // come per l'email: lo username ignora maiuscole e minuscole, e una lista perché tra gli account
+    // registrati prima di questa regola possono esserci "Mario" e "mario"
+    List<Utente> findByUsernameIgnoreCase(String username);
 
     // le email si salvano in minuscolo, ma gli account registrati prima possono averle con le maiuscole:
     // la ricerca ignora maiuscole e minuscole. Una lista, perché tra quegli account vecchi possono
@@ -20,7 +21,7 @@ public interface UtenteRepository extends JpaRepository<Utente, UUID> {
 
     boolean existsByEmailIgnoreCase(String email);
 
-    boolean existsByUsername(String username);
+    boolean existsByUsernameIgnoreCase(String username);
 
     // elenco per l'admin: gli account cancellati restano nel DB ma non si gestiscono più
     Page<Utente> findByAnonimizzatoIlIsNull(Pageable pageable);

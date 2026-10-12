@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -36,17 +37,20 @@ public class AuthService {
     }
 
     // Gli username non possono contenere '@' (RegistrazioneDTO): con la chiocciola è un'email, senza è uno username.
-    // L'email ignora maiuscole e minuscole; lo username no, come in registrazione
+    // Entrambi ignorano maiuscole e minuscole, come in registrazione
     private Optional<Utente> cercaUtente(String identificativo) {
-        if (!identificativo.contains("@")) {
-            return utenteRepository.findByUsername(identificativo);
-        }
-        List<Utente> trovati = utenteRepository.findByEmailIgnoreCase(identificativo);
+        return identificativo.contains("@")
+                ? unico(utenteRepository.findByEmailIgnoreCase(identificativo), identificativo, Utente::getEmail)
+                : unico(utenteRepository.findByUsernameIgnoreCase(identificativo), identificativo, Utente::getUsername);
+    }
+
+    // due account vecchi, registrati prima della regola, uguali a meno delle maiuscole: vale quello
+    // scritto esattamente così
+    private Optional<Utente> unico(List<Utente> trovati, String identificativo, Function<Utente, String> campo) {
         if (trovati.size() == 1) {
             return Optional.of(trovati.get(0));
         }
-        // due account vecchi con la stessa email a meno delle maiuscole: vale quello scritto esattamente così
-        return trovati.stream().filter(utente -> utente.getEmail().equals(identificativo)).findFirst();
+        return trovati.stream().filter(utente -> campo.apply(utente).equals(identificativo)).findFirst();
     }
 
     // il token è già stato validato dal JWTFilter prima di arrivare qui
