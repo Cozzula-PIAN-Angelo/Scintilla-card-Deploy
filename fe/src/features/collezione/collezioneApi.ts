@@ -26,6 +26,9 @@ function impostaQuantita(copie: Copia[], oggettoId: string, variante: Variante, 
   }
 }
 
+// richieste in corso per copia e cache; ultima = quantità dell'ultima risposta arrivata
+const inCorso = new Map<string, { pendenti: number; fallita: boolean; ultima: number | null }>()
+
 export const collezioneApi = api.injectEndpoints({
   endpoints: (build) => ({
     getCollezione: build.query<Copia[], FiltroPagina>({
@@ -33,7 +36,9 @@ export const collezioneApi = api.injectEndpoints({
       providesTags: ['Collezione'],
     }),
 
-    // aggiornamento ottimistico (tetto 0..999); a risposta ricevuta vale la quantità del server
+    // Aggiornamento ottimistico (tetto 0..999). Le risposte non si applicano finché altre richieste
+    // della stessa copia sono in corso: possono arrivare fuori ordine e rimetterebbero un valore vecchio.
+    // Quando l'ultima si chiude: tutto riuscito = vale l'ultima risposta; un errore = si rilegge dal server
     modificaCollezione: build.mutation<Copia, ModificaArg>({
       query: ({ oggettoId, variante, delta }) => ({
         url: '/me/collezione',
@@ -45,32 +50,55 @@ export const collezioneApi = api.injectEndpoints({
           const attuale = copie.find((c) => c.oggettoId === oggettoId && c.variante === variante)?.quantita ?? 0
           impostaQuantita(copie, oggettoId, variante, Math.min(999, Math.max(0, attuale + delta)))
         }
-        const patch = []
-        if (filtro) patch.push(dispatch(collezioneApi.util.updateQueryData('getCollezione', filtro, applica)))
-        if (binderId) {
-          patch.push(
-            dispatch(binderApi.util.updateQueryData('getBinderDettaglio', binderId, (d) => applica(d.collezione))),
-          )
+        // una voce per cache da aggiornare: lettura per set/Pokémon e/o dettaglio del binder
+        const bersagli: { chiave: string; imposta: (q: number) => void; rileggi: () => void }[] = []
+        if (filtro) {
+          bersagli.push({
+            chiave: `pagina|${JSON.stringify(filtro)}|${oggettoId}|${variante}`,
+            imposta: (q) =>
+              dispatch(
+                collezioneApi.util.updateQueryData('getCollezione', filtro, (c) => impostaQuantita(c, oggettoId, variante, q)),
+              ),
+            rileggi: () => dispatch(api.util.invalidateTags(['Collezione'])),
+          })
         }
+        if (binderId) {
+          bersagli.push({
+            chiave: `binder|${binderId}|${oggettoId}|${variante}`,
+            imposta: (q) =>
+              dispatch(
+                binderApi.util.updateQueryData('getBinderDettaglio', binderId, (d) =>
+                  impostaQuantita(d.collezione, oggettoId, variante, q),
+                ),
+              ),
+            rileggi: () => dispatch(api.util.invalidateTags([{ type: 'Binder', id: binderId }])),
+          })
+        }
+
+        for (const { chiave } of bersagli) {
+          const stato = inCorso.get(chiave) ?? { pendenti: 0, fallita: false, ultima: null }
+          stato.pendenti += 1
+          inCorso.set(chiave, stato)
+        }
+        if (filtro) dispatch(collezioneApi.util.updateQueryData('getCollezione', filtro, applica))
+        if (binderId) dispatch(binderApi.util.updateQueryData('getBinderDettaglio', binderId, (d) => applica(d.collezione)))
+
+        let quantita: number | null = null
         try {
-          const { data } = await queryFulfilled
-          // la quantità del server sostituisce quella ottimistica
-          if (filtro) {
-            dispatch(
-              collezioneApi.util.updateQueryData('getCollezione', filtro, (copie) =>
-                impostaQuantita(copie, oggettoId, variante, data.quantita),
-              ),
-            )
-          }
-          if (binderId) {
-            dispatch(
-              binderApi.util.updateQueryData('getBinderDettaglio', binderId, (d) =>
-                impostaQuantita(d.collezione, oggettoId, variante, data.quantita),
-              ),
-            )
-          }
+          quantita = (await queryFulfilled).data.quantita
         } catch {
-          patch.forEach((p) => p.undo())
+          // la gestione dell'errore è sotto, a richieste chiuse
+        }
+        for (const { chiave, imposta, rileggi } of bersagli) {
+          const stato = inCorso.get(chiave)
+          if (!stato) continue
+          if (quantita === null) stato.fallita = true
+          else stato.ultima = quantita
+          stato.pendenti -= 1
+          if (stato.pendenti > 0) continue
+          inCorso.delete(chiave)
+          if (stato.fallita || stato.ultima === null) rileggi()
+          else imposta(stato.ultima)
         }
       },
     }),
