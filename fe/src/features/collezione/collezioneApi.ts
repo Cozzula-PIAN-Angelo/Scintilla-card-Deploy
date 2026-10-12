@@ -26,8 +26,8 @@ function impostaQuantita(copie: Copia[], oggettoId: string, variante: Variante, 
   }
 }
 
-// richieste in corso per copia e cache; ultima = quantità dell'ultima risposta arrivata
-const inCorso = new Map<string, { pendenti: number; fallita: boolean; ultima: number | null }>()
+// richieste in corso per copia e cache; totale = quante si sono sovrapposte nella raffica
+const inCorso = new Map<string, { pendenti: number; totale: number; fallita: boolean; ultima: number | null }>()
 
 export const collezioneApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -38,7 +38,8 @@ export const collezioneApi = api.injectEndpoints({
 
     // Aggiornamento ottimistico (tetto 0..999). Le risposte non si applicano finché altre richieste
     // della stessa copia sono in corso: possono arrivare fuori ordine e rimetterebbero un valore vecchio.
-    // Quando l'ultima si chiude: tutto riuscito = vale l'ultima risposta; un errore = si rilegge dal server
+    // Una raffica (più di una richiesta, o un errore) si chiude rileggendo dal server, perché il client
+    // non può sapere quale scrittura il server abbia applicato per ultima; una richiesta sola vale la sua risposta
     modificaCollezione: build.mutation<Copia, ModificaArg>({
       query: ({ oggettoId, variante, delta }) => ({
         url: '/me/collezione',
@@ -76,8 +77,9 @@ export const collezioneApi = api.injectEndpoints({
         }
 
         for (const { chiave } of bersagli) {
-          const stato = inCorso.get(chiave) ?? { pendenti: 0, fallita: false, ultima: null }
+          const stato = inCorso.get(chiave) ?? { pendenti: 0, totale: 0, fallita: false, ultima: null }
           stato.pendenti += 1
+          stato.totale += 1
           inCorso.set(chiave, stato)
         }
         if (filtro) dispatch(collezioneApi.util.updateQueryData('getCollezione', filtro, applica))
@@ -97,7 +99,7 @@ export const collezioneApi = api.injectEndpoints({
           stato.pendenti -= 1
           if (stato.pendenti > 0) continue
           inCorso.delete(chiave)
-          if (stato.fallita || stato.ultima === null) rileggi()
+          if (stato.fallita || stato.totale > 1 || stato.ultima === null) rileggi()
           else imposta(stato.ultima)
         }
       },
