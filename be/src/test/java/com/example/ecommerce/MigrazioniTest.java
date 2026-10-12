@@ -67,7 +67,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -82,6 +82,14 @@ class MigrazioniTest {
         assertThat(tokenRevocatoRepository.deleteByScadenzaBefore(Instant.now())).isEqualTo(1);
         assertThat(tokenRevocatoRepository.existsById(valido)).isTrue();
         assertThat(tokenRevocatoRepository.existsById(scaduto)).isFalse();
+    }
+
+    // foreign key usate da letture e cancellazioni frequenti: senza indice scorrerebbero tutta la tabella
+    // delle carte. La ricerca per numero di Pokédex usa già la chiave primaria di oggetti_pokedex
+    @Test
+    void indiciPerPokedexESet() {
+        assertThat(indici("oggetti")).contains("ix_oggetti_espansione_id");
+        assertThat(indici("oggetti_pokedex")).contains("ix_oggetti_pokedex_oggetto_id", "pk_oggetti_pokedex");
     }
 
     @Test
@@ -136,6 +144,10 @@ class MigrazioniTest {
             regole.put(riga.getString("tabella") + "." + riga.getString("colonna"), riga.getString("regola"));
         });
         return regole;
+    }
+
+    private List<String> indici(String tabella) {
+        return jdbc.queryForList("SELECT indexname FROM pg_indexes WHERE tablename = ?", String.class, tabella);
     }
 
     private int contaRighe(String tabella) {
