@@ -1,3 +1,4 @@
+import { Palette } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import type { Filtro } from './conteggi'
 
@@ -6,6 +7,8 @@ interface Props {
   totale: number
   filtro: Filtro
   onFiltro: (filtro: Filtro) => void
+  aColori: boolean
+  onAlternaColori: () => void
 }
 
 const FILTRI: Array<{ valore: Filtro; etichetta: string }> = [
@@ -14,8 +17,8 @@ const FILTRI: Array<{ valore: Filtro; etichetta: string }> = [
   { valore: 'mancanti', etichetta: 'Mancanti' },
 ]
 
-// avanzamento della collezione di un set o di un Pokémon, con filtro
-export function BarraCollezione({ possedute, totale, filtro, onFiltro }: Props) {
+// avanzamento della collezione di un set o di un Pokémon, con filtro e interruttore delle mancanti a colori
+export function BarraCollezione({ possedute, totale, filtro, onFiltro, aColori, onAlternaColori }: Props) {
   const percentuale = totale > 0 ? Math.round((possedute / totale) * 100) : 0
 
   return (
@@ -41,6 +44,18 @@ export function BarraCollezione({ possedute, totale, filtro, onFiltro }: Props) 
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            aria-pressed={aColori}
+            onClick={onAlternaColori}
+            className={cn(
+              'flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition-colors',
+              aColori ? 'bg-blu-500 text-white' : 'bg-tenue text-testo-2 hover:text-testo',
+            )}
+          >
+            <Palette aria-hidden className="size-4" />
+            Mancanti a colori
+          </button>
         </div>
       </div>
       <div

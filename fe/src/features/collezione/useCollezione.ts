@@ -6,6 +6,7 @@ import { selectToken } from '../auth/authSlice'
 import { useToast } from '../toast/useToast'
 import { copieTotali, creaMappa, type MappaCopie } from './conteggi'
 import { useGetCollezioneQuery, useModificaCollezioneMutation, type FiltroPagina } from './collezioneApi'
+import { useMancantiAColori } from './useMancantiAColori'
 import { ETICHETTE, varianteRapida } from './varianti'
 
 // ciò che la griglia delle carte usa della collezione (la prop facoltativa `collezione`)
@@ -13,6 +14,8 @@ export interface CollezioneGriglia {
   copie(id: string): number
   perVariante(id: string): Map<Variante, number>
   aggiungiRapido(oggetto: Oggetto): void
+  // true: le non possedute restano a colori invece che in grigio
+  aColori: boolean
 }
 
 const VUOTA: MappaCopie = new Map()
@@ -32,6 +35,7 @@ export function useCollezione(filtro: FiltroPagina | null) {
   })
   const [modificaCopia] = useModificaCollezioneMutation()
   const toast = useToast()
+  const { aColori, alterna: alternaColori } = useMancantiAColori()
 
   const mappa = useMemo(() => (attiva && data ? creaMappa(data) : VUOTA), [attiva, data])
   const perVariante = useCallback((id: string) => mappa.get(id) ?? NESSUNA, [mappa])
@@ -63,5 +67,5 @@ export function useCollezione(filtro: FiltroPagina | null) {
   // pronta: dati arrivati. Durante il caricamento o dopo un errore la pagina resta come per un ospite
   const pronta = attiva && data !== undefined
 
-  return { attiva, pronta, mappa, perVariante, copie, modifica, aggiungiRapido }
+  return { attiva, pronta, mappa, perVariante, copie, modifica, aggiungiRapido, aColori, alternaColori }
 }
