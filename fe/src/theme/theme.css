@@ -180,6 +180,21 @@
     mix-blend-mode: color-dodge;
   }
 
+  /* scintillio della reverse holo: grana fine su tutta la carta, con un bagliore che segue --mx e --my */
+  .holo-reverse {
+    background-image:
+      radial-gradient(
+        circle at var(--mx, 50%) var(--my, 50%),
+        color-mix(in srgb, var(--color-white) 55%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(circle, color-mix(in srgb, var(--color-white) 85%, transparent) 0 0.6px, transparent 1.2px),
+      radial-gradient(circle, color-mix(in srgb, var(--color-blu-50) 75%, transparent) 0 0.5px, transparent 1px);
+    background-size: 100% 100%, 7px 7px, 11px 11px;
+    background-position: center, 0 0, 3px 5px;
+    mix-blend-mode: color-dodge;
+  }
+
   /* fondo della pagina per ciò che la copre per intero; di notte vi si aggiungono le stelle (più sotto) */
   .cielo-stellato {
     background-color: var(--color-sfondo);

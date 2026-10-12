@@ -1,5 +1,6 @@
 import { BadgeCheck, CalendarDays } from 'lucide-react'
 import { useRef } from 'react'
+import { varianteEffetto } from '../features/collezione/conteggi'
 import type { Oggetto } from '../types/api'
 import { formattaData, formattaPrezzo } from '../utils/formato'
 import { HoloCard } from './HoloCard'
@@ -24,7 +25,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi }:
     <Modale aperto={oggetto !== null} onChiudi={onChiudi} larghezza="max-w-4xl">
       {mostrato && (
         <div className="grid items-center gap-8 md:grid-cols-[1.1fr_1fr]">
-          <HoloCard className="mx-auto w-full max-w-sm rounded-3xl">
+          <HoloCard className="mx-auto w-full max-w-sm rounded-3xl" variante={varianteEffetto(mostrato)}>
             <ImmagineCarta
               src={mostrato.immagineUrl}
               alt={mostrato.nome}

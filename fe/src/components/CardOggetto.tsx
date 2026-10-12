@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { CalendarHeart } from 'lucide-react'
-import type { Oggetto } from '../types/api'
+import { varianteEffetto } from '../features/collezione/conteggi'
+import type { Oggetto, Variante } from '../types/api'
 import { elementoGriglia } from '../theme/motion'
 import { formattaData, formattaPrezzo } from '../utils/formato'
 import { HoloCard } from './HoloCard'
@@ -13,13 +14,16 @@ interface Props {
   onTogglePreferito: () => void
   onApri: () => void
   aggiuntoIl?: string
+  // copie possedute per variante (se note): decidono l'effetto olografico
+  perVariante?: Map<Variante, number>
 }
 
-export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl }: Props) {
+export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl, perVariante }: Props) {
   return (
     <motion.li layout variants={elementoGriglia} exit="uscita" className="list-none">
       <HoloCard
         className="rounded-3xl"
+        variante={varianteEffetto(oggetto, perVariante)}
         sopra={
           <div className="absolute right-5 top-5 z-10">
             <PulsanteCuore attivo={preferito} onToggle={onTogglePreferito} nome={oggetto.nome} />
