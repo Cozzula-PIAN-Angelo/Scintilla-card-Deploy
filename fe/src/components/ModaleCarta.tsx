@@ -31,6 +31,14 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
   // variante scelta con un clic su una riga; vale solo per la carta per cui è stata scelta,
   // così aprendo un'altra carta si riparte dalla regola di default
   const [scelta, setScelta] = useState<{ id: string; variante: Variante } | null>(null)
+  // a ogni apertura (anche della stessa carta) la scelta riparte da zero; alla chiusura no,
+  // così durante l'animazione la carta resta com'era
+  const [idAperto, setIdAperto] = useState<string | null>(null)
+  const idCorrente = oggetto?.id ?? null
+  if (idCorrente !== idAperto) {
+    setIdAperto(idCorrente)
+    if (idCorrente !== null) setScelta(null)
+  }
   const perVariante = mostrato && collezione ? collezione.perVariante(mostrato.id) : undefined
   const effetto = mostrato
     ? scelta?.id === mostrato.id
