@@ -105,25 +105,31 @@ aprono tutte le carte in cui compare, dalla più recente.
 
 4. **Manual Deploy** di entrambi (`VITE_API_URL` è letta in fase di build).
 
-### Primo deploy con Flyway su un database già esistente
+### Svuotare il database di Render
 
-Il database di Render creato prima di Flyway ha le tabelle ma non la storia di Flyway: il nuovo
-backend non parte finché non lo si resetta (i dati si perdono). In quest'ordine:
+I deploy normali non richiedono nulla: all'avvio Flyway applica da solo le migrazioni nuove. Anche un
+database nuovo e vuoto (es. ricreato dal blueprint) si riempie al primo avvio del backend.
 
-1. pannello di Render > `scintilla-be` > **Settings** > **Suspend Web Service**: il backend vecchio va
-   fermato, altrimenti la prima visita lo risveglia (piano free) e con `ddl-auto=update` ricrea le
-   tabelle vecchie subito dopo il reset;
-2. pannello di Render > `scintilla-db` > **Connect** > **External Connection**: copiare il comando `PSQL Command`;
-3. eseguirlo nel terminale (serve `psql`, es. `C:\Program Files\PostgreSQL\18\bin\psql.exe`), poi:
+Per ripartire da zero sullo stesso database (i dati si perdono):
+
+1. pannello di Render > `scintilla-db` > **Connect** > **External Connection**: copiare il comando `PSQL Command`;
+2. eseguirlo nel terminale (serve `psql`, es. `C:\Program Files\PostgreSQL\18\bin\psql.exe`), poi:
    ```
    DROP SCHEMA public CASCADE; CREATE SCHEMA public;
    ```
-4. merge su `main`, poi `scintilla-be` > **Resume Web Service**: il deploy parte, Flyway crea le
-   tabelle e i seeder ripopolano.
+3. `scintilla-be` > **Manual Deploy** > **Deploy latest commit**: Flyway ricrea le tabelle e i seeder
+   ripopolano.
 
-Se il deploy fallisce con `non-empty schema ... no schema history table`, nel database ci sono di nuovo
-tabelle senza la storia di Flyway (reset non fatto, o ricreate dalla versione vecchia): Render tiene
-online la versione precedente. Si sospende il servizio, si rifà il reset e si lancia un **Manual Deploy**.
+Non serve sospendere il backend: la versione online usa Flyway, quindi se una visita la risveglia tra
+il passo 2 e il 3 crea anche lei le tabelle dalle migrazioni.
+
+Se il deploy fallisce con `non-empty schema ... no schema history table`, nel database ci sono tabelle
+senza la storia di Flyway, create da una versione del backend precedente a Flyway (`ddl-auto=update`):
+Render tiene online la versione precedente. Si rifà il reset, ma con quella versione online l'ordine
+conta: prima la si risveglia (`https://scintilla-be.onrender.com/actuator/health`), così è già avviata
+e non ricrea le tabelle dopo il reset (`ddl-auto` agisce solo all'avvio); poi il `DROP SCHEMA` e subito
+il **Manual Deploy**, senza aprire il sito finché non è finito.
+Sospenderla non basta: **Resume Web Service** riavvia la stessa versione vecchia, che ricrea le tabelle.
 
 ## Struttura
 
