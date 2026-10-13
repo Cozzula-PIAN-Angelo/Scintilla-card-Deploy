@@ -1,6 +1,6 @@
-import { animate, AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Book, BookOpen, ChevronLeft, ChevronRight, Layers, Maximize2, Minimize2, Settings2, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { messaggioErrore, statoErrore } from '../../app/errori'
 import { Button } from '../../components/Button'
 import { Loader } from '../../components/Loader'
@@ -23,6 +23,7 @@ import { useAperturaBinder } from './aperto/useAperturaBinder'
 import { useCarteBinder } from './aperto/useCarteBinder'
 import { useSchermoIntero } from './aperto/useSchermoIntero'
 import { useSfoglio } from './aperto/useSfoglio'
+import { useSfoglioPuntatore } from './aperto/useSfoglioPuntatore'
 import { proporzionePagina } from './aspetto'
 import { useGetBinderDettaglioQuery } from './binderApi'
 import { Contesto } from './contesto'
@@ -84,7 +85,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   const apertura = useAperturaBinder(onChiuso)
   const { fase, apri } = apertura
   const sfoglio = useSfoglio({ doppia, pagine: binder.pagine, attivo: fase === 'aperto', onGiro: carte.chiudiMenu })
-  const { vista, numeroViste, giro, avanti, angolo, estremi, vaiA } = sfoglio
+  const { vista, numeroViste, giro, avanti, angolo, vaiA } = sfoglio
 
   // a copertina richiusa si torna alla mensola, oppure si resta col binder chiuso davanti
   const chiudi = (destinazione: 'mensola' | 'resta' = 'mensola') =>
@@ -96,103 +97,11 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   // --- spazio: il binder si adatta all'area libera; a schermo intero copre tutta la finestra ---
   const [misuraSpazio, spazioLibero] = useDimensioni<HTMLDivElement>()
   const schermo = useSchermoIntero()
-
-  // --- sfoglio col puntatore: si afferra la pagina e il foglio segue il mouse (o il dito) ---
-  // Sulle carte il gesto resta quello di spostarle (trascinamento nativo): la pagina si prende
-  // dai margini, dagli spazi tra le tasche, dalle tasche vuote o dalla maniglia sul bordo esterno
-  const presa = useRef<{
-    id: number
-    x: number
-    y: number
-    lato: Lato
-    // attivato superata una piccola soglia: prima può ancora essere un semplice clic
-    attiva: boolean
-    avanti: boolean
-    progresso: number
-    ultimaX: number
-    ultimoTempo: number
-    velocita: number
-  } | null>(null)
-  const [pagineInMano, setPagineInMano] = useState(false)
-  // dopo un trascinamento il clic finale non deve arrivare alle tasche
-  const ignoraClic = useRef(false)
-
-  function afferra(evento: PointerEvent<HTMLDivElement>) {
-    if (!aperto || giro || evento.button !== 0) return
-    const bersaglio = evento.target as HTMLElement
-    if (!bersaglio.closest('[data-maniglia]') && bersaglio.closest('[draggable="true"], input, select')) return
-    const riquadro = evento.currentTarget.getBoundingClientRect()
-    presa.current = {
-      id: evento.pointerId,
-      x: evento.clientX,
-      y: evento.clientY,
-      lato: !doppia || evento.clientX > riquadro.left + riquadro.width / 2 ? 'destra' : 'sinistra',
-      attiva: false,
-      avanti: true,
-      progresso: 0,
-      ultimaX: evento.clientX,
-      ultimoTempo: evento.timeStamp,
-      velocita: 0,
-    }
-  }
-
-  function trascinaPagina(evento: PointerEvent<HTMLDivElement>) {
-    const p = presa.current
-    if (!p || p.id !== evento.pointerId) return
-    const dx = evento.clientX - p.x
-    const dy = evento.clientY - p.y
-
-    if (!p.attiva) {
-      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy)) return
-      const avanti = dx < 0
-      // a doppia pagina si gira in avanti la pagina destra e indietro la sinistra
-      const consentito = avanti
-        ? vista < numeroViste - 1 && (!doppia || p.lato === 'destra')
-        : vista > 0 && (!doppia || p.lato === 'sinistra')
-      if (!consentito) {
-        presa.current = null
-        return
-      }
-      p.attiva = true
-      p.avanti = avanti
-      evento.currentTarget.setPointerCapture(evento.pointerId)
-      carte.chiudiMenu()
-      setPagineInMano(true)
-      sfoglio.iniziaGiro(avanti)
-    }
-
-    // per girare tutto il foglio si attraversa quasi tutto il binder
-    const corsa = larghezzaLibro * (doppia ? 0.75 : 0.8)
-    p.progresso = Math.min(1, Math.max(0, (p.avanti ? -dx : dx) / corsa))
-    const [inizio, fine] = estremi(p.avanti)
-    angolo.set(inizio + (fine - inizio) * p.progresso)
-
-    const intervallo = evento.timeStamp - p.ultimoTempo
-    if (intervallo > 0) p.velocita = (evento.clientX - p.ultimaX) / intervallo
-    p.ultimaX = evento.clientX
-    p.ultimoTempo = evento.timeStamp
-  }
-
-  function lasciaPagina(evento: PointerEvent<HTMLDivElement>) {
-    const p = presa.current
-    if (!p || p.id !== evento.pointerId) return
-    presa.current = null
-    if (!p.attiva) return
-    // il clic che segue il rilascio (se arriva) si scarta; poi si torna alla normalità
-    ignoraClic.current = true
-    window.setTimeout(() => (ignoraClic.current = false), 0)
-    setPagineInMano(false)
-
-    // si completa oltre un terzo di giro, o con un colpo deciso nella direzione giusta
-    const spinta = p.avanti ? -p.velocita : p.velocita
-    const completa = evento.type !== 'pointercancel' && (p.progresso > 0.35 || spinta > 0.6)
-    const [inizio, fine] = estremi(p.avanti)
-    const destinazione = vista + (p.avanti ? 1 : -1)
-    const resto = completa ? 1 - p.progresso : p.progresso
-    void animate(angolo, completa ? fine : inizio, { duration: 0.2 + 0.4 * resto, ease: 'easeOut' }).then(() =>
-      completa ? sfoglio.completaGiro(destinazione) : sfoglio.annullaGiro(),
-    )
-  }
+  const proporzione = proporzionePagina(binder.tasche)
+  const rapporto = doppia ? 2 * proporzione : proporzione
+  // il più grande possibile nello spazio libero, senza deformarlo
+  const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
+  const puntatore = useSfoglioPuntatore({ attivo: fase === 'aperto', doppia, larghezzaLibro, sfoglio, onPresa: carte.chiudiMenu })
 
   // frecce per sfogliare, Esc per posare la carta in mano o chiudere il menu di una tasca
   useEffect(() => {
@@ -253,10 +162,6 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
     )
   }
 
-  const proporzione = proporzionePagina(binder.tasche)
-  const rapporto = doppia ? 2 * proporzione : proporzione
-  // il più grande possibile nello spazio libero, senza deformarlo
-  const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
   const larghezzaFacciata = doppia ? larghezzaLibro / 2 : larghezzaLibro
   const aperto = fase === 'aperto'
   // chiuso, il binder a doppia pagina si sposta a sinistra di mezza facciata: la copertina resta al centro
@@ -352,18 +257,9 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
                     initial={{ opacity: 0, scale: 0.9, y: 24 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 180, damping: 22 }}
-                    className={cn('relative touch-pan-y select-none', aperto && (pagineInMano ? 'cursor-grabbing' : 'cursor-grab'))}
+                    className={cn('relative touch-pan-y select-none', aperto && (puntatore.pagineInMano ? 'cursor-grabbing' : 'cursor-grab'))}
                     style={{ width: larghezzaLibro, height: larghezzaLibro / rapporto, perspective: '2600px' }}
-                    onPointerDown={afferra}
-                    onPointerMove={trascinaPagina}
-                    onPointerUp={lasciaPagina}
-                    onPointerCancel={lasciaPagina}
-                    onClickCapture={(evento) => {
-                      if (!ignoraClic.current) return
-                      ignoraClic.current = false
-                      evento.stopPropagation()
-                      evento.preventDefault()
-                    }}
+                    {...puntatore.gestori}
                   >
                     <motion.div
                       className="absolute inset-0 [transform-style:preserve-3d]"
