@@ -11,7 +11,6 @@ import { useMediaQuery } from '../../hooks/useMediaQuery'
 import type { Binder, BinderDettaglio, Oggetto } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { usePreferiti } from '../preferiti/usePreferiti'
-import { useToast } from '../toast/useToast'
 import { AvvisoInMano, Cestino } from './aperto/AvvisiBinder'
 import { BordoSfoglio } from './aperto/BordoSfoglio'
 import { Cassetto, IntestazioneCassetto } from './aperto/Cassetto'
@@ -20,10 +19,11 @@ import { Foglio } from './aperto/Foglio'
 import { ManigliaPagina } from './aperto/ManigliaPagina'
 import { Anelli, CopertinaAperta, Dorso, InternoCopertina } from './aperto/Rilegatura'
 import { SoloFoglio, Tavola } from './aperto/Tavola'
+import { useCarteBinder } from './aperto/useCarteBinder'
 import { useSchermoIntero } from './aperto/useSchermoIntero'
 import { proporzionePagina } from './aspetto'
-import { useGetBinderDettaglioQuery, useInserisciCartaMutation, useSpostaCartaMutation, useSvuotaTascaMutation } from './binderApi'
-import { Contesto, stessaPosizione, type ContestoBinder, type Posizione, type Sorgente } from './contesto'
+import { useGetBinderDettaglioQuery } from './binderApi'
+import { Contesto } from './contesto'
 import { CopertinaBinder, FoderaBinder } from './CopertinaBinder'
 import { useImmagineBinder } from './immagine'
 import { PaginaBinder } from './PaginaBinder'
@@ -60,13 +60,13 @@ export function BinderAperto({ id, onChiuso, onImpostazioni }: Props) {
 
 function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: BinderDettaglio } & Omit<Props, 'id'>) {
   const { binder, slot } = dettaglio
-  const toast = useToast()
   const doppia = useMediaQuery('(min-width: 1024px)')
   const immagine = useImmagineBinder(binder)
   const preferiti = usePreferiti()
+  const carte = useCarteBinder(binder.id)
 
   // carte per pagina e posizione
-  const carte = useMemo(() => {
+  const cartePerPagina = useMemo(() => {
     const mappa = new Map<number, Map<number, Oggetto>>()
     for (const s of slot) {
       if (!mappa.has(s.pagina)) mappa.set(s.pagina, new Map())
@@ -75,11 +75,6 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
     return mappa
   }, [slot])
 
-  // carta in mano (scelta con un tocco), carta trascinata, tasca col menu aperto, carta ingrandita
-  const [inMano, setInMano] = useState<Sorgente | null>(null)
-  const [trascinata, setTrascinata] = useState<Sorgente | null>(null)
-  const [tascaAttiva, setTascaAttiva] = useState<Posizione | null>(null)
-  const [guardata, setGuardata] = useState<Oggetto | null>(null)
   const [cassettoAperto, setCassettoAperto] = useState(false)
   const [cassettoLaterale, setCassettoLaterale] = useState(true)
 
@@ -131,13 +126,13 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   const vaiA = useCallback(
     (destinazione: number) => {
       if (fase !== 'aperto' || giro || destinazione === vista || destinazione < 0 || destinazione >= numeroViste) return
-      setTascaAttiva(null)
+      carte.chiudiMenu()
       const [inizio, fine] = estremi(destinazione > vista)
       angolo.set(inizio)
       setGiro({ da: vista, a: destinazione })
       void animate(angolo, fine, { duration: DURATA_PAGINA, ease: CURVA }).then(() => completaGiro(destinazione))
     },
-    [fase, giro, vista, numeroViste, estremi, angolo, completaGiro],
+    [fase, giro, vista, numeroViste, estremi, angolo, completaGiro, carte.chiudiMenu],
   )
 
   // a copertina richiusa si torna alla mensola, oppure si resta col binder chiuso davanti
@@ -150,8 +145,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
     if (fase !== 'aperto') return
     setGiro(null)
     setVistaSalvata({ doppia, vista: 0 })
-    setTascaAttiva(null)
-    setInMano(null)
+    carte.annulla()
     setFase('chiusura')
     angoloCopertina.set(-180)
     void animate(angoloCopertina, 0, { duration: DURATA_COPERTINA, ease: CURVA }).then(() =>
@@ -165,49 +159,6 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
     setFase('apertura')
     void animate(angoloCopertina, -180, { duration: DURATA_COPERTINA, ease: CURVA }).then(() => setFase('aperto'))
   }
-
-  // --- carte: tocco, trascinamento, menu delle tasche --------------------------------------
-  const [inserisci] = useInserisciCartaMutation()
-  const [sposta] = useSpostaCartaMutation()
-  const [svuota] = useSvuotaTascaMutation()
-
-  const contesto = useMemo<ContestoBinder>(() => {
-    const errore = (e: unknown) => toast.errore(messaggioErrore(e, 'Operazione non riuscita, riprova'))
-    return {
-      inMano,
-      prendi: (sorgente) => {
-        setTascaAttiva(null)
-        setInMano(sorgente)
-      },
-      trascinata,
-      iniziaTrascinamento: (sorgente) => {
-        setTascaAttiva(null)
-        setInMano(null)
-        setTrascinata(sorgente)
-      },
-      fineTrascinamento: () => setTrascinata(null),
-      tascaAttiva,
-      attivaTasca: setTascaAttiva,
-      rilascia: (arrivo, sorgente) => {
-        setInMano(null)
-        setTascaAttiva(null)
-        if (sorgente.tipo === 'carta') {
-          inserisci({ binderId: binder.id, ...arrivo, oggetto: sorgente.oggetto }).unwrap().catch(errore)
-        } else if (!stessaPosizione(sorgente, arrivo)) {
-          const da = { pagina: sorgente.pagina, posizione: sorgente.posizione }
-          sposta({ binderId: binder.id, da, a: arrivo }).unwrap().catch(errore)
-        }
-      },
-      togli: (posizione) => {
-        setTascaAttiva(null)
-        svuota({ binderId: binder.id, ...posizione }).unwrap().catch(errore)
-      },
-      guarda: (oggetto) => {
-        setTascaAttiva(null)
-        setGuardata(oggetto)
-      },
-    }
-  }, [inMano, trascinata, tascaAttiva, binder.id, inserisci, sposta, svuota, toast])
 
   // --- spazio: il binder si adatta all'area libera; a schermo intero copre tutta la finestra ---
   const [misuraSpazio, spazioLibero] = useDimensioni<HTMLDivElement>()
@@ -272,7 +223,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
       p.attiva = true
       p.avanti = avanti
       evento.currentTarget.setPointerCapture(evento.pointerId)
-      setTascaAttiva(null)
+      carte.chiudiMenu()
       setPagineInMano(true)
       angolo.set(estremi(avanti)[0])
       setGiro({ da: vista, a: vista + (avanti ? 1 : -1) })
@@ -318,14 +269,11 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
       if (bersaglio?.closest('input, textarea, select, [role="dialog"]')) return
       if (evento.key === 'ArrowRight') vaiA(vista + 1)
       else if (evento.key === 'ArrowLeft') vaiA(vista - 1)
-      else if (evento.key === 'Escape') {
-        setInMano(null)
-        setTascaAttiva(null)
-      }
+      else if (evento.key === 'Escape') carte.annulla()
     }
     window.addEventListener('keydown', tasto)
     return () => window.removeEventListener('keydown', tasto)
-  }, [vaiA, vista])
+  }, [vaiA, vista, carte.annulla])
 
   // --- facciate ---------------------------------------------------------------------------
   // fogli che stanno sotto la facciata visibile: a sinistra quelli già girati, a destra quelli da
@@ -339,18 +287,18 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   function facciata(v: number, lato: Lato, inerte = false, fogli = 0, soloFoglio = false): ReactNode {
     let contenuto: ReactNode
     if (!doppia) {
-      contenuto = <PaginaBinder numero={v} tasche={binder.tasche} carte={carte.get(v) ?? new Map()} lato="destra" inerte={inerte} />
+      contenuto = <PaginaBinder numero={v} tasche={binder.tasche} carte={cartePerPagina.get(v) ?? new Map()} lato="destra" inerte={inerte} />
     } else if (lato === 'sinistra') {
       contenuto =
         v === 0 ? (
           <InternoCopertina binder={binder} />
         ) : (
-          <PaginaBinder numero={2 * v - 1} tasche={binder.tasche} carte={carte.get(2 * v - 1) ?? new Map()} lato="sinistra" inerte={inerte} />
+          <PaginaBinder numero={2 * v - 1} tasche={binder.tasche} carte={cartePerPagina.get(2 * v - 1) ?? new Map()} lato="sinistra" inerte={inerte} />
         )
     } else {
       contenuto =
         2 * v < binder.pagine ? (
-          <PaginaBinder numero={2 * v} tasche={binder.tasche} carte={carte.get(2 * v) ?? new Map()} lato="destra" inerte={inerte} />
+          <PaginaBinder numero={2 * v} tasche={binder.tasche} carte={cartePerPagina.get(2 * v) ?? new Map()} lato="destra" inerte={inerte} />
         ) : (
           <FoderaBinder colore={binder.colore} />
         )
@@ -397,7 +345,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
     : `Pagina ${vista + 1}`
 
   return (
-    <Contesto.Provider value={contesto}>
+    <Contesto.Provider value={carte.contesto}>
       {/* a schermo intero tutto passa nel body: un antenato con transform (l'animazione di
           pagina) farebbe da riferimento al fixed, che non coprirebbe la finestra */}
       {schermo.inPortale(
@@ -570,14 +518,14 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
                         </motion.div>
                       )}
 
-                      {aperto && !giro && !trascinata && (
+                      {aperto && !giro && !carte.trascinata && (
                         <>
                           {vista > 0 && <ManigliaPagina lato="sinistra" larghezzaFacciata={larghezzaFacciata} />}
                           {vista < numeroViste - 1 && <ManigliaPagina lato="destra" larghezzaFacciata={larghezzaFacciata} />}
                         </>
                       )}
 
-                      {aperto && trascinata && (
+                      {aperto && carte.trascinata && (
                         <>
                           <BordoSfoglio lato="sinistra" attivo={vista > 0} onSfoglia={() => vaiA(vista - 1)} />
                           <BordoSfoglio lato="destra" attivo={vista < numeroViste - 1} onSfoglia={() => vaiA(vista + 1)} />
@@ -690,15 +638,15 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
           </AnimatePresence>
 
           <AnimatePresence>
-            {inMano && <AvvisoInMano sorgente={inMano} onAnnulla={() => setInMano(null)} />}
-            {trascinata?.tipo === 'tasca' && <Cestino />}
+            {carte.inMano && <AvvisoInMano sorgente={carte.inMano} onAnnulla={carte.posa} />}
+            {carte.trascinata?.tipo === 'tasca' && <Cestino />}
           </AnimatePresence>
 
           <ModaleCarta
-            oggetto={guardata}
-            preferito={guardata ? preferiti.isPreferito(guardata.id) : false}
+            oggetto={carte.guardata}
+            preferito={carte.guardata ? preferiti.isPreferito(carte.guardata.id) : false}
             onTogglePreferito={preferiti.toggle}
-            onChiudi={() => setGuardata(null)}
+            onChiudi={carte.chiudiCarta}
           />
         </>,
       )}
