@@ -11,7 +11,7 @@ export const DURATA_PAGINA = 0.75
 export const CURVA = [0.45, 0.05, 0.2, 1] as const
 
 // angoli del foglio: quasi vivi, a differenza della copertina imbottita (in cqw della tavola,
-// o di un riquadro della stessa misura). Stessi valori in PaginaBinder e nella maniglia
+// o di un riquadro della stessa misura). Usati anche da PaginaBinder e dalla maniglia
 export function angoliFoglio(lato: Lato) {
   return lato === 'sinistra' ? 'rounded-l-[1cqw] rounded-r-[0.3cqw]' : 'rounded-l-[0.3cqw] rounded-r-[1cqw]'
 }
