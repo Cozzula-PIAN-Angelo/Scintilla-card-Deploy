@@ -1,6 +1,6 @@
-import { animate, AnimatePresence, motion, useMotionValue } from 'framer-motion'
+import { animate, AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, Book, BookOpen, ChevronLeft, ChevronRight, Layers, Maximize2, Minimize2, Settings2, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { messaggioErrore, statoErrore } from '../../app/errori'
 import { Button } from '../../components/Button'
 import { Loader } from '../../components/Loader'
@@ -14,7 +14,7 @@ import { usePreferiti } from '../preferiti/usePreferiti'
 import { AvvisoInMano, Cestino } from './aperto/AvvisiBinder'
 import { BordoSfoglio } from './aperto/BordoSfoglio'
 import { Cassetto, IntestazioneCassetto } from './aperto/Cassetto'
-import { CURVA, DURATA_COPERTINA, DURATA_PAGINA, type Lato } from './aperto/costanti'
+import { CURVA, DURATA_COPERTINA, type Lato } from './aperto/costanti'
 import { Foglio } from './aperto/Foglio'
 import { ManigliaPagina } from './aperto/ManigliaPagina'
 import { Anelli, CopertinaAperta, Dorso, InternoCopertina } from './aperto/Rilegatura'
@@ -22,6 +22,7 @@ import { SoloFoglio, Tavola } from './aperto/Tavola'
 import { useAperturaBinder } from './aperto/useAperturaBinder'
 import { useCarteBinder } from './aperto/useCarteBinder'
 import { useSchermoIntero } from './aperto/useSchermoIntero'
+import { useSfoglio } from './aperto/useSfoglio'
 import { proporzionePagina } from './aspetto'
 import { useGetBinderDettaglioQuery } from './binderApi'
 import { Contesto } from './contesto'
@@ -82,54 +83,13 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   // --- apertura e sfoglio ---------------------------------------------------------------
   const apertura = useAperturaBinder(onChiuso)
   const { fase, apri } = apertura
-  // "vista": a doppia pagina è il numero della coppia di facciate, a pagina singola la pagina.
-  // Cambiando modalità (finestra ridimensionata) si converte restando sulla stessa pagina
-  const [vistaSalvata, setVistaSalvata] = useState({ doppia, vista: 0 })
-  if (vistaSalvata.doppia !== doppia) {
-    const { vista } = vistaSalvata
-    setVistaSalvata({ doppia, vista: doppia ? Math.floor((vista + 1) / 2) : Math.max(0, 2 * vista - 1) })
-  }
-  const numeroViste = doppia ? Math.floor(binder.pagine / 2) + 1 : binder.pagine
-  // pagine ridotte dalle impostazioni mentre il binder è aperto
-  const vista = Math.min(vistaSalvata.vista, numeroViste - 1)
-  const [giro, setGiro] = useState<{ da: number; a: number } | null>(null)
-
-  // Rotazione del foglio che gira, in gradi. Lo stesso valore lo muove l'animazione (frecce,
-  // tastiera) oppure il puntatore quando si trascina la pagina
-  const angolo = useMotionValue(0)
-
-  // angolo di partenza e di arrivo: a doppia pagina il foglio va da una metà all'altra,
-  // a pagina singola esce (o rientra) da sinistra
-  const estremi = useCallback(
-    (avanti: boolean): [number, number] => (doppia ? [0, avanti ? -180 : 180] : avanti ? [0, -180] : [-180, 0]),
-    [doppia],
-  )
-
-  const completaGiro = useCallback(
-    (destinazione: number) => {
-      setVistaSalvata({ doppia, vista: destinazione })
-      setGiro(null)
-    },
-    [doppia],
-  )
-
-  const vaiA = useCallback(
-    (destinazione: number) => {
-      if (fase !== 'aperto' || giro || destinazione === vista || destinazione < 0 || destinazione >= numeroViste) return
-      carte.chiudiMenu()
-      const [inizio, fine] = estremi(destinazione > vista)
-      angolo.set(inizio)
-      setGiro({ da: vista, a: destinazione })
-      void animate(angolo, fine, { duration: DURATA_PAGINA, ease: CURVA }).then(() => completaGiro(destinazione))
-    },
-    [fase, giro, vista, numeroViste, estremi, angolo, completaGiro, carte.chiudiMenu],
-  )
+  const sfoglio = useSfoglio({ doppia, pagine: binder.pagine, attivo: fase === 'aperto', onGiro: carte.chiudiMenu })
+  const { vista, numeroViste, giro, avanti, angolo, estremi, vaiA } = sfoglio
 
   // a copertina richiusa si torna alla mensola, oppure si resta col binder chiuso davanti
   const chiudi = (destinazione: 'mensola' | 'resta' = 'mensola') =>
     apertura.chiudi(destinazione, () => {
-      setGiro(null)
-      setVistaSalvata({ doppia, vista: 0 })
+      sfoglio.azzera()
       carte.annulla()
     })
 
@@ -198,8 +158,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
       evento.currentTarget.setPointerCapture(evento.pointerId)
       carte.chiudiMenu()
       setPagineInMano(true)
-      angolo.set(estremi(avanti)[0])
-      setGiro({ da: vista, a: vista + (avanti ? 1 : -1) })
+      sfoglio.iniziaGiro(avanti)
     }
 
     // per girare tutto il foglio si attraversa quasi tutto il binder
@@ -231,7 +190,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
     const destinazione = vista + (p.avanti ? 1 : -1)
     const resto = completa ? 1 - p.progresso : p.progresso
     void animate(angolo, completa ? fine : inizio, { duration: 0.2 + 0.4 * resto, ease: 'easeOut' }).then(() =>
-      completa ? completaGiro(destinazione) : setGiro(null),
+      completa ? sfoglio.completaGiro(destinazione) : sfoglio.annullaGiro(),
     )
   }
 
@@ -299,7 +258,6 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   // il più grande possibile nello spazio libero, senza deformarlo
   const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
   const larghezzaFacciata = doppia ? larghezzaLibro / 2 : larghezzaLibro
-  const avanti = giro ? giro.a > giro.da : true
   const aperto = fase === 'aperto'
   // chiuso, il binder a doppia pagina si sposta a sinistra di mezza facciata: la copertina resta al centro
   const spostamento = doppia && !aperto && fase !== 'apertura' ? '-25%' : '0%'
