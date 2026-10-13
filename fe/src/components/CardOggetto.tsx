@@ -32,11 +32,9 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
         sopra={
           <div className="absolute right-5 top-5 z-10 flex items-center gap-2">
             {collezione && copie > 0 && (
-              <span
-                aria-label={copie === 1 ? '1 copia posseduta' : `${copie} copie possedute`}
-                className="rounded-full bg-giallo-400 px-2.5 py-1 text-sm font-bold text-blu-900 shadow-lg shadow-ombra/20"
-              >
-                ×{copie}
+              <span className="rounded-full bg-giallo-400 px-2.5 py-1 text-sm font-bold text-blu-900 shadow-lg shadow-ombra/20">
+                <span aria-hidden>×{copie}</span>
+                <span className="sr-only">{copie === 1 ? '1 copia posseduta' : `${copie} copie possedute`}</span>
               </span>
             )}
             {collezione && (
