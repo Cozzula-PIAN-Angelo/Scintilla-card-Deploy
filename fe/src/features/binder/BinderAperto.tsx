@@ -1,4 +1,4 @@
-import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion'
+import { animate, AnimatePresence, motion, useMotionValue } from 'framer-motion'
 import { ArrowLeft, Book, BookOpen, ChevronLeft, ChevronRight, Layers, Maximize2, Minimize2, Settings2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
 import { messaggioErrore, statoErrore } from '../../app/errori'
@@ -14,11 +14,12 @@ import { usePreferiti } from '../preferiti/usePreferiti'
 import { AvvisoInMano, Cestino } from './aperto/AvvisiBinder'
 import { BordoSfoglio } from './aperto/BordoSfoglio'
 import { Cassetto, IntestazioneCassetto } from './aperto/Cassetto'
-import { CURVA, DURATA_COPERTINA, DURATA_PAGINA, type Fase, type Lato } from './aperto/costanti'
+import { CURVA, DURATA_COPERTINA, DURATA_PAGINA, type Lato } from './aperto/costanti'
 import { Foglio } from './aperto/Foglio'
 import { ManigliaPagina } from './aperto/ManigliaPagina'
 import { Anelli, CopertinaAperta, Dorso, InternoCopertina } from './aperto/Rilegatura'
 import { SoloFoglio, Tavola } from './aperto/Tavola'
+import { useAperturaBinder } from './aperto/useAperturaBinder'
 import { useCarteBinder } from './aperto/useCarteBinder'
 import { useSchermoIntero } from './aperto/useSchermoIntero'
 import { proporzionePagina } from './aspetto'
@@ -79,13 +80,8 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   const [cassettoLaterale, setCassettoLaterale] = useState(true)
 
   // --- apertura e sfoglio ---------------------------------------------------------------
-  const [fase, setFase] = useState<Fase>('chiuso')
-  // fase aggiornata per i callback (timer, fine animazione) creati in render precedenti
-  const faseCorrente = useRef<Fase>('chiuso')
-  faseCorrente.current = fase
-  // Rotazione della copertina in gradi: 0 chiusa, -180 aperta e ribaltata a sinistra. Animata con
-  // animate() come i fogli: alla fine dell'animazione si passa alla fase successiva
-  const angoloCopertina = useMotionValue(0)
+  const apertura = useAperturaBinder(onChiuso)
+  const { fase, apri } = apertura
   // "vista": a doppia pagina è il numero della coppia di facciate, a pagina singola la pagina.
   // Cambiando modalità (finestra ridimensionata) si converte restando sulla stessa pagina
   const [vistaSalvata, setVistaSalvata] = useState({ doppia, vista: 0 })
@@ -97,12 +93,6 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   // pagine ridotte dalle impostazioni mentre il binder è aperto
   const vista = Math.min(vistaSalvata.vista, numeroViste - 1)
   const [giro, setGiro] = useState<{ da: number; a: number } | null>(null)
-
-  useEffect(() => {
-    // solo all'arrivo; apri() legge la fase dal ref, quindi va bene anche dal primo render
-    const timer = window.setTimeout(() => apri(), 450)
-    return () => window.clearTimeout(timer)
-  }, [])
 
   // Rotazione del foglio che gira, in gradi. Lo stesso valore lo muove l'animazione (frecce,
   // tastiera) oppure il puntatore quando si trascina la pagina
@@ -136,29 +126,12 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   )
 
   // a copertina richiusa si torna alla mensola, oppure si resta col binder chiuso davanti
-  function chiudi(destinazione: 'mensola' | 'resta' = 'mensola') {
-    // già chiuso: si torna direttamente alla mensola
-    if (fase === 'chiuso' && destinazione === 'mensola') {
-      onChiuso()
-      return
-    }
-    if (fase !== 'aperto') return
-    setGiro(null)
-    setVistaSalvata({ doppia, vista: 0 })
-    carte.annulla()
-    setFase('chiusura')
-    angoloCopertina.set(-180)
-    void animate(angoloCopertina, 0, { duration: DURATA_COPERTINA, ease: CURVA }).then(() =>
-      destinazione === 'mensola' ? onChiuso() : setFase('chiuso'),
-    )
-  }
-
-  function apri() {
-    if (faseCorrente.current !== 'chiuso') return
-    faseCorrente.current = 'apertura'
-    setFase('apertura')
-    void animate(angoloCopertina, -180, { duration: DURATA_COPERTINA, ease: CURVA }).then(() => setFase('aperto'))
-  }
+  const chiudi = (destinazione: 'mensola' | 'resta' = 'mensola') =>
+    apertura.chiudi(destinazione, () => {
+      setGiro(null)
+      setVistaSalvata({ doppia, vista: 0 })
+      carte.annulla()
+    })
 
   // --- spazio: il binder si adatta all'area libera; a schermo intero copre tutta la finestra ---
   const [misuraSpazio, spazioLibero] = useDimensioni<HTMLDivElement>()
@@ -323,7 +296,6 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
 
   const proporzione = proporzionePagina(binder.tasche)
   const rapporto = doppia ? 2 * proporzione : proporzione
-  const opacitaCopertina = useTransform(angoloCopertina, [-180, -120, 0], [0, 1, 1])
   // il più grande possibile nello spazio libero, senza deformarlo
   const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
   const larghezzaFacciata = doppia ? larghezzaLibro / 2 : larghezzaLibro
@@ -497,7 +469,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
                             }
                           }}
                           // a pagina singola la copertina aperta uscirebbe a sinistra: nell'ultimo tratto sfuma
-                          style={{ rotateY: angoloCopertina, opacity: doppia ? 1 : opacitaCopertina }}
+                          style={{ rotateY: apertura.angoloCopertina, opacity: doppia ? 1 : apertura.opacitaCopertina }}
                         >
                           <div className="absolute inset-0 [backface-visibility:hidden]">
                             <CopertinaBinder
