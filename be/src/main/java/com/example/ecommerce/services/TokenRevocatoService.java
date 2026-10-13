@@ -1,6 +1,5 @@
 package com.example.ecommerce.services;
 
-import com.example.ecommerce.entities.TokenRevocato;
 import com.example.ecommerce.repositories.TokenRevocatoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +20,8 @@ public class TokenRevocatoService {
     @Transactional
     // jti: l'id del token (vedi JWTTools); scadenza: quella del token, per la pulizia notturna
     public void revoca(UUID jti, Instant scadenza) {
-        // un secondo logout con lo stesso token non deve violare la chiave primaria
-        if (!tokenRevocatoRepository.existsById(jti)) {
-            tokenRevocatoRepository.save(new TokenRevocato(jti, scadenza));
-        }
+        // un secondo logout con lo stesso token, anche simultaneo, non deve violare la chiave primaria
+        tokenRevocatoRepository.revocaSeAssente(jti, scadenza);
     }
 
     @Transactional(readOnly = true)
