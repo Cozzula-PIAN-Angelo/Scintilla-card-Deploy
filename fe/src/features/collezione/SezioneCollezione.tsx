@@ -49,8 +49,10 @@ export function SezioneCollezione({ oggetto, perVariante, onModifica, selezionat
                 >
                   <Minus aria-hidden className="size-4" />
                 </button>
-                <span aria-live="polite" className="w-8 text-center text-sm font-semibold tabular-nums text-testo">
-                  {quantita}
+                {/* a schermo solo il numero, il lettore di schermo legge anche la variante */}
+                <span aria-live="polite" aria-atomic className="w-8 text-center text-sm font-semibold tabular-nums text-testo">
+                  <span aria-hidden>{quantita}</span>
+                  <span className="sr-only">{quantita === 1 ? `1 copia ${etichetta}` : `${quantita} copie ${etichetta}`}</span>
                 </span>
                 <button
                   type="button"
