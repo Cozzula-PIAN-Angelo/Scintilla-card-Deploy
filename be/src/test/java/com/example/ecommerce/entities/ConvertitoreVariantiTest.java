@@ -29,4 +29,11 @@ class ConvertitoreVariantiTest {
         assertThat(convertitore.convertToDatabaseColumn(varianti)).isEqualTo("NORMALE,REVERSE_HOLO");
         assertThat(convertitore.convertToEntityAttribute("NORMALE,REVERSE_HOLO")).isEqualTo(varianti);
     }
+
+    // valore rimasto da prima della V6: la carta resta leggibile con le varianti note
+    @Test
+    void varianteSconosciutaSaltata() {
+        assertThat(convertitore.convertToEntityAttribute("NORMALE,HOLO,REVERSE_HOLO"))
+                .containsExactly(Variante.NORMALE, Variante.REVERSE_HOLO);
+    }
 }
