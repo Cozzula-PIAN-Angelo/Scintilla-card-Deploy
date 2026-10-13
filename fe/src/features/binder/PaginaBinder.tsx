@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { Oggetto } from '../../types/api'
 import { cn } from '../../utils/cn'
+import { angoliFoglio } from './aperto/costanti'
 import { griglia } from './aspetto'
 import { Tasca } from './Tasca'
 
@@ -30,7 +31,7 @@ export function PaginaBinder({ numero, tasche, carte, lato, inerte = false }: Pr
       inert={inerte}
       className={cn(
         '@container trama-telata relative flex h-full w-full flex-col shadow-[inset_0_0_12px_rgb(0_0_0/0.5)]',
-        lato === 'sinistra' ? 'rounded-l-[1cqw] rounded-r-[0.3cqw]' : 'rounded-l-[0.3cqw] rounded-r-[1cqw]',
+        angoliFoglio(lato),
       )}
     >
       {/* ombra della rilegatura */}
