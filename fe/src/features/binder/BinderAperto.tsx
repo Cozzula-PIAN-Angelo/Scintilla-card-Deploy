@@ -1,7 +1,6 @@
 import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'framer-motion'
 import { ArrowLeft, Book, BookOpen, ChevronLeft, ChevronRight, Layers, Maximize2, Minimize2, Settings2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 import { messaggioErrore, statoErrore } from '../../app/errori'
 import { Button } from '../../components/Button'
 import { Loader } from '../../components/Loader'
@@ -21,6 +20,7 @@ import { Foglio } from './aperto/Foglio'
 import { ManigliaPagina } from './aperto/ManigliaPagina'
 import { Anelli, CopertinaAperta, Dorso, InternoCopertina } from './aperto/Rilegatura'
 import { SoloFoglio, Tavola } from './aperto/Tavola'
+import { useSchermoIntero } from './aperto/useSchermoIntero'
 import { proporzionePagina } from './aspetto'
 import { useGetBinderDettaglioQuery, useInserisciCartaMutation, useSpostaCartaMutation, useSvuotaTascaMutation } from './binderApi'
 import { Contesto, stessaPosizione, type ContestoBinder, type Posizione, type Sorgente } from './contesto'
@@ -211,30 +211,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
 
   // --- spazio: il binder si adatta all'area libera; a schermo intero copre tutta la finestra ---
   const [misuraSpazio, spazioLibero] = useDimensioni<HTMLDivElement>()
-  const [espanso, setEspanso] = useState(false)
-
-  // uscendo con Esc o dai controlli del browser il binder torna al suo posto
-  useEffect(() => {
-    const cambio = () => {
-      if (!document.fullscreenElement) setEspanso(false)
-    }
-    document.addEventListener('fullscreenchange', cambio)
-    return () => {
-      document.removeEventListener('fullscreenchange', cambio)
-      if (document.fullscreenElement) void document.exitFullscreen()
-    }
-  }, [])
-
-  function alternaEspanso() {
-    if (espanso) {
-      setEspanso(false)
-      if (document.fullscreenElement) void document.exitFullscreen()
-      return
-    }
-    setEspanso(true)
-    // dove il browser non lo permette (es. iPhone) il binder copre comunque la pagina
-    document.documentElement.requestFullscreen?.().catch(() => undefined)
-  }
+  const schermo = useSchermoIntero()
 
   // --- sfoglio col puntatore: si afferra la pagina e il foglio segue il mouse (o il dito) ---
   // Sulle carte il gesto resta quello di spostarle (trascinamento nativo): la pagina si prende
@@ -399,7 +376,6 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   const proporzione = proporzionePagina(binder.tasche)
   const rapporto = doppia ? 2 * proporzione : proporzione
   const opacitaCopertina = useTransform(angoloCopertina, [-180, -120, 0], [0, 1, 1])
-  const inPortale = (nodo: ReactNode) => (espanso ? createPortal(nodo, document.body) : nodo)
   // il più grande possibile nello spazio libero, senza deformarlo
   const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
   const larghezzaFacciata = doppia ? larghezzaLibro / 2 : larghezzaLibro
@@ -424,13 +400,13 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
     <Contesto.Provider value={contesto}>
       {/* a schermo intero tutto passa nel body: un antenato con transform (l'animazione di
           pagina) farebbe da riferimento al fixed, che non coprirebbe la finestra */}
-      {inPortale(
+      {schermo.inPortale(
         <>
           <div
             className={cn(
               'flex min-h-[26rem] flex-col gap-3 px-3 py-3 sm:px-5',
               // schermo intero: il binder copre anche navbar e footer
-              espanso ? 'cielo-stellato fixed inset-0 z-[45] h-dvh' : 'h-[calc(100dvh-5.5rem)]',
+              schermo.espanso ? 'cielo-stellato fixed inset-0 z-[45] h-dvh' : 'h-[calc(100dvh-5.5rem)]',
             )}
           >
             <div className="flex shrink-0 items-center gap-3">
@@ -477,12 +453,12 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
                 <Button
                   variante="chiaro"
                   dimensione="sm"
-                  onClick={alternaEspanso}
-                  aria-pressed={espanso}
-                  aria-label={espanso ? 'Esci dallo schermo intero' : 'Schermo intero'}
-                  title={espanso ? 'Esci dallo schermo intero' : 'Schermo intero'}
+                  onClick={schermo.alternaEspanso}
+                  aria-pressed={schermo.espanso}
+                  aria-label={schermo.espanso ? 'Esci dallo schermo intero' : 'Schermo intero'}
+                  title={schermo.espanso ? 'Esci dallo schermo intero' : 'Schermo intero'}
                 >
-                  {espanso ? <Minimize2 aria-hidden className="size-4" /> : <Maximize2 aria-hidden className="size-4" />}
+                  {schermo.espanso ? <Minimize2 aria-hidden className="size-4" /> : <Maximize2 aria-hidden className="size-4" />}
                 </Button>
                 <Button variante="chiaro" dimensione="sm" onClick={() => onImpostazioni(binder)} aria-label="Impostazioni del binder" title="Impostazioni">
                   <Settings2 aria-hidden className="size-4" />
