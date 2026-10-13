@@ -66,6 +66,9 @@ export function PokemonPage() {
   const precedente = trovaPokemon(pokemon.numero - 1)
   const successivo = trovaPokemon(pokemon.numero + 1)
   const statoFrecce = { passiDalPokedex: passiDalPokedex === null ? null : passiDalPokedex + 1 }
+  // il filtro della collezione segue le frecce, la pagina no: ogni Pokémon riparte dalla prima
+  const filtro = new URLSearchParams(location.search).get('filtro')
+  const ricercaFrecce = filtro ? `?${new URLSearchParams({ filtro })}` : ''
 
   return (
     <PaginaAnimata className="mx-auto min-h-[70vh] max-w-7xl px-4 py-10 sm:px-6">
@@ -75,8 +78,8 @@ export function PokemonPage() {
           Pokédex
         </Button>
         <nav aria-label="Pokémon vicini" className="flex gap-2">
-          {precedente && <FrecciaPokemon pokemon={precedente} direzione="precedente" state={statoFrecce} />}
-          {successivo && <FrecciaPokemon pokemon={successivo} direzione="successivo" state={statoFrecce} />}
+          {precedente && <FrecciaPokemon pokemon={precedente} direzione="precedente" ricerca={ricercaFrecce} state={statoFrecce} />}
+          {successivo && <FrecciaPokemon pokemon={successivo} direzione="successivo" ricerca={ricercaFrecce} state={statoFrecce} />}
         </nav>
       </div>
 
@@ -130,15 +133,17 @@ export function PokemonPage() {
 interface PropsFreccia {
   pokemon: Pokemon
   direzione: 'precedente' | 'successivo'
+  // query string da portare nel link (il filtro della collezione), vuota se non c'è
+  ricerca: string
   state: { passiDalPokedex: number | null }
 }
 
 // Pokémon precedente o successivo nel Pokédex, con il suo sprite
-function FrecciaPokemon({ pokemon, direzione, state }: PropsFreccia) {
+function FrecciaPokemon({ pokemon, direzione, ricerca, state }: PropsFreccia) {
   const Icona = direzione === 'precedente' ? ChevronLeft : ChevronRight
   return (
     <Link
-      to={`/pokedex/${pokemon.numero}`}
+      to={`/pokedex/${pokemon.numero}${ricerca}`}
       state={state}
       aria-label={`Pokémon ${direzione}: ${pokemon.nome}`}
       className="flex items-center gap-1.5 rounded-full bg-superficie py-1 pl-2 pr-3 text-sm font-semibold text-testo-2 shadow-md shadow-ombra/10 transition-colors hover:bg-tenue"
