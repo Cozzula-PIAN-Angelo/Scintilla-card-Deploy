@@ -89,6 +89,17 @@ class MigrazioniTest {
         assertThat(tokenRevocatoRepository.existsById(scaduto)).isFalse();
     }
 
+    // doppio logout con lo stesso token: la seconda revoca non fa nulla e non va in errore
+    @Test
+    void revocareDueVolteLoStessoJti() {
+        UUID jti = UUID.randomUUID();
+        Instant scadenza = Instant.now().plusSeconds(3600);
+
+        assertThat(tokenRevocatoRepository.revocaSeAssente(jti, scadenza)).isEqualTo(1);
+        assertThat(tokenRevocatoRepository.revocaSeAssente(jti, scadenza)).isZero();
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM token_revocati WHERE jti = ?", Long.class, jti)).isEqualTo(1);
+    }
+
     // foreign key usate da letture e cancellazioni frequenti: senza indice scorrerebbero tutta la tabella
     // delle carte. La ricerca per numero di Pokédex usa già la chiave primaria di oggetti_pokedex
     @Test
