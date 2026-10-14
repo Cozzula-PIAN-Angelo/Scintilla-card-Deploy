@@ -2,6 +2,7 @@ package com.example.ecommerce.payloads;
 
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.Variante;
+import com.example.ecommerce.services.ElencoArtisti;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -19,7 +20,9 @@ public record OggettoResponseDTO(UUID id,
                                  // null = non ancora lette da pokemontcg.io
                                  List<Variante> varianti,
                                  // null = non ancora letta da pokemontcg.io
-                                 String rarita) {
+                                 String rarita,
+                                 // autori (coautori divisi) con lo slug per il link alla loro pagina; vuota = non ancora letti
+                                 List<ArtistaCartaDTO> artisti) {
 
     public static OggettoResponseDTO from(Oggetto oggetto) {
         return new OggettoResponseDTO(
@@ -31,7 +34,8 @@ public record OggettoResponseDTO(UUID id,
                 immaginePiccola(oggetto.getImmagineUrl()),
                 oggetto.getIdEsterno(),
                 oggetto.getVarianti(),
-                oggetto.getRarita()
+                oggetto.getRarita(),
+                ElencoArtisti.get().artistiDi(oggetto.getArtista())
         );
     }
 
