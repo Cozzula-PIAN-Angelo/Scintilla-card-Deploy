@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
@@ -84,6 +86,8 @@ class PokemonTcgServiceTest {
     private ArgumentCaptor<Collection<Oggetto>> salvati;
     @Captor
     private ArgumentCaptor<Collection<String>> nomiCercati;
+    @Captor
+    private ArgumentCaptor<Collection<String>> idEsterni;
 
     private MockRestServiceServer pokemontcg;
     private PokemonTcgService service;
@@ -307,6 +311,96 @@ class PokemonTcgServiceTest {
 
         assertThat(sparita.getArtista()).isEmpty();
         pokemontcg.verify();
+    }
+
+    // pagina di risposta con le carte x-da .. x-(da+quante-1), senza artista né prezzo
+    private static String paginaDiCarte(int da, int quante, long totale) {
+        StringBuilder carte = new StringBuilder();
+        for (int i = da; i < da + quante; i++) {
+            if (carte.length() > 0) {
+                carte.append(',');
+            }
+            carte.append("{\"id\": \"x-").append(i).append("\", \"name\": \"Carta\", \"number\": \"").append(i)
+                    .append("\", \"set\": {\"id\": \"x\", \"name\": \"X\", \"printedTotal\": 500}}");
+        }
+        return "{\"data\": [" + carte + "], \"page\": 1, \"pageSize\": 100, \"count\": " + quante
+                + ", \"totalCount\": " + totale + "}";
+    }
+
+    private void rispondePagina(int pagina, String corpo) {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("page=" + pagina + "&"))))
+                .andRespond(withSuccess(corpo, MediaType.APPLICATION_JSON));
+    }
+
+    // gli artisti grandi sono 17 pagine su un'API che dà spesso 500: ogni pagina si salva appena arriva
+    @Test
+    void importaArtistaSalvaOgniPagina() {
+        rispondePagina(1, paginaDiCarte(1, 100, 101));
+        rispondePagina(2, paginaDiCarte(101, 1, 101));
+
+        PokemonTcgService.EsitoImport esito = service.importaArtista("artist:\"Mitsuhiro Arita\"");
+
+        verify(oggettoRepository, times(2)).saveAll(salvati.capture());
+        assertThat(salvati.getAllValues()).extracting(Collection::size).containsExactly(100, 1);
+        assertThat(esito.trovate()).isEqualTo(101);
+        pokemontcg.verify();
+    }
+
+    @Test
+    void importaArtistaErroreAMetaTieneLaPrimaPagina() {
+        rispondePagina(1, paginaDiCarte(1, 100, 101));
+        // 400: errore non temporaneo, nessun tentativo né attesa
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("page=2&"))))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST));
+
+        assertThatThrownBy(() -> service.importaArtista("artist:\"Mitsuhiro Arita\""))
+                .isInstanceOf(ServizioEsternoException.class);
+
+        verify(oggettoRepository, times(1)).saveAll(salvati.capture());
+        assertThat(salvati.getValue()).hasSize(100);
+    }
+
+    // la query arriva da artisti.json già verificata: si usa così com'è
+    @Test
+    void importaArtistaUsaLaQueryDelJson() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("q=artist%3A%22M%2Akayu%22"))))
+                .andRespond(withSuccess(paginaDiCarte(1, 1, 1), MediaType.APPLICATION_JSON));
+
+        service.importaArtista("artist:\"M*kayu\"");
+
+        pokemontcg.verify();
+    }
+
+    // download completo delle carte senza artista: escono da Sconosciuto quelle non più restituite
+    @Test
+    void senzaArtistaCompletoLiberaLeCarteCheHannoUnArtista() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("-artist"))))
+                .andRespond(withSuccess(paginaDiCarte(1, 2, 2), MediaType.APPLICATION_JSON));
+
+        service.importaSenzaArtista();
+
+        verify(oggettoRepository).liberaSenzaArtista(idEsterni.capture());
+        assertThat(idEsterni.getValue()).containsExactlyInAnyOrder("x-1", "x-2");
+    }
+
+    @Test
+    void senzaArtistaParzialeNonLiberaNiente() {
+        rispondePagina(1, paginaDiCarte(1, 100, 150));
+        rispondePagina(2, PAGINA_VUOTA);
+
+        service.importaSenzaArtista();
+
+        verify(oggettoRepository, never()).liberaSenzaArtista(any());
+    }
+
+    // nessuna carta è una risposta anomala, non "tutte le carte hanno ormai un artista"
+    @Test
+    void senzaArtistaVuotoNonLiberaNiente() {
+        rispondePagina(1, PAGINA_VUOTA);
+
+        service.importaSenzaArtista();
+
+        verify(oggettoRepository, never()).liberaSenzaArtista(any());
     }
 
     // download completo: le carte del set non più restituite portano a '' anche la rarità rimasta null

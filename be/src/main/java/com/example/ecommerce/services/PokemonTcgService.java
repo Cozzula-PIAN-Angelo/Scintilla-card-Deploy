@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.function.Supplier;
@@ -202,6 +203,44 @@ public class PokemonTcgService {
     // saltate: già nel catalogo (o senza espansione nella risposta); scartate: prezzo oltre il massimo;
     // rinominate: importate con l'id di pokemontcg.io nel nome, perché quello composto era già usato
     public record EsitoImport(int trovate, int importate, int saltate, int scartate, int rinominate) {
+
+        static final EsitoImport NESSUNO = new EsitoImport(0, 0, 0, 0, 0);
+
+        EsitoImport piu(EsitoImport altro) {
+            return new EsitoImport(trovate + altro.trovate, importate + altro.importate, saltate + altro.saltate,
+                    scartate + altro.scartate, rinominate + altro.rinominate);
+        }
+    }
+
+    // importa tutte le carte di un artista con la query di artisti.json, già verificata dallo script.
+    // Ogni pagina si salva appena arriva: gli artisti grandi sono 17 pagine su un'API che dà spesso 500,
+    // e un errore a metà non deve buttare via le pagine già lette
+    public EsitoImport importaArtista(String query) {
+        return importaAPagine(query, "artista " + query).esito();
+    }
+
+    // importa le carte per cui pokemontcg.io non indica l'artista (pagina "Artista sconosciuto"). Solo con un
+    // download completo e non vuoto, le carte che nel catalogo sono ancora '' ma non arrivano più tra quelle
+    // senza artista ne hanno ricevuto uno: tornano null, così il job o la pagina del loro artista le rileggono
+    public EsitoImport importaSenzaArtista() {
+        ImportAPagine risultato = importaAPagine("-artist:*", "carte senza artista");
+        Download download = risultato.download();
+        if (!download.carte().isEmpty() && download.carte().size() >= download.totale()) {
+            Set<String> ancoraSenza = download.carte().stream().map(Carta::id).collect(Collectors.toSet());
+            Integer liberate = transazione.execute(stato -> oggettoRepository.liberaSenzaArtista(ancoraSenza));
+            log.info("Carte senza artista: {} hanno ricevuto un artista", liberate);
+        }
+        return risultato.esito();
+    }
+
+    private record ImportAPagine(Download download, EsitoImport esito) {
+    }
+
+    private ImportAPagine importaAPagine(String query, String descrizione) {
+        EsitoImport[] esito = {EsitoImport.NESSUNO};
+        Download download = scarica(query, descrizione, pagina -> esito[0] = esito[0].piu(salvaCarte(pagina)));
+        log.info("Import {}: {}", descrizione, esito[0]);
+        return new ImportAPagine(download, esito[0]);
     }
 
     // salva le carte scaricate: le nuove entrano nel catalogo, quelle già presenti ricevono i dati
@@ -370,6 +409,12 @@ public class PokemonTcgService {
     // orderBy=id: con orderBy=number pokemontcg.io pagina in modo instabile (la pagina 2 ripete
     // carte della 1 e altre si perdono). Per sicurezza i doppioni si scartano comunque per id
     private Download scarica(String query, String descrizione) {
+        return scarica(query, descrizione, pagina -> {
+        });
+    }
+
+    // perPagina riceve, pagina per pagina, le carte non ancora viste in questo download
+    private Download scarica(String query, String descrizione, Consumer<List<Carta>> perPagina) {
         Map<String, Carta> carte = new LinkedHashMap<>();
         int pagina = 1;
         long totale = 0;
@@ -380,11 +425,13 @@ public class PokemonTcgService {
             if (risposta.data() == null || risposta.data().isEmpty()) {
                 break;
             }
-            int prima = carte.size();
-            risposta.data().forEach(carta -> carte.putIfAbsent(carta.id(), carta));
-            if (carte.size() == prima) {
+            List<Carta> nuove = risposta.data().stream()
+                    .filter(carta -> carte.putIfAbsent(carta.id(), carta) == null)
+                    .toList();
+            if (nuove.isEmpty()) {
                 break;
             }
+            perPagina.accept(nuove);
             totale = risposta.totalCount();
             pagina++;
         } while (carte.size() < totale);
