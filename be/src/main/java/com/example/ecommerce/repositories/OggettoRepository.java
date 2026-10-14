@@ -4,6 +4,7 @@ import com.example.ecommerce.entities.Oggetto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -50,4 +51,19 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o FROM Oggetto o WHERE o.espansione.id = :espansioneId AND o.idEsterno IS NOT NULL "
             + "AND (o.varianti IS NULL OR o.rarita IS NULL)")
     List<Oggetto> findCarteDaRiempireDelSet(@Param("espansioneId") String espansioneId);
+
+    // carte di un artista: tutte le grafie grezze in cui compare (da solo o con coautori), espansione in join
+    @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista IN :grafie")
+    List<Oggetto> findByArtistaIn(@Param("grafie") Collection<String> grafie);
+
+    // carte per cui pokemontcg.io non indica un artista (pagina "Artista sconosciuto")
+    @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista = ''")
+    List<Oggetto> findSenzaArtista();
+
+    // dopo un download completo delle carte senza artista: quelle che pokemontcg.io non restituisce più tra le
+    // senza artista ne hanno ricevuto uno, e tornano "da leggere" (null) per il job o per la pagina dell'artista
+    @Modifying
+    @Query("UPDATE Oggetto o SET o.artista = NULL WHERE o.artista = '' AND o.idEsterno IS NOT NULL "
+            + "AND o.idEsterno NOT IN :idEsterniAncoraSenza")
+    int liberaSenzaArtista(@Param("idEsterniAncoraSenza") Collection<String> idEsterniAncoraSenza);
 }

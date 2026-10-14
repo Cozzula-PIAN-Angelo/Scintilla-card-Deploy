@@ -81,6 +81,11 @@ public class Oggetto {
     @Column(length = 60)
     private String rarita;
 
+    // artista secondo pokemontcg.io, grezzo come arriva (può contenere coautori, es. "Shinji Higuchi + Sachiko Eba"):
+    // null = non ancora letto, '' = pokemontcg.io non lo indica. I nomi puliti li dà ElencoArtisti
+    @Column(length = 200)
+    private String artista;
+
     public Oggetto(String nome, BigDecimal prezzo) {
         this.nome = nome;
         this.prezzo = prezzo;
