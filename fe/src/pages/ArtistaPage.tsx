@@ -30,7 +30,7 @@ export function ArtistaPage() {
   const { isPreferito, toggle } = usePreferiti()
   const filtroPagina = useMemo(() => (slug ? { artista: slug } : null), [slug])
   const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data)
-  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione)
+  const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione, carte)
   const location = useLocation()
   const navigate = useNavigate()
   const nonTrovato = (elenco !== undefined && !artista) || statoErrore(error) === 404
@@ -116,6 +116,7 @@ export function ArtistaPage() {
         isPreferito={isPreferito}
         onTogglePreferito={toggle}
         onApri={apri}
+        cartaAperta={aperta}
         collezione={collezione}
         vuotoFiltro={vuotoFiltro}
         notaPer={notaPer}

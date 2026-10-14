@@ -33,6 +33,9 @@ interface Props {
   vuotoFiltro?: { titolo: string; testo: string }
   // riga in più sotto una carta (vedi CardOggetto)
   notaPer?: (oggetto: Oggetto) => string | undefined
+  // id della carta aperta nel dettaglio: sfogliando con le frecce la griglia passa alla sua pagina,
+  // così chiudendo il dettaglio si ritrova lì
+  cartaAperta?: string | null
 }
 
 // griglia di carte con paginazione; la pagina sta nell'URL (?page=, numerata da 0 come nel resto
@@ -55,6 +58,7 @@ export function GrigliaCartePaginata({
   collezione,
   vuotoFiltro,
   notaPer,
+  cartaAperta,
 }: Props) {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
@@ -79,6 +83,12 @@ export function GrigliaCartePaginata({
       },
       { replace: true, state: location.state },
     )
+
+  const indiceAperta = cartaAperta && carte ? carte.findIndex((c) => c.id === cartaAperta) : -1
+  const paginaAperta = indiceAperta >= 0 ? Math.floor(indiceAperta / PER_PAGINA) : null
+  useEffect(() => {
+    if (paginaAperta !== null && paginaAperta !== pagina) vaiAPagina(paginaAperta)
+  }, [paginaAperta, pagina, vaiAPagina])
 
   // cambiando pagina si riparte dall'inizio della griglia, non dal fondo di quella appena lasciata
   const paginaPrecedente = useRef(pagina)

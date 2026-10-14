@@ -1,9 +1,9 @@
 import { useCallback, useMemo, useState } from 'react'
 import { messaggioErrore } from '../../../app/errori'
-import type { Binder, Oggetto } from '../../../types/api'
+import type { Binder } from '../../../types/api'
 import { useToast } from '../../toast/useToast'
 import { useInserisciCartaMutation, useSpostaCartaMutation, useSvuotaTascaMutation } from '../binderApi'
-import { stessaPosizione, type ContestoBinder, type Posizione, type Sorgente } from '../contesto'
+import { stessaPosizione, type CartaInTasca, type ContestoBinder, type Posizione, type Sorgente } from '../contesto'
 
 // carte: tocco, trascinamento, menu delle tasche
 export function useCarteBinder(binderId: Binder['id']) {
@@ -12,7 +12,7 @@ export function useCarteBinder(binderId: Binder['id']) {
   const [inMano, setInMano] = useState<Sorgente | null>(null)
   const [trascinata, setTrascinata] = useState<Sorgente | null>(null)
   const [tascaAttiva, setTascaAttiva] = useState<Posizione | null>(null)
-  const [guardata, setGuardata] = useState<Oggetto | null>(null)
+  const [guardata, setGuardata] = useState<CartaInTasca | null>(null)
 
   const [inserisci] = useInserisciCartaMutation()
   const [sposta] = useSpostaCartaMutation()
@@ -49,9 +49,9 @@ export function useCarteBinder(binderId: Binder['id']) {
         setTascaAttiva(null)
         svuota({ binderId, ...posizione }).unwrap().catch(errore)
       },
-      guarda: (oggetto) => {
+      guarda: (carta) => {
         setTascaAttiva(null)
-        setGuardata(oggetto)
+        setGuardata(carta)
       },
     }
   }, [inMano, trascinata, tascaAttiva, binderId, inserisci, sposta, svuota, toast])

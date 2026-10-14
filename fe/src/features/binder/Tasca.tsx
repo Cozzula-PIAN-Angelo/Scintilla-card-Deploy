@@ -121,7 +121,7 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
             transition={{ duration: 0.15 }}
             className="absolute inset-0 z-10 m-auto flex aspect-[63/88] h-full max-w-full flex-col items-center justify-center gap-[6%] rounded-[6%/4.3%] bg-ombra/60 backdrop-blur-[2px]"
           >
-            <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda(oggetto)}>
+            <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda({ oggetto, pagina, posizione })}>
               <Eye className="size-full" />
             </AzioneTasca>
             <AzioneTasca

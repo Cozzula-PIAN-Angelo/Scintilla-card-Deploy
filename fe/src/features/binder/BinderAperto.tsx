@@ -1,10 +1,11 @@
 import { AnimatePresence } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { messaggioErrore, statoErrore } from '../../app/errori'
 import { Button } from '../../components/Button'
 import { Loader } from '../../components/Loader'
 import { ModaleCarta } from '../../components/ModaleCarta'
+import { sfoglioCarte } from '../../components/sfoglioCarte'
 import { StatoErrore } from '../../components/StatiPagina'
 import { useDimensioni } from '../../hooks/useDimensioni'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
@@ -23,7 +24,7 @@ import { useSfoglio } from './aperto/useSfoglio'
 import { useSfoglioPuntatore } from './aperto/useSfoglioPuntatore'
 import { proporzionePagina } from './aspetto'
 import { useGetBinderDettaglioQuery } from './binderApi'
-import { Contesto } from './contesto'
+import { Contesto, stessaPosizione } from './contesto'
 
 interface Props {
   id: string
@@ -85,6 +86,18 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   // il più grande possibile nello spazio libero, senza deformarlo
   const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
   const puntatore = useSfoglioPuntatore({ attivo: fase === 'aperto', doppia, larghezzaLibro, sfoglio, onPresa: carte.chiudiMenu })
+
+  // --- dettaglio carta: le frecce sfogliano le carte nell'ordine delle tasche, saltando le vuote ---
+  const ordinate = useMemo(() => [...slot].sort((a, b) => a.pagina - b.pagina || a.posizione - b.posizione), [slot])
+  const guardata = carte.guardata
+  const indiceGuardata = guardata ? ordinate.findIndex((s) => stessaPosizione(s, guardata)) : -1
+  const sfoglioDettaglio = guardata ? sfoglioCarte(ordinate, indiceGuardata, indiceGuardata, carte.contesto.guarda) : undefined
+  // chiudendo il dettaglio l'album gira fino alla pagina dell'ultima carta vista
+  // (a doppia pagina la vista v mostra le pagine 2v-1 e 2v)
+  const chiudiCarta = () => {
+    if (guardata) vaiA(doppia ? Math.ceil(guardata.pagina / 2) : guardata.pagina)
+    carte.chiudiCarta()
+  }
 
   // frecce per sfogliare, Esc per posare la carta in mano o chiudere il menu di una tasca
   useEffect(() => {
@@ -167,10 +180,11 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
           </AnimatePresence>
 
           <ModaleCarta
-            oggetto={carte.guardata}
-            preferito={carte.guardata ? preferiti.isPreferito(carte.guardata.id) : false}
+            oggetto={guardata?.oggetto ?? null}
+            preferito={guardata ? preferiti.isPreferito(guardata.oggetto.id) : false}
             onTogglePreferito={preferiti.toggle}
-            onChiudi={carte.chiudiCarta}
+            onChiudi={chiudiCarta}
+            sfoglio={sfoglioDettaglio}
           />
         </>,
       )}
