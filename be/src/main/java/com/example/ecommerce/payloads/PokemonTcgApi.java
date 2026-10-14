@@ -25,7 +25,8 @@ public final class PokemonTcgApi {
     // nationalPokedexNumbers: i Pokémon raffigurati (più di uno nelle carte "tag team"); vuoto per
     // allenatori ed energie
     public record Carta(String id, String name, String number, String rarity,
-                        Espansione set, Immagini images, Cardmarket cardmarket, List<Integer> nationalPokedexNumbers, Tcgplayer tcgplayer) {
+                        Espansione set, Immagini images, Cardmarket cardmarket, List<Integer> nationalPokedexNumbers, Tcgplayer tcgplayer,
+                        String artist) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

@@ -58,7 +58,7 @@ import java.util.stream.Stream;
 public class PokemonTcgService {
 
     private static final int MAX_SIZE = 50;
-    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers,tcgplayer";
+    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers,tcgplayer,artist";
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
     // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
@@ -157,9 +157,9 @@ public class PokemonTcgService {
                 esito.rinominate());
     }
 
-    // riempie varianti e rarità delle carte di un set già importato. Passa da salvaCarte come un import, quindi
+    // riempie varianti, rarità e artista delle carte di un set già importato. Passa da salvaCarte come un import, quindi
     // le carte nuove del set entrano nel catalogo; non tocca "importata". Solo se il download è completo
-    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota e la rarità '', così il job non
+    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota, la rarità '' e l'artista '', così il job non
     // le ripropone a ogni giro; con un download parziale restano da leggere e si riprovano al giro dopo
     public void riempiVarianti(String setId) {
         Download download = scarica("set.id:" + setId, "set " + setId);
@@ -183,8 +183,11 @@ public class PokemonTcgService {
                     if (oggetto.getRarita() == null) {
                         oggetto.setRarita("");
                     }
+                    if (oggetto.getArtista() == null) {
+                        oggetto.setArtista("");
+                    }
                 }));
-        log.info("Varianti e rarità del set {} aggiornate ({} carte lette)", setId, carte.size());
+        log.info("Varianti, rarità e artisti del set {} aggiornate ({} carte lette)", setId, carte.size());
     }
 
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
@@ -249,6 +252,11 @@ public class PokemonTcgService {
                         // stesso schema per la rarità: si riempie solo se mai letta
                         if (esistente.getRarita() == null) {
                             esistente.setRarita(rarita(carta));
+                        }
+                        // l'artista invece si scrive anche sopra '': pokemontcg.io completa in ritardo gli
+                        // artisti dei set recenti, e le carte devono passare da sole all'artista vero
+                        if (esistente.getArtista() == null || (esistente.getArtista().isEmpty() && carta.artist() != null)) {
+                            esistente.setArtista(artista(carta));
                         }
                         saltate++;
                         continue;
@@ -330,12 +338,18 @@ public class PokemonTcgService {
         }
         oggetto.setVarianti(varianti(carta));
         oggetto.setRarita(rarita(carta));
+        oggetto.setArtista(artista(carta));
         return oggetto;
     }
 
     // senza rarità nella risposta '' (carta letta, nessuna indicata)
     private String rarita(Carta carta) {
         return carta.rarity() == null ? "" : carta.rarity();
+    }
+
+    // senza artista nella risposta '' (carta letta, nessuno indicato)
+    private String artista(Carta carta) {
+        return carta.artist() == null ? "" : carta.artist();
     }
 
     // varianti suggerite dalle chiavi di tcgplayer.prices; senza tcgplayer lista vuota (carta letta, nessuna indicata)

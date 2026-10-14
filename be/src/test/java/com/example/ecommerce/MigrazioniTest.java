@@ -173,6 +173,17 @@ class MigrazioniTest {
         assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
     }
 
+    // basta il solo artista da leggere perché il set torni in coda
+    @Test
+    void setConSoloArtistaMancante(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", "", "", null);
+        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "", "");
+
+        assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
+    }
+
     @Test
     void regoleOnDelete() {
         assertThat(regolePresenti()).containsAllEntriesOf(ATTESE);
@@ -280,9 +291,14 @@ class MigrazioniTest {
         return jdbc.queryForObject("SELECT count(*) FROM " + tabella, Integer.class);
     }
 
+    // artista già letto (''): le carte dei test sulle varianti e sulla rarità non tornano in coda per l'artista
     private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti, String rarita) {
-        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti, rarita) "
-                + "VALUES (?, ?, 1.00, now(), ?, ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti, rarita);
+        inserisciCartaDelSet(nome, idEsterno, set, varianti, rarita, "");
+    }
+
+    private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti, String rarita, String artista) {
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti, rarita, artista) "
+                + "VALUES (?, ?, 1.00, now(), ?, ?, ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti, rarita, artista);
     }
 
     private void inserisciCartaConArtista(String nome, String idEsterno, String artista) {

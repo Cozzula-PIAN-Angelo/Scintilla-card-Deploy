@@ -66,7 +66,7 @@ class PokemonTcgServiceTest {
     // due carte: la prima con le varianti di tcgplayer, la seconda senza il blocco tcgplayer
     private static final String RISPOSTA_CON_VARIANTI = """
             {"data": [
-              {"id": "sv1-1", "name": "Sprigatito", "number": "1", "rarity": "Double Rare",
+              {"id": "sv1-1", "name": "Sprigatito", "number": "1", "rarity": "Double Rare", "artist": "Mitsuhiro Arita",
                "set": {"id": "sv1", "name": "Scarlet", "printedTotal": 198},
                "tcgplayer": {"prices": {"normal": {"low": 0.1}, "reverseHolofoil": {"low": 0.2}}},
                "cardmarket": {"prices": {"trendPrice": 0.5}}},
@@ -231,6 +231,82 @@ class PokemonTcgServiceTest {
         service.importaSet("sv1");
 
         assertThat(esistente.getRarita()).isEqualTo("Common");
+    }
+
+    // la richiesta chiede anche il campo artist
+    @Test
+    void cartaNuovaRiceveLArtista() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("artist"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI, MediaType.APPLICATION_JSON));
+
+        service.importaSet("sv1");
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        // senza artista nella risposta resta '' (carta letta, nessuno indicato), non null
+        assertThat(salvati.getValue()).extracting(Oggetto::getArtista).containsExactly("Mitsuhiro Arita", "");
+        pokemontcg.verify();
+    }
+
+    @Test
+    void artistaMaiLettoSiRiempie() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getArtista()).isEqualTo("Mitsuhiro Arita");
+    }
+
+    // pokemontcg.io completa gli artisti dei set recenti in ritardo: quando arriva, '' si sovrascrive
+    @Test
+    void artistaVuotoSiSovrascriveQuandoArriva() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        esistente.setArtista("");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getArtista()).isEqualTo("Mitsuhiro Arita");
+    }
+
+    @Test
+    void artistaNotoNonSiTocca() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Sprigatito (Scarlet 1/198)", new java.math.BigDecimal("0.50"), null, "sv1-1");
+        esistente.setArtista("Ken Sugimori");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getArtista()).isEqualTo("Ken Sugimori");
+    }
+
+    @Test
+    void artistaVuotoRestaVuotoSeLApiNonLoDa() {
+        rispondeConVarianti();
+        Oggetto esistente = new Oggetto("Floragato (Scarlet 2/198)", new java.math.BigDecimal("0.60"), null, "sv1-2");
+        esistente.setArtista("");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(esistente));
+
+        service.importaSet("sv1");
+
+        assertThat(esistente.getArtista()).isEmpty();
+    }
+
+    // download completo: le carte del set non più restituite portano a '' anche l'artista rimasto null
+    @Test
+    void riempiVariantiMetteVuotoAgliArtistiMancanti() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("set.id"))))
+                .andRespond(withSuccess(RISPOSTA_CON_VARIANTI, MediaType.APPLICATION_JSON));
+        Oggetto sparita = new Oggetto("Carta sparita (Base 9/102)", new java.math.BigDecimal("1.00"), null, "base1-9");
+        when(oggettoRepository.findCarteDaRiempireDelSet("base1")).thenReturn(List.of(sparita));
+
+        service.riempiVarianti("base1");
+
+        assertThat(sparita.getArtista()).isEmpty();
+        pokemontcg.verify();
     }
 
     // download completo: le carte del set non più restituite portano a '' anche la rarità rimasta null
