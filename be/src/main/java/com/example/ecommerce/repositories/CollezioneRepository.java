@@ -23,7 +23,6 @@ public interface CollezioneRepository extends JpaRepository<CartaInCollezione, U
             + "FROM CartaInCollezione c WHERE c.utente.id = :utenteId AND :numero MEMBER OF c.oggetto.numeriPokedex")
     List<CopiaDTO> copieDelPokemon(@Param("utenteId") UUID utenteId, @Param("numero") int numero);
 
-    // copie dell'utente in un insieme di carte (per esempio quelle di un binder)
     // carte di un artista: tutte le grafie grezze in cui compare (vedi ElencoArtisti)
     @Query("SELECT new com.example.ecommerce.payloads.CopiaDTO(c.oggetto.id, c.variante, c.quantita) "
             + "FROM CartaInCollezione c WHERE c.utente.id = :utenteId AND c.oggetto.artista IN :grafie")
@@ -34,6 +33,7 @@ public interface CollezioneRepository extends JpaRepository<CartaInCollezione, U
             + "FROM CartaInCollezione c WHERE c.utente.id = :utenteId AND c.oggetto.artista = ''")
     List<CopiaDTO> copieSenzaArtista(@Param("utenteId") UUID utenteId);
 
+    // copie dell'utente in un insieme di carte (per esempio quelle di un binder)
     @Query("SELECT new com.example.ecommerce.payloads.CopiaDTO(c.oggetto.id, c.variante, c.quantita) "
             + "FROM CartaInCollezione c WHERE c.utente.id = :utenteId AND c.oggetto.id IN :oggettoIds")
     List<CopiaDTO> copieDelleCarte(@Param("utenteId") UUID utenteId, @Param("oggettoIds") Collection<UUID> oggettoIds);

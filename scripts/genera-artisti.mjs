@@ -26,19 +26,23 @@ const intestazioni = {
 
 const attendi = (ms) => new Promise((risolvi) => setTimeout(risolvi, ms))
 
-// GET con tentativi: pokemontcg.io dà spesso 500/502/429 a caso
+// GET con tentativi: pokemontcg.io dà spesso 500/502/429 a caso. Si ritentano quelli e gli errori di rete;
+// gli altri stati (400, 403, 404) non cambiano riprovando e fermano subito lo script
 async function leggi(parametri) {
   const url = `${API}?${new URLSearchParams(parametri)}`
-  for (let tentativo = 0; ; tentativo++) {
+  for (let tentativo = 1; ; tentativo++) {
+    let risposta
     try {
-      const risposta = await fetch(url, { headers: intestazioni })
-      if (risposta.ok) return await risposta.json()
-      const temporaneo = risposta.status >= 500 || risposta.status === 429
-      if (!temporaneo || tentativo + 1 >= TENTATIVI) throw new Error(`HTTP ${risposta.status} su ${url}`)
+      risposta = await fetch(url, { headers: intestazioni })
     } catch (errore) {
-      if (tentativo + 1 >= TENTATIVI) throw errore
+      if (tentativo >= TENTATIVI) throw errore
     }
-    await attendi(Math.min(2 ** tentativo, 60) * 1000)
+    if (risposta?.ok) return await risposta.json()
+    if (risposta) {
+      const temporaneo = risposta.status >= 500 || risposta.status === 429
+      if (!temporaneo || tentativo >= TENTATIVI) throw new Error(`HTTP ${risposta.status} su ${url}`)
+    }
+    await attendi(Math.min(2 ** (tentativo - 1), 60) * 1000)
   }
 }
 

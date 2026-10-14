@@ -3,7 +3,6 @@ import { api } from '../../app/api'
 import type { Copia, Variante } from '../../types/api'
 import { binderApi } from '../binder/binderApi'
 
-// la collezione si legge per set o per Pokémon (numero del Pokédex)
 // pagina da cui si legge la collezione: un set, un Pokémon o un artista (slug)
 export type FiltroPagina = { espansione: string } | { pokemon: number } | { artista: string }
 
