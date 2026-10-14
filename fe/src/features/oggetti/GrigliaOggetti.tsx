@@ -29,7 +29,8 @@ export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferit
       animate="visibile"
       aria-busy={inAggiornamento || undefined}
       className={cn(
-        'grid grid-cols-1 gap-6 transition-opacity sm:grid-cols-2',
+        // 2 colonne anche sui telefoni: a una sola, ogni carta riempiva lo schermo
+        'grid grid-cols-2 gap-3 transition-opacity sm:gap-6',
         stretta ? 'xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4',
         inAggiornamento && 'opacity-60',
       )}
