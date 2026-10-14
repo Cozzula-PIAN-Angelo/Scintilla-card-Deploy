@@ -76,4 +76,35 @@ class ElencoArtistiTest {
         assertThatThrownBy(() -> ElencoArtisti.da(new ByteArrayInputStream("{".getBytes(StandardCharsets.UTF_8))))
                 .isInstanceOf(IllegalStateException.class);
     }
+
+    // l'ordine ignora virgolette e punteggiatura: "Big Mama" Tagawa sta tra le B, non in testa
+    @Test
+    void ordineSenzaPunteggiatura() {
+        ElencoArtisti elenco = daJson("""
+                {"sconosciuti": 0, "artisti": [
+                  {"slug": "big-mama-tagawa", "nome": "\\"Big Mama\\" Tagawa", "grafie": ["\\"Big Mama\\" Tagawa"]},
+                  {"slug": "akira-egawa", "nome": "Akira Egawa", "grafie": ["Akira Egawa"]},
+                  {"slug": "benimaru-itoh", "nome": "Benimaru Itoh", "grafie": ["Benimaru Itoh"]}
+                ]}""");
+
+        assertThat(elenco.elenco()).extracting(ElencoArtisti.Artista::slug)
+                .containsExactly("akira-egawa", "benimaru-itoh", "big-mama-tagawa");
+    }
+
+    // la grafia grezza può avere doppi spazi e a capo anche dentro un nome: l'ordine dei coautori resta quello scritto
+    @Test
+    void coautoriInOrdineAncheConSpaziSporchi() {
+        ElencoArtisti elenco = daJson("""
+                {"sconosciuti": 0, "artisti": [
+                  {"slug": "shinji-higuchi", "nome": "Shinji Higuchi", "grafie": ["Noriko  Takaya,\\n  Shinji Higuchi"]},
+                  {"slug": "noriko-takaya", "nome": "Noriko Takaya", "grafie": ["Noriko  Takaya,\\n  Shinji Higuchi"]}
+                ]}""");
+
+        assertThat(elenco.artistiDi("Noriko  Takaya,\n  Shinji Higuchi")).extracting(ArtistaCartaDTO::nome)
+                .containsExactly("Noriko Takaya", "Shinji Higuchi");
+    }
+
+    private static ElencoArtisti daJson(String json) {
+        return ElencoArtisti.da(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+    }
 }

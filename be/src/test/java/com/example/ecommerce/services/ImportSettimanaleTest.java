@@ -38,10 +38,22 @@ class ImportSettimanaleTest {
     private final Map<String, Instant> importati = new HashMap<>();
     private final OrologioFinto orologio = new OrologioFinto(Instant.parse("2026-10-14T10:00:00Z"));
     private final AtomicInteger importazioni = new AtomicInteger();
+    // letture della data dell'ultimo import: ognuna è una query sul database
+    private final AtomicInteger letture = new AtomicInteger();
 
     private ImportSettimanale<String> importSettimanale() {
-        return new ImportSettimanale<>(limitatore, chiave -> Optional.ofNullable(importati.get(chiave)),
-                importati::put, "artista", orologio);
+        return new ImportSettimanale<>(limitatore, chiave -> {
+            letture.incrementAndGet();
+            return Optional.ofNullable(importati.get(chiave));
+        }, importati::put, "artista", orologio);
+    }
+
+    // una lettura prima del lock e una dopo (un'altra richiesta potrebbe aver appena importato), non di più
+    @Test
+    void importLeggeLaDataDueVolte() {
+        importSettimanale().assicura(CHIAVE, CLIENT, importa);
+
+        assertThat(letture).hasValue(2);
     }
 
     private final Runnable importa = importazioni::incrementAndGet;

@@ -53,18 +53,18 @@ final class ImportSettimanale<K> {
 
     // importa se serve; client: IP del visitatore, per il limite sugli import
     void assicura(K chiave, String client, Runnable importa) {
-        if (daImportare(chiave)) {
+        if (daImportare(chiave, ultimoImport.apply(chiave))) {
             synchronized (lockPerChiave.computeIfAbsent(chiave, k -> new Object())) {
                 // ricontrollo: nel frattempo un'altra richiesta potrebbe averla già importata
-                if (daImportare(chiave)) {
-                    importa(chiave, client, importa);
+                Optional<Instant> ultimo = ultimoImport.apply(chiave);
+                if (daImportare(chiave, ultimo)) {
+                    importa(chiave, client, importa, ultimo.isPresent());
                 }
             }
         }
     }
 
-    private void importa(K chiave, String client, Runnable importa) {
-        boolean giaImportata = ultimoImport.apply(chiave).isPresent();
+    private void importa(K chiave, String client, Runnable importa, boolean giaImportata) {
         try {
             limitatore.registra(client);
         } catch (TroppeRichiesteException ex) {
@@ -91,8 +91,8 @@ final class ImportSettimanale<K> {
     }
 
     // mai importata, oppure importata da più di una settimana e senza un aggiornamento fallito da poco
-    private boolean daImportare(K chiave) {
-        return ultimoImport.apply(chiave)
+    private boolean daImportare(K chiave, Optional<Instant> ultimo) {
+        return ultimo
                 .map(data -> data.isBefore(orologio.instant().minus(VALIDITA_IMPORT)) && !aggiornamentiFalliti.isRecente(chiave))
                 .orElse(true);
     }

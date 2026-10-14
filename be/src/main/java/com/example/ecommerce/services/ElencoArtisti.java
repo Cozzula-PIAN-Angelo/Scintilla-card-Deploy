@@ -116,11 +116,14 @@ public final class ElencoArtisti {
 
     // un alias (es. "K Hoshiba" per "K. Hoshiba") può non comparire alla lettera: finisce in fondo
     private static int posizioneNellaGrafia(String grafia, String nome) {
-        int posizione = grafia.indexOf(nome);
+        // nomi puliti dallo script: si cerca nella grafia con gli spazi già ridotti
+        int posizione = grafia.replaceAll("\\s+", " ").indexOf(nome);
         return posizione < 0 ? Integer.MAX_VALUE : posizione;
     }
 
     private static String chiaveOrdine(String nome) {
-        return Normalizer.normalize(nome, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase();
+        // senza accenti, maiuscole e punteggiatura: "Big Mama" Tagawa va tra le B, non in testa
+        return Normalizer.normalize(nome, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase()
+                .replaceAll("[^a-z0-9 ]", "");
     }
 }
