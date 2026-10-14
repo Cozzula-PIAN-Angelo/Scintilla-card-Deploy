@@ -59,7 +59,6 @@ class PokedexServiceTest {
     @Test
     void aggiornamentoFallitoMostraLeCarteGiaSalvate() {
         when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.of(importatoDa(Duration.ofDays(8))));
-        when(pokemonImportatoRepository.existsById(PIKACHU)).thenReturn(true);
         when(pokemonTcgService.importaPokemon(PIKACHU))
                 .thenThrow(new ServizioEsternoException("Errore HTTP da pokemontcg.io", null));
         when(oggettoRepository.findByNumeroPokedex(PIKACHU)).thenReturn(List.of(cartaSalvata));
@@ -76,7 +75,6 @@ class PokedexServiceTest {
     @Test
     void dopoUnAggiornamentoFallitoNonSiRiprovaSubito() {
         when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.of(importatoDa(Duration.ofDays(8))));
-        when(pokemonImportatoRepository.existsById(PIKACHU)).thenReturn(true);
         when(pokemonTcgService.importaPokemon(PIKACHU))
                 .thenThrow(new ServizioEsternoException("Errore HTTP da pokemontcg.io", null));
         when(oggettoRepository.findByNumeroPokedex(PIKACHU)).thenReturn(List.of(cartaSalvata));
@@ -94,7 +92,6 @@ class PokedexServiceTest {
     @Test
     void primaAperturaFallitaRestituisceErrore() {
         when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.empty());
-        when(pokemonImportatoRepository.existsById(PIKACHU)).thenReturn(false);
         when(pokemonTcgService.importaPokemon(PIKACHU))
                 .thenThrow(new ServizioEsternoException("Errore HTTP da pokemontcg.io", null));
 
