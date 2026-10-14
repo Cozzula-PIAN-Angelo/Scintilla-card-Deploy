@@ -2,6 +2,8 @@ import { motion } from 'framer-motion'
 import { useMemo } from 'react'
 import { Layers } from 'lucide-react'
 import { GrigliaCartePaginata } from '../../components/GrigliaCartePaginata'
+import { ModaleCarta } from '../../components/ModaleCarta'
+import { useCartaSelezionata } from '../../hooks/useCartaSelezionata'
 import { BarraCollezione } from '../collezione/BarraCollezione'
 import { useCollezionePagina } from '../collezione/useCollezionePagina'
 import type { Espansione, Oggetto } from '../../types/api'
@@ -11,14 +13,14 @@ interface Props {
   espansione: Espansione
   isPreferito: (id: string) => boolean
   onTogglePreferito: (oggetto: Oggetto) => void
-  onApri: (oggetto: Oggetto) => void
 }
 
-// intestazione e carte di un solo set
-export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, onApri }: Props) {
+// intestazione e carte di un solo set, con il dettaglio carta che sfoglia le carte mostrate
+export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: Props) {
   const { data, isLoading, isFetching, isError, error, refetch } = useGetCarteEspansioneQuery(espansione.id)
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
   const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data)
+  const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle: onTogglePreferito }, collezione, carte)
   const anno = espansione.dataUscita?.slice(0, 4)
   const totale = data?.length ?? espansione.totaleCarte
 
@@ -66,11 +68,14 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito, on
         }}
         isPreferito={isPreferito}
         onTogglePreferito={onTogglePreferito}
-        onApri={onApri}
+        onApri={apri}
+        cartaAperta={aperta}
         stretta
         collezione={collezione}
         vuotoFiltro={vuotoFiltro}
       />
+
+      <ModaleCarta {...modale} />
     </motion.div>
   )
 }

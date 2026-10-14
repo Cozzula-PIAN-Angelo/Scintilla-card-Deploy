@@ -9,6 +9,8 @@ export interface Posizione {
 // una carta presa dal cassetto oppure da una tasca del binder
 export type Sorgente = { tipo: 'carta'; oggetto: Oggetto } | ({ tipo: 'tasca'; oggetto: Oggetto } & Posizione)
 
+export type CartaInTasca = { oggetto: Oggetto } & Posizione
+
 export interface ContestoBinder {
   // carta scelta con un tocco, in attesa della tasca di destinazione (alternativa al trascinamento)
   inMano: Sorgente | null
@@ -22,7 +24,8 @@ export interface ContestoBinder {
   attivaTasca: (posizione: Posizione | null) => void
   rilascia: (arrivo: Posizione, sorgente: Sorgente) => void
   togli: (posizione: Posizione) => void
-  guarda: (oggetto: Oggetto) => void
+  // carta ingrandita nel dettaglio, con la sua tasca (da lì si sfogliano le altre)
+  guarda: (carta: CartaInTasca) => void
 }
 
 export const Contesto = createContext<ContestoBinder | null>(null)

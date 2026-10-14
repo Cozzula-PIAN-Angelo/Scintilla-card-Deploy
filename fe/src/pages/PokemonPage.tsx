@@ -27,7 +27,7 @@ export function PokemonPage() {
   const { isPreferito, toggle } = usePreferiti()
   const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
   const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data)
-  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione)
+  const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione, carte)
   const location = useLocation()
   const navigate = useNavigate()
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
@@ -121,6 +121,7 @@ export function PokemonPage() {
         isPreferito={isPreferito}
         onTogglePreferito={toggle}
         onApri={apri}
+        cartaAperta={aperta}
         collezione={collezione}
         vuotoFiltro={vuotoFiltro}
       />

@@ -28,10 +28,12 @@ export function PreferitiPage() {
     sort: ordinamento,
   })
   const { isPreferito, toggle, idsCaricati } = usePreferiti()
-  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle })
 
   // la lista segue gli id aggiornati in modo ottimistico: una carta tolta esce subito con l'animazione
   const visibili = (data?.content ?? []).filter((preferito) => !idsCaricati || isPreferito(preferito.oggetto.id))
+  // le frecce del dettaglio sfogliano la pagina mostrata: le altre pagine arrivano dal server solo aprendole
+  const carteVisibili = visibili.map((preferito) => preferito.oggetto)
+  const { apri, modale } = useCartaSelezionata({ isPreferito, toggle }, undefined, carteVisibili)
 
   // pagina svuotata dalle rimozioni: si torna alla precedente
   useEffect(() => {
