@@ -24,12 +24,14 @@ public class CollezioneController {
 
     private final CollezioneService collezioneService;
 
-    // copie possedute in un set (?espansione=) oppure in un Pokémon (?pokemon=): uno solo dei due
+    // copie possedute in un set (?espansione=), in un Pokémon (?pokemon=) oppure tra le carte di un artista
+    // (?artista=slug): uno solo dei tre
     @GetMapping
     public List<CopiaDTO> getCopie(@AuthenticationPrincipal Utente utente,
                                    @RequestParam(required = false) String espansione,
-                                   @RequestParam(required = false) Integer pokemon) {
-        return collezioneService.copie(utente, espansione, pokemon);
+                                   @RequestParam(required = false) Integer pokemon,
+                                   @RequestParam(required = false) String artista) {
+        return collezioneService.copie(utente, espansione, pokemon, artista);
     }
 
     @PatchMapping
