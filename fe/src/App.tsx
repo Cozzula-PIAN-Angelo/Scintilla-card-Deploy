@@ -7,6 +7,8 @@ import { ToastViewport } from './components/ToastViewport'
 import { AuthBootstrap, SessionWatcher } from './features/auth/GestioneSessione'
 import { AdminRoute, ProtectedRoute } from './features/auth/RouteProtette'
 import { AdminPage } from './pages/AdminPage'
+import { ArtistaPage } from './pages/ArtistaPage'
+import { ArtistiPage } from './pages/ArtistiPage'
 import { BinderPage } from './pages/BinderPage'
 import { CatalogoPage } from './pages/CatalogoPage'
 import { EspansionePage } from './pages/EspansionePage'
@@ -48,6 +50,8 @@ export function App() {
             <Route path="/espansioni/:id" element={<EspansionePage />} />
             <Route path="/pokedex" element={<PokedexPage />} />
             <Route path="/pokedex/:numero" element={<PokemonPage />} />
+            <Route path="/artisti" element={<ArtistiPage />} />
+            <Route path="/artisti/:slug" element={<ArtistaPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route
