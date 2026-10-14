@@ -32,9 +32,9 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
       <HoloCard
         className="rounded-3xl"
         sopra={
-          <div className="absolute right-5 top-5 z-10 flex items-center gap-2">
+          <div className="absolute right-2 top-2 z-10 flex items-center gap-1 sm:right-5 sm:top-5 sm:gap-2">
             {collezione && copie > 0 && (
-              <span className="rounded-full bg-giallo-400 px-2.5 py-1 text-sm font-bold text-blu-900 shadow-lg shadow-ombra/20">
+              <span className="rounded-full bg-giallo-400 px-2 py-0.5 text-xs font-bold text-blu-900 shadow-lg shadow-ombra/20 sm:px-2.5 sm:py-1 sm:text-sm">
                 <span aria-hidden>×{copie}</span>
                 <span className="sr-only">{copie === 1 ? '1 copia posseduta' : `${copie} copie possedute`}</span>
               </span>
@@ -47,12 +47,12 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
                   evento.stopPropagation()
                   collezione.aggiungiRapido(oggetto)
                 }}
-                className="grid size-11 place-items-center rounded-full bg-superficie text-testo-2 shadow-lg shadow-ombra/20 ring-1 ring-linea/10 transition-transform hover:scale-110 active:scale-90"
+                className="grid size-9 place-items-center rounded-full bg-superficie text-testo-2 shadow-lg shadow-ombra/20 ring-1 ring-linea/10 transition-transform hover:scale-110 active:scale-90 sm:size-11"
               >
-                <Plus aria-hidden className="size-5" />
+                <Plus aria-hidden className="size-4 sm:size-5" />
               </button>
             )}
-            <PulsanteCuore attivo={preferito} onToggle={onTogglePreferito} nome={oggetto.nome} />
+            <PulsanteCuore attivo={preferito} onToggle={onTogglePreferito} nome={oggetto.nome} compatto />
           </div>
         }
       >
@@ -60,7 +60,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
           type="button"
           onClick={onApri}
           aria-label={`Apri i dettagli di ${oggetto.nome}`}
-          className="group block w-full rounded-3xl bg-superficie p-3 text-left shadow-lg shadow-ombra/10 ring-1 ring-linea/5 transition-shadow hover:shadow-2xl hover:shadow-blu-500/25"
+          className="group block w-full rounded-2xl bg-superficie p-2 text-left sm:rounded-3xl sm:p-3 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 transition-shadow hover:shadow-2xl hover:shadow-blu-500/25"
         >
           <ImmagineCarta
             src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
@@ -72,9 +72,10 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
               collezione && !collezione.aColori && copie === 0 && 'grayscale group-hover:grayscale-0 group-focus-visible:grayscale-0',
             )}
           />
-          <div className="mt-3 flex items-start justify-between gap-3 px-1">
-            <h3 className="line-clamp-2 text-lg font-semibold leading-tight text-testo">{oggetto.nome}</h3>
-            <span className="shrink-0 rounded-full bg-giallo-400 px-3 py-1 text-sm font-bold text-blu-900 shadow-sm">
+          {/* sui telefoni (2 colonne strette) il prezzo va sotto il nome */}
+          <div className="mt-2 flex flex-col items-start gap-1.5 px-1 sm:mt-3 sm:flex-row sm:justify-between sm:gap-3">
+            <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-testo sm:text-lg">{oggetto.nome}</h3>
+            <span className="shrink-0 rounded-full bg-giallo-400 px-2 py-0.5 text-xs font-bold text-blu-900 shadow-sm sm:px-3 sm:py-1 sm:text-sm">
               {formattaPrezzo(oggetto.prezzo)}
             </span>
           </div>

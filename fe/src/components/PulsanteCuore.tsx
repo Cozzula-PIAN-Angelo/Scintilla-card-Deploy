@@ -8,11 +8,13 @@ interface Props {
   onToggle: () => void
   nome: string
   className?: string
+  // più piccolo sui telefoni, per i riquadri stretti della griglia a 2 colonne
+  compatto?: boolean
 }
 
 const SCINTILLE = [0, 60, 120, 180, 240, 300]
 
-export function PulsanteCuore({ attivo, onToggle, nome, className }: Props) {
+export function PulsanteCuore({ attivo, onToggle, nome, className, compatto }: Props) {
   // incrementa a ogni "accensione": fa ripartire l'esplosione di scintille
   const [impulso, setImpulso] = useState(0)
 
@@ -29,7 +31,8 @@ export function PulsanteCuore({ attivo, onToggle, nome, className }: Props) {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.85 }}
       className={cn(
-        'relative grid size-11 place-items-center rounded-full bg-superficie shadow-lg shadow-ombra/20 ring-1 ring-linea/10',
+        'relative grid place-items-center rounded-full bg-superficie shadow-lg shadow-ombra/20 ring-1 ring-linea/10',
+        compatto ? 'size-9 sm:size-11' : 'size-11',
         className,
       )}
     >
@@ -42,7 +45,7 @@ export function PulsanteCuore({ attivo, onToggle, nome, className }: Props) {
         <Heart
           aria-hidden
           className={cn(
-            'size-5 transition-colors',
+            compatto ? 'size-4 transition-colors sm:size-5' : 'size-5 transition-colors',
             attivo ? 'fill-rosso-500 text-rosso-500' : 'fill-transparent text-testo-2',
           )}
         />
