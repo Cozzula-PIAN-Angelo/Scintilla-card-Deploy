@@ -31,6 +31,8 @@ interface Props {
   collezione?: CollezioneGriglia
   // al posto di `vuoto` quando le carte sono finite per colpa del filtro (es. nessuna mancante)
   vuotoFiltro?: { titolo: string; testo: string }
+  // riga in più sotto una carta (vedi CardOggetto)
+  notaPer?: (oggetto: Oggetto) => string | undefined
 }
 
 // griglia di carte con paginazione; la pagina sta nell'URL (?page=, numerata da 0 come nel resto
@@ -52,6 +54,7 @@ export function GrigliaCartePaginata({
   stretta,
   collezione,
   vuotoFiltro,
+  notaPer,
 }: Props) {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
@@ -120,6 +123,7 @@ export function GrigliaCartePaginata({
         inAggiornamento={isFetching}
         stretta={stretta}
         collezione={collezione}
+        notaPer={notaPer}
       />
       <Paginazione pagina={pagina} totalePagine={totalePagine} onCambia={vaiAPagina} />
     </div>

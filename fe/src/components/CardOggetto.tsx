@@ -18,9 +18,11 @@ interface Props {
   aggiuntoIl?: string
   // se presente: badge delle copie, "+" rapido e carta in grigio se non posseduta
   collezione?: CollezioneGriglia
+  // riga in più sotto nome e prezzo, es. "con Sachiko Eba" nella pagina di un artista
+  nota?: string
 }
 
-export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl, collezione }: Props) {
+export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, aggiuntoIl, collezione, nota }: Props) {
   const copie = collezione?.copie(oggetto.id) ?? 0
   const varianti = collezione?.perVariante(oggetto.id)
   const effetto = effettoCarta(oggetto, varianti)
@@ -76,6 +78,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
               {formattaPrezzo(oggetto.prezzo)}
             </span>
           </div>
+          {nota && <p className="mt-2 truncate px-1 pb-1 text-xs font-medium text-testo/70">{nota}</p>}
           {aggiuntoIl && (
             <p className="mt-2 flex items-center gap-1.5 px-1 pb-1 text-xs font-medium text-testo/70">
               <CalendarHeart aria-hidden className="size-3.5 text-errore" />

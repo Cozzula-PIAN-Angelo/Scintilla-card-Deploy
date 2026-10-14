@@ -6,7 +6,7 @@ import { conteggio, filtra, vuotoFiltro } from './conteggi'
 import { useCollezione } from './useCollezione'
 import { useFiltroCollezione } from './useFiltroCollezione'
 
-// Collezione per la pagina di un set o di un Pokémon: filtro nell'URL, carte filtrate, props della barra
+// Collezione per la pagina di un set, di un Pokémon o di un artista: filtro nell'URL, carte filtrate, props della barra
 // e messaggio del filtro vuoto. Finché la collezione non è pronta (ospite, caricamento, errore) la pagina
 // resta come per un ospite: carte non filtrate, niente barra, collezione undefined per griglia e dettaglio
 export function useCollezionePagina(filtroPagina: FiltroPagina | null, data: Oggetto[] | undefined) {
