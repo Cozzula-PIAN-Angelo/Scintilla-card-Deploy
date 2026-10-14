@@ -14,7 +14,7 @@ import { useTitolo } from '../hooks/useTitolo'
 import type { Artista } from '../types/api'
 import { cn } from '../utils/cn'
 
-const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
 
 // indice degli illustratori delle carte, per lettera: cliccandone uno si aprono tutte le sue carte
 export function ArtistiPage() {
@@ -87,7 +87,7 @@ export function ArtistiPage() {
         <ul className={CLASSI_GRIGLIA} aria-busy>
           {Array.from({ length: 12 }, (_, i) => (
             <li key={i}>
-              <Skeleton className="h-40 rounded-2xl" />
+              <Skeleton className="h-52 rounded-2xl" />
             </li>
           ))}
         </ul>
@@ -146,13 +146,13 @@ function TileArtista({ artista }: { artista: Artista }) {
           memoriaArtisti.ultimo = artista.slug
         }}
         className={cn(
-          'group flex h-full flex-col items-center gap-2 rounded-2xl bg-superficie px-2 pb-3 pt-4 text-center shadow-md shadow-ombra/10 ring-1 ring-linea/5 transition',
+          'group flex h-full flex-col items-center gap-2 rounded-2xl bg-superficie px-3 pb-4 pt-5 text-center shadow-md shadow-ombra/10 ring-1 ring-linea/5 transition',
           'hover:-translate-y-1 hover:shadow-xl hover:shadow-blu-500/25',
           evidenziato && 'ring-4 ring-giallo-400',
         )}
       >
         <AvatarArtista artista={artista} dimensione="piccolo" />
-        <span className="line-clamp-2 w-full text-sm font-semibold text-testo">{artista.nome}</span>
+        <span className="line-clamp-2 w-full text-base font-semibold text-testo">{artista.nome}</span>
         <span className="text-xs font-semibold text-testo/50">{artista.carte === 1 ? '1 carta' : `${artista.carte} carte`}</span>
       </Link>
     </li>

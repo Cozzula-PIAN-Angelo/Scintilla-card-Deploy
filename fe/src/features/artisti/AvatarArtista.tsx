@@ -14,7 +14,7 @@ export function AvatarArtista({ artista, dimensione }: Props) {
     <span
       className={cn(
         'grid shrink-0 place-items-center overflow-hidden rounded-full bg-tenue ring-2 ring-linea/10',
-        dimensione === 'piccolo' ? 'size-20' : 'size-40',
+        dimensione === 'piccolo' ? 'size-28' : 'size-40',
       )}
     >
       {artista.avatar ? (
@@ -23,10 +23,10 @@ export function AvatarArtista({ artista, dimensione }: Props) {
           alt=""
           loading="lazy"
           decoding="async"
-          className="size-full origin-[50%_28%] scale-150 object-cover object-[50%_28%]"
+          className="size-full origin-[50%_28%] scale-[2] object-cover object-[50%_28%]"
         />
       ) : (
-        <HelpCircle aria-hidden className={cn('text-testo/40', dimensione === 'piccolo' ? 'size-10' : 'size-20')} />
+        <HelpCircle aria-hidden className={cn('text-testo/40', dimensione === 'piccolo' ? 'size-14' : 'size-20')} />
       )}
     </span>
   )
