@@ -44,6 +44,22 @@ export interface Oggetto {
   varianti: Variante[] | null
   // rarità di pokemontcg.io (es. "Double Rare"); null = non ancora letta, '' = non indicata
   rarita: string | null
+  // autori della carta, coautori divisi; vuota finché pokemontcg.io non è stato letto
+  artisti: ArtistaCarta[]
+}
+
+// un autore di una carta; slug null = artista non ancora nell'elenco (nome senza link)
+export interface ArtistaCarta {
+  nome: string
+  slug: string | null
+}
+
+// artista nell'elenco della sezione Artisti; avatar null per "Artista sconosciuto"
+export interface Artista {
+  slug: string
+  nome: string
+  carte: number
+  avatar: string | null
 }
 
 // espansione (set) di pokemontcg.io; importata = carte già nel catalogo

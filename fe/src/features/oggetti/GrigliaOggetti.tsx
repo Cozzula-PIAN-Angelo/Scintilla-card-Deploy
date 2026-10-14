@@ -16,9 +16,11 @@ interface Props {
   // accanto a una colonna laterale: al massimo 3 carte per riga, altrimenti i nomi si tagliano
   stretta?: boolean
   collezione?: CollezioneGriglia
+  // riga in più sotto una carta (vedi CardOggetto)
+  notaPer?: (oggetto: Oggetto) => string | undefined
 }
 
-export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferito, onApri, inAggiornamento, stretta, collezione }: Props) {
+export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferito, onApri, inAggiornamento, stretta, collezione, notaPer }: Props) {
   return (
     <motion.ul
       key={chiave}
@@ -42,6 +44,7 @@ export function GrigliaOggetti({ elementi, chiave, isPreferito, onTogglePreferit
             onTogglePreferito={() => onTogglePreferito(oggetto)}
             onApri={() => onApri(oggetto)}
             collezione={collezione}
+            nota={notaPer?.(oggetto)}
           />
         ))}
       </AnimatePresence>

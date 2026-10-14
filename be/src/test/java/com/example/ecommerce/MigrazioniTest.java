@@ -1,6 +1,7 @@
 package com.example.ecommerce;
 
 import com.example.ecommerce.entities.TokenRevocato;
+import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.TokenRevocatoRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
@@ -72,7 +73,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -108,6 +109,40 @@ class MigrazioniTest {
         assertThat(indici("oggetti_pokedex")).contains("ix_oggetti_pokedex_oggetto_id", "pk_oggetti_pokedex");
     }
 
+    // pagina di un artista: le carte si cercano per grafia esatta del campo artista
+    @Test
+    void indicePerArtista() {
+        assertThat(indici("oggetti")).contains("ix_oggetti_artista");
+    }
+
+    // le carte di un artista si trovano con la grafia grezza; quelle senza artista hanno ''
+    @Test
+    void carteDiUnArtistaPerGrafia(@Autowired OggettoRepository oggettoRepository) {
+        inserisciCartaConArtista("Carta in coppia", "a-1", "Shinji Higuchi + Sachiko Eba");
+        inserisciCartaConArtista("Carta di Arita", "a-2", "Mitsuhiro Arita");
+        inserisciCartaConArtista("Carta senza artista", "a-3", "");
+
+        assertThat(oggettoRepository.findByArtistaIn(List.of("Shinji Higuchi + Sachiko Eba")))
+                .extracting(Oggetto::getNome).containsExactly("Carta in coppia");
+        assertThat(oggettoRepository.findSenzaArtista()).extracting(Oggetto::getNome).containsExactly("Carta senza artista");
+    }
+
+    // uscita da Sconosciuto: solo le carte '' che pokemontcg.io non restituisce più tra quelle senza artista
+    @Test
+    void liberaSenzaArtistaToccaSoloQuelleNonPiuSenza(@Autowired OggettoRepository oggettoRepository) {
+        inserisciCartaConArtista("Ancora senza", "a-1", "");
+        inserisciCartaConArtista("Ora con artista", "a-2", "");
+        inserisciCartaConArtista("Creata a mano", null, "");
+        inserisciCartaConArtista("Di Arita", "a-4", "Mitsuhiro Arita");
+
+        assertThat(oggettoRepository.liberaSenzaArtista(List.of("a-1"))).isEqualTo(1);
+
+        assertThat(artistaDi("Ancora senza")).isEmpty();
+        assertThat(artistaDi("Ora con artista")).isNull();
+        assertThat(artistaDi("Creata a mano")).isEmpty();
+        assertThat(artistaDi("Di Arita")).isEqualTo("Mitsuhiro Arita");
+    }
+
     // la ricerca delle righe di una carta (cancellazione dal catalogo) non scorre tutta la collezione
     @Test
     void indiceCollezione() {
@@ -134,6 +169,17 @@ class MigrazioniTest {
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
         inserisciCartaDelSet("Carta A", "base1-1", "base1", "", null);
         inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "Rare");
+
+        assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
+    }
+
+    // basta il solo artista da leggere perché il set torni in coda
+    @Test
+    void setConSoloArtistaMancante(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('jungle', 'Jungle', true)");
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", "", "", null);
+        inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "", "");
 
         assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
     }
@@ -245,8 +291,22 @@ class MigrazioniTest {
         return jdbc.queryForObject("SELECT count(*) FROM " + tabella, Integer.class);
     }
 
+    // artista già letto (''): le carte dei test sulle varianti e sulla rarità non tornano in coda per l'artista
     private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti, String rarita) {
-        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti, rarita) "
-                + "VALUES (?, ?, 1.00, now(), ?, ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti, rarita);
+        inserisciCartaDelSet(nome, idEsterno, set, varianti, rarita, "");
+    }
+
+    private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti, String rarita, String artista) {
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti, rarita, artista) "
+                + "VALUES (?, ?, 1.00, now(), ?, ?, ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti, rarita, artista);
+    }
+
+    private void inserisciCartaConArtista(String nome, String idEsterno, String artista) {
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, artista) VALUES (?, ?, 1.00, now(), ?, ?)",
+                UUID.randomUUID(), nome, idEsterno, artista);
+    }
+
+    private String artistaDi(String nome) {
+        return jdbc.queryForObject("SELECT artista FROM oggetti WHERE nome = ?", String.class, nome);
     }
 }

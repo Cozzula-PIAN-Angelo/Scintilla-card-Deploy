@@ -17,8 +17,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // V6 sui dati: il contesto si ferma alla V5, il test inserisce righe Holo e poi applica la V6.
-// Senza transazione del test: Flyway usa una connessione sua e deve vedere le righe inserite
-@DataJpaTest(properties = "spring.flyway.target=5")
+// Senza transazione del test: Flyway usa una connessione sua e deve vedere le righe inserite.
+// ddl-auto=none: alla V5 lo schema non ha ancora le colonne delle migrazioni successive (es. artista della V7),
+// e il validate di Hibernate fermerebbe il contesto
+@DataJpaTest(properties = {"spring.flyway.target=5", "spring.jpa.hibernate.ddl-auto=none"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @AutoConfigureEmbeddedDatabase(provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY)
 @Transactional(propagation = Propagation.NOT_SUPPORTED)

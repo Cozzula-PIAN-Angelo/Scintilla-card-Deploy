@@ -2,6 +2,7 @@ import { BadgeCheck, CalendarDays } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { effettoCarta } from '../features/collezione/conteggi'
 import { piuPregiata } from '../features/collezione/varianti'
+import { RigaArtisti } from '../features/artisti/RigaArtisti'
 import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
 import type { Oggetto, Variante } from '../types/api'
 import { formattaData, formattaPrezzo } from '../utils/formato'
@@ -76,6 +77,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
               <CalendarDays aria-hidden className="size-4" />
               Nel catalogo dal {formattaData(mostrato.createdAt)}
             </p>
+            <RigaArtisti artisti={mostrato.artisti} onNavigazione={onChiudi} />
             <div className="flex items-center gap-3 rounded-2xl bg-tenue p-3 pr-5">
               <PulsanteCuore attivo={preferito} onToggle={() => onTogglePreferito(mostrato)} nome={mostrato.nome} />
               <span className="text-sm font-semibold text-testo">

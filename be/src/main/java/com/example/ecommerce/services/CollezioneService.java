@@ -25,17 +25,29 @@ public class CollezioneService {
     private final CollezioneRepository collezioneRepository;
     private final OggettoRepository oggettoRepository;
     private final JdbcTemplate jdbc;
+    private final ElencoArtisti elencoArtisti;
 
-    // copie dell'utente in un set oppure in un Pokémon: esattamente un filtro
+    // copie dell'utente in un set, in un Pokémon oppure tra le carte di un artista: esattamente un filtro
     @Transactional(readOnly = true)
-    public List<CopiaDTO> copie(Utente utente, String espansione, Integer pokemon) {
+    public List<CopiaDTO> copie(Utente utente, String espansione, Integer pokemon, String artista) {
         boolean haSet = espansione != null && !espansione.isBlank();
-        if (haSet == (pokemon != null)) {
-            throw new BadRequestException("Indica un set (espansione) oppure un Pokémon (pokemon)");
+        boolean haArtista = artista != null && !artista.isBlank();
+        int filtri = (haSet ? 1 : 0) + (pokemon != null ? 1 : 0) + (haArtista ? 1 : 0);
+        if (filtri != 1) {
+            throw new BadRequestException("Indica un set (espansione), un Pokémon (pokemon) oppure un artista (artista)");
         }
-        return haSet
-                ? collezioneRepository.copieDelSet(utente.getId(), espansione)
-                : collezioneRepository.copieDelPokemon(utente.getId(), pokemon);
+        if (haSet) {
+            return collezioneRepository.copieDelSet(utente.getId(), espansione);
+        }
+        if (pokemon != null) {
+            return collezioneRepository.copieDelPokemon(utente.getId(), pokemon);
+        }
+        if (ElencoArtisti.SLUG_SCONOSCIUTO.equals(artista)) {
+            return collezioneRepository.copieSenzaArtista(utente.getId());
+        }
+        ElencoArtisti.Artista trovato = elencoArtisti.perSlug(artista)
+                .orElseThrow(() -> new NotFoundException("Artista non trovato: " + artista));
+        return collezioneRepository.copieDiArtista(utente.getId(), trovato.grafie());
     }
 
     @Transactional(readOnly = true)

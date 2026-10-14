@@ -48,6 +48,9 @@ public class SecurityConfig {
             get("/espansioni/*/carte"),
             // indice per Pokémon, anch'esso pubblico
             get("/pokedex/*/carte"),
+            // sezione Artisti: elenco e carte di un artista, pubblici come il Pokédex
+            get("/artisti"),
+            get("/artisti/*/carte"),
             // health check di Render
             get("/actuator/health"),
             get("/actuator/health/**"));

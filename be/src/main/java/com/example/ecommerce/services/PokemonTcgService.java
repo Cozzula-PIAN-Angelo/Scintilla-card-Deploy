@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.function.Supplier;
@@ -58,7 +59,7 @@ import java.util.stream.Stream;
 public class PokemonTcgService {
 
     private static final int MAX_SIZE = 50;
-    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers,tcgplayer";
+    private static final String CAMPI_RICHIESTI = "id,name,number,rarity,set,images,cardmarket,nationalPokedexNumbers,tcgplayer,artist";
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
     // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
@@ -157,9 +158,9 @@ public class PokemonTcgService {
                 esito.rinominate());
     }
 
-    // riempie varianti e rarità delle carte di un set già importato. Passa da salvaCarte come un import, quindi
+    // riempie varianti, rarità e artista delle carte di un set già importato. Passa da salvaCarte come un import, quindi
     // le carte nuove del set entrano nel catalogo; non tocca "importata". Solo se il download è completo
-    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota e la rarità '', così il job non
+    // quelle che pokemontcg.io non restituisce più ricevono la lista vuota, la rarità '' e l'artista '', così il job non
     // le ripropone a ogni giro; con un download parziale restano da leggere e si riprovano al giro dopo
     public void riempiVarianti(String setId) {
         Download download = scarica("set.id:" + setId, "set " + setId);
@@ -183,8 +184,11 @@ public class PokemonTcgService {
                     if (oggetto.getRarita() == null) {
                         oggetto.setRarita("");
                     }
+                    if (oggetto.getArtista() == null) {
+                        oggetto.setArtista("");
+                    }
                 }));
-        log.info("Varianti e rarità del set {} aggiornate ({} carte lette)", setId, carte.size());
+        log.info("Varianti, rarità e artisti del set {} aggiornate ({} carte lette)", setId, carte.size());
     }
 
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
@@ -199,6 +203,44 @@ public class PokemonTcgService {
     // saltate: già nel catalogo (o senza espansione nella risposta); scartate: prezzo oltre il massimo;
     // rinominate: importate con l'id di pokemontcg.io nel nome, perché quello composto era già usato
     public record EsitoImport(int trovate, int importate, int saltate, int scartate, int rinominate) {
+
+        static final EsitoImport NESSUNO = new EsitoImport(0, 0, 0, 0, 0);
+
+        EsitoImport piu(EsitoImport altro) {
+            return new EsitoImport(trovate + altro.trovate, importate + altro.importate, saltate + altro.saltate,
+                    scartate + altro.scartate, rinominate + altro.rinominate);
+        }
+    }
+
+    // importa tutte le carte di un artista con la query di artisti.json, già verificata dallo script.
+    // Ogni pagina si salva appena arriva: gli artisti grandi sono 17 pagine su un'API che dà spesso 500,
+    // e un errore a metà non deve buttare via le pagine già lette
+    public EsitoImport importaArtista(String query) {
+        return importaAPagine(query, "artista " + query).esito();
+    }
+
+    // importa le carte per cui pokemontcg.io non indica l'artista (pagina "Artista sconosciuto"). Solo con un
+    // download completo e non vuoto, le carte che nel catalogo sono ancora '' ma non arrivano più tra quelle
+    // senza artista ne hanno ricevuto uno: tornano null, così il job o la pagina del loro artista le rileggono
+    public EsitoImport importaSenzaArtista() {
+        ImportAPagine risultato = importaAPagine("-artist:*", "carte senza artista");
+        Download download = risultato.download();
+        if (!download.carte().isEmpty() && download.carte().size() >= download.totale()) {
+            Set<String> ancoraSenza = download.carte().stream().map(Carta::id).collect(Collectors.toSet());
+            Integer liberate = transazione.execute(stato -> oggettoRepository.liberaSenzaArtista(ancoraSenza));
+            log.info("Carte senza artista: {} hanno ricevuto un artista", liberate);
+        }
+        return risultato.esito();
+    }
+
+    private record ImportAPagine(Download download, EsitoImport esito) {
+    }
+
+    private ImportAPagine importaAPagine(String query, String descrizione) {
+        EsitoImport[] esito = {EsitoImport.NESSUNO};
+        Download download = scarica(query, descrizione, pagina -> esito[0] = esito[0].piu(salvaCarte(pagina)));
+        log.info("Import {}: {}", descrizione, esito[0]);
+        return new ImportAPagine(download, esito[0]);
     }
 
     // salva le carte scaricate: le nuove entrano nel catalogo, quelle già presenti ricevono i dati
@@ -249,6 +291,11 @@ public class PokemonTcgService {
                         // stesso schema per la rarità: si riempie solo se mai letta
                         if (esistente.getRarita() == null) {
                             esistente.setRarita(rarita(carta));
+                        }
+                        // l'artista invece si scrive anche sopra '': pokemontcg.io completa in ritardo gli
+                        // artisti dei set recenti, e le carte devono passare da sole all'artista vero
+                        if (esistente.getArtista() == null || (esistente.getArtista().isEmpty() && carta.artist() != null)) {
+                            esistente.setArtista(artista(carta));
                         }
                         saltate++;
                         continue;
@@ -330,12 +377,18 @@ public class PokemonTcgService {
         }
         oggetto.setVarianti(varianti(carta));
         oggetto.setRarita(rarita(carta));
+        oggetto.setArtista(artista(carta));
         return oggetto;
     }
 
     // senza rarità nella risposta '' (carta letta, nessuna indicata)
     private String rarita(Carta carta) {
         return carta.rarity() == null ? "" : carta.rarity();
+    }
+
+    // senza artista nella risposta '' (carta letta, nessuno indicato)
+    private String artista(Carta carta) {
+        return carta.artist() == null ? "" : carta.artist();
     }
 
     // varianti suggerite dalle chiavi di tcgplayer.prices; senza tcgplayer lista vuota (carta letta, nessuna indicata)
@@ -356,6 +409,12 @@ public class PokemonTcgService {
     // orderBy=id: con orderBy=number pokemontcg.io pagina in modo instabile (la pagina 2 ripete
     // carte della 1 e altre si perdono). Per sicurezza i doppioni si scartano comunque per id
     private Download scarica(String query, String descrizione) {
+        return scarica(query, descrizione, pagina -> {
+        });
+    }
+
+    // perPagina riceve, pagina per pagina, le carte non ancora viste in questo download
+    private Download scarica(String query, String descrizione, Consumer<List<Carta>> perPagina) {
         Map<String, Carta> carte = new LinkedHashMap<>();
         int pagina = 1;
         long totale = 0;
@@ -366,11 +425,13 @@ public class PokemonTcgService {
             if (risposta.data() == null || risposta.data().isEmpty()) {
                 break;
             }
-            int prima = carte.size();
-            risposta.data().forEach(carta -> carte.putIfAbsent(carta.id(), carta));
-            if (carte.size() == prima) {
+            List<Carta> nuove = risposta.data().stream()
+                    .filter(carta -> carte.putIfAbsent(carta.id(), carta) == null)
+                    .toList();
+            if (nuove.isEmpty()) {
                 break;
             }
+            perPagina.accept(nuove);
             totale = risposta.totalCount();
             pagina++;
         } while (carte.size() < totale);

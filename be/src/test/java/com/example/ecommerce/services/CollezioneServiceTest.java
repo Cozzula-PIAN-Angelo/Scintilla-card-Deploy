@@ -62,7 +62,7 @@ class CollezioneServiceTest {
     @BeforeEach
     void prepara() {
         jdbc = new JdbcTemplate(dataSource);
-        service = new CollezioneService(collezioneRepository, oggettoRepository, jdbc);
+        service = new CollezioneService(collezioneRepository, oggettoRepository, jdbc, ElencoArtisti.get());
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'mario', 'mario@esempio.it', 'hash')", idUtente);
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'luigi', 'luigi@esempio.it', 'hash')", idAltro);
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
@@ -136,9 +136,9 @@ class CollezioneServiceTest {
         jdbc.update("INSERT INTO collezione (id, id_utente, id_oggetto, variante, quantita, aggiornata_il) VALUES (?, ?, ?, 'NORMALE', 4, now())",
                 UUID.randomUUID(), idAltro, carta);
 
-        assertThat(service.copie(utente, "base1", null)).containsExactlyInAnyOrder(
+        assertThat(service.copie(utente, "base1", null, null)).containsExactlyInAnyOrder(
                 new CopiaDTO(carta, Variante.REVERSE_HOLO, 3), new CopiaDTO(raichu, Variante.REVERSE_HOLO, 1));
-        assertThat(service.copie(utente, null, 25)).containsExactlyInAnyOrder(
+        assertThat(service.copie(utente, null, 25, null)).containsExactlyInAnyOrder(
                 new CopiaDTO(carta, Variante.REVERSE_HOLO, 3), new CopiaDTO(giungla, Variante.REVERSE_HOLO, 2));
         assertThat(service.copieDelleCarte(utente, List.of(raichu))).containsExactly(new CopiaDTO(raichu, Variante.REVERSE_HOLO, 1));
     }
@@ -159,8 +159,32 @@ class CollezioneServiceTest {
 
     @Test
     void filtroMancanteODoppio() {
-        assertThatThrownBy(() -> service.copie(utente, null, null)).isInstanceOf(BadRequestException.class);
-        assertThatThrownBy(() -> service.copie(utente, "base1", 25)).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> service.copie(utente, null, null, null)).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> service.copie(utente, "base1", 25, null)).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> service.copie(utente, "base1", null, "sachiko-eba")).isInstanceOf(BadRequestException.class);
+    }
+
+    // pagina di un artista: le copie delle carte che firma, anche in coppia (ElencoArtisti dal file di prova)
+    @Test
+    void copieDiUnArtista() {
+        UUID arita = UUID.randomUUID();
+        UUID senza = UUID.randomUUID();
+        inserisciCarta(arita, "Charizard", "base1", 6);
+        inserisciCarta(senza, "Energia", "base1", 0);
+        jdbc.update("UPDATE oggetti SET artista = 'Shinji Higuchi + Sachiko Eba' WHERE id = ?", carta);
+        jdbc.update("UPDATE oggetti SET artista = 'Mitsuhiro Arita' WHERE id = ?", arita);
+        jdbc.update("UPDATE oggetti SET artista = '' WHERE id = ?", senza);
+        scrivi(carta, 3);
+        scrivi(arita, 1);
+        scrivi(senza, 2);
+
+        assertThat(service.copie(utente, null, null, "sachiko-eba")).containsExactly(new CopiaDTO(carta, Variante.REVERSE_HOLO, 3));
+        assertThat(service.copie(utente, null, null, "sconosciuto")).containsExactly(new CopiaDTO(senza, Variante.REVERSE_HOLO, 2));
+    }
+
+    @Test
+    void artistaInesistente() {
+        assertThatThrownBy(() -> service.copie(utente, null, null, "nessuno")).isInstanceOf(NotFoundException.class);
     }
 
     // due "−1" davvero contemporanei da quantità 2, ognuno in una transazione sua e committata:
