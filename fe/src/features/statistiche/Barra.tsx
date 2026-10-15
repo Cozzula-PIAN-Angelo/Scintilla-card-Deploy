@@ -1,8 +1,9 @@
 import { cn } from '../../utils/cn'
+import { percentuale as calcola } from './calcoli'
 
 // barra di avanzamento con la percentuale per i lettori di schermo
 export function Barra({ valore, totale, className }: { valore: number; totale: number; className?: string }) {
-  const percentuale = totale > 0 ? Math.round((valore / totale) * 100) : 0
+  const percentuale = calcola(valore, totale)
   return (
     <div
       role="progressbar"
@@ -14,8 +15,4 @@ export function Barra({ valore, totale, className }: { valore: number; totale: n
       <div className="h-full rounded-full bg-blu-500" style={{ width: `${percentuale}%` }} />
     </div>
   )
-}
-
-export function percentuale(valore: number, totale: number) {
-  return totale > 0 ? Math.round((valore / totale) * 100) : 0
 }

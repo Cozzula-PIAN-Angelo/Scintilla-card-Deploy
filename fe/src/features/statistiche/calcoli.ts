@@ -21,7 +21,12 @@ export function avanzamentoPokedex(numeri: number[]) {
 
 export type OrdineSet = 'completamento' | 'data'
 
-const percentuale = (s: AvanzamentoSet) => (s.totale > 0 ? s.possedute / s.totale : 0)
+// percentuale intera di valore su totale, 0 con totale 0: unica per barre, set, Pokédex e BarraCollezione
+export function percentuale(valore: number, totale: number) {
+  return totale > 0 ? Math.round((valore / totale) * 100) : 0
+}
+
+const rapporto = (s: AvanzamentoSet) => (s.totale > 0 ? s.possedute / s.totale : 0)
 const completato = (s: AvanzamentoSet) => s.possedute >= s.totale
 
 // 'data' lascia l'ordine del backend (dal più recente). 'completamento': i più vicini alla fine prima,
@@ -31,7 +36,7 @@ export function ordinaSet(set: AvanzamentoSet[], criterio: OrdineSet): Avanzamen
   return [...set].sort(
     (a, b) =>
       Number(completato(a)) - Number(completato(b)) ||
-      percentuale(b) - percentuale(a) ||
+      rapporto(b) - rapporto(a) ||
       (b.dataUscita ?? '').localeCompare(a.dataUscita ?? ''),
   )
 }

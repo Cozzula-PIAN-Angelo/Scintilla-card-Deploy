@@ -64,7 +64,9 @@ public class StatisticheService {
                 (riga, n) -> Map.entry(riga.getObject(1, UUID.class), riga.getInt(2)), id, PIU_PREZIOSE);
         Map<UUID, Oggetto> carte = oggettoRepository.findAllById(righe.stream().map(Map.Entry::getKey).toList()).stream()
                 .collect(Collectors.toMap(Oggetto::getId, Function.identity()));
+        // una carta cancellata dall'admin tra le due query manca dalla mappa: si salta invece di rispondere 500
         List<CartaPreziosaDTO> piuPreziose = righe.stream()
+                .filter(r -> carte.containsKey(r.getKey()))
                 .map(r -> {
                     Oggetto carta = carte.get(r.getKey());
                     String nomeSet = carta.getEspansione() == null ? null : carta.getEspansione().getNome();

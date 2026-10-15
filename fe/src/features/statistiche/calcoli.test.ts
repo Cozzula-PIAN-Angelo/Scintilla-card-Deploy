@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { AvanzamentoSet } from '../../types/api'
-import { avanzamentoPokedex, gruppiSet, ordinaSet, raggruppaPerSerie } from './calcoli'
+import { avanzamentoPokedex, gruppiSet, ordinaSet, percentuale, raggruppaPerSerie } from './calcoli'
 
 const set = (id: string, possedute: number, totale: number, dataUscita: string | null, serie: string | null = 'S'): AvanzamentoSet => ({
   id,
@@ -63,4 +63,10 @@ describe('gruppiSet', () => {
     const lista = [set('a', 1, 2, null, 'A'), set('b', 1, 2, null, 'B')]
     expect(gruppiSet(lista, 'data').map((g) => g.serie)).toEqual(['A', 'B'])
   })
+})
+
+it('percentuale arrotondata, 0 con totale 0', () => {
+  expect(percentuale(1, 3)).toBe(33)
+  expect(percentuale(2, 3)).toBe(67)
+  expect(percentuale(0, 0)).toBe(0)
 })

@@ -2,10 +2,9 @@ import { ImmagineCarta } from '../../components/ImmagineCarta'
 import { ModaleCarta } from '../../components/ModaleCarta'
 import { useCartaSelezionata } from '../../hooks/useCartaSelezionata'
 import type { Statistiche } from '../../types/api'
+import { formattaPrezzo } from '../../utils/formato'
 import { usePreferiti } from '../preferiti/usePreferiti'
 import { Sezione } from './Sezione'
-
-const euro = (n: number) => n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
 
 export function SezioneValore({ valore }: { valore: Statistiche['valore'] }) {
   const preferiti = usePreferiti()
@@ -14,7 +13,7 @@ export function SezioneValore({ valore }: { valore: Statistiche['valore'] }) {
 
   return (
     <Sezione titolo="Valore stimato">
-      <p className="text-3xl font-bold text-testo">≈ {euro(valore.totale)}</p>
+      <p className="text-3xl font-bold text-testo">≈ {formattaPrezzo(valore.totale)}</p>
       {valore.piuPreziose.length > 0 && (
         <>
           <h3 className="mb-3 mt-6 text-sm font-semibold text-testo/70">Le carte più preziose</h3>
@@ -32,8 +31,8 @@ export function SezioneValore({ valore }: { valore: Statistiche['valore'] }) {
                     <span className="block truncate text-sm text-testo/70">{c.nomeSet}</span>
                   </span>
                   <span className="shrink-0 text-right text-sm text-testo/80">
-                    {euro(c.oggetto.prezzo)} × {c.copie}
-                    <strong className="block text-base text-testo">{euro(c.valore)}</strong>
+                    {formattaPrezzo(c.oggetto.prezzo)} × {c.copie}
+                    <strong className="block text-base text-testo">{formattaPrezzo(c.valore)}</strong>
                   </span>
                 </button>
               </li>

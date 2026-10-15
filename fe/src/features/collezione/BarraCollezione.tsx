@@ -1,5 +1,6 @@
 import { Palette } from 'lucide-react'
 import { cn } from '../../utils/cn'
+import { percentuale as calcolaPercentuale } from '../statistiche/calcoli'
 import type { Filtro } from './conteggi'
 
 interface Props {
@@ -19,7 +20,7 @@ const FILTRI: Array<{ valore: Filtro; etichetta: string }> = [
 
 // avanzamento della collezione di un set o di un Pokémon, con filtro e interruttore delle mancanti a colori
 export function BarraCollezione({ possedute, totale, filtro, onFiltro, aColori, onAlternaColori }: Props) {
-  const percentuale = totale > 0 ? Math.round((possedute / totale) * 100) : 0
+  const percentuale = calcolaPercentuale(possedute, totale)
 
   return (
     <section aria-label="La tua collezione" className="mb-8 rounded-3xl bg-superficie p-4 shadow-lg shadow-ombra/10 ring-1 ring-linea/5">

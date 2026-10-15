@@ -1,8 +1,8 @@
 import { ChevronDown } from 'lucide-react'
 import { Link } from 'react-router'
 import { numeroFormattato, spriteUrl } from '../pokedex/pokedex'
-import { Barra, percentuale } from './Barra'
-import { avanzamentoPokedex } from './calcoli'
+import { Barra } from './Barra'
+import { avanzamentoPokedex, percentuale } from './calcoli'
 import { Sezione } from './Sezione'
 
 export function SezionePokedex({ pokemon }: { pokemon: number[] }) {

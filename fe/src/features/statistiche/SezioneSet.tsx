@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import type { AvanzamentoSet } from '../../types/api'
 import { cn } from '../../utils/cn'
-import { Barra, percentuale } from './Barra'
-import { gruppiSet, type OrdineSet } from './calcoli'
+import { Barra } from './Barra'
+import { gruppiSet, percentuale, type OrdineSet } from './calcoli'
 import { Sezione } from './Sezione'
 
 const ORDINI: Array<{ valore: OrdineSet; etichetta: string }> = [

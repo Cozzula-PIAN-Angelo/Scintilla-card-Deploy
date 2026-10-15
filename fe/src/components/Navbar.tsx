@@ -10,7 +10,7 @@ import { useScrollato } from '../hooks/useScrollato'
 import { molla } from '../theme/motion'
 import { useTema } from '../theme/tema'
 import { cn } from '../utils/cn'
-import { Button, LinkBottone } from './Button'
+import { Button, LinkBottone, classiBottone } from './Button'
 import { Logo } from './Logo'
 import { PulsanteTema } from './PulsanteTema'
 import { VOCE_ADMIN, VOCE_COLLEZIONE, VOCI_PRINCIPALI, voceAttiva, type VoceMenu } from './vociNavigazione'
@@ -78,10 +78,19 @@ export function Navbar() {
                 <span className="text-sm text-white">
                   Ciao, <strong className="font-semibold text-giallo-400">{utente.username}</strong>
                 </span>
-                <LinkBottone to="/collezione" variante="suScuro" dimensione="sm" title="La mia collezione">
-                  <ChartPie aria-hidden className="size-4" />
-                  Collezione
-                </LinkBottone>
+                {/* NavLink e non LinkBottone: sulla pagina /collezione resta evidenziata (e aria-current) come le altre voci */}
+                <NavLink
+                  to={VOCE_COLLEZIONE.a}
+                  title="La mia collezione"
+                  className={({ isActive }) => classiBottone('suScuro', 'sm', cn('gap-2', isActive && 'bg-white/15 ring-white/60'))}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <ChartPie aria-hidden className={cn('size-4', isActive && 'text-giallo-400')} />
+                      {VOCE_COLLEZIONE.etichetta}
+                    </>
+                  )}
+                </NavLink>
                 <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
                   <LogOut aria-hidden className="size-4" />
                   Esci

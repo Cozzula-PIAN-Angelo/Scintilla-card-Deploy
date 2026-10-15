@@ -23,7 +23,7 @@ export const carteApi = api.injectEndpoints({
         body: prezzo === undefined ? undefined : { prezzo },
       }),
       extraOptions: { maxRetries: 2 },
-      invalidatesTags: ['Oggetti'],
+      invalidatesTags: ['Statistiche', 'Oggetti'],
       // la carta diventa subito "Nel catalogo" in tutte le ricerche in cache, senza rifare la chiamata esterna
       async onQueryStarted({ idEsterno }, { dispatch, queryFulfilled, getState }) {
         try {
