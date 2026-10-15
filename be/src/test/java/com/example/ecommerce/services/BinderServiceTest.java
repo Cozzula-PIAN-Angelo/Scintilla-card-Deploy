@@ -66,7 +66,7 @@ class BinderServiceTest {
     void prepara() {
         jdbc = new JdbcTemplate(dataSource);
         CollezioneService collezione = new CollezioneService(collezioneRepository, oggettoRepository, jdbc, ElencoArtisti.get());
-        service = new BinderService(binderRepository, slotRepository, immagineRepository, oggettoRepository, collezione);
+        service = new BinderService(binderRepository, slotRepository, immagineRepository, oggettoRepository, collezione, ElencoArtisti.get());
         UUID idUtente = UUID.randomUUID();
         UUID idAltro = UUID.randomUUID();
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'mario', 'mario@esempio.it', 'hash')", idUtente);
@@ -285,7 +285,7 @@ class BinderServiceTest {
     void checklistTroppoGrande() {
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('enorme', 'Enorme', true)");
         jdbc.batchUpdate("INSERT INTO oggetti (id, nome, prezzo, created_at, espansione_id, numero) VALUES (?, ?, 1.00, now(), 'enorme', ?)",
-                java.util.stream.IntStream.rangeClosed(1, 721)
+                java.util.stream.IntStream.rangeClosed(1, 1801)
                         .mapToObj(n -> new Object[]{UUID.randomUUID(), "Enorme " + n, String.valueOf(n)}).toList());
 
         assertThatThrownBy(() -> service.crea(utente, dati(12, 2, "enorme")))
@@ -325,9 +325,57 @@ class BinderServiceTest {
     void checklistSetEPokemonInsieme400() {
         UUID carta = carta("Pikachu", "base1", "58");
         pokedex(carta, 25);
-        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, "base1", 25);
+        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, "base1", 25, null);
 
         assertThatThrownBy(() -> service.crea(utente, entrambi)).isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void checklistOltreSessantaPagine() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('grande', 'Grande', true)");
+        jdbc.batchUpdate("INSERT INTO oggetti (id, nome, prezzo, created_at, espansione_id, numero) VALUES (?, ?, 1.00, now(), 'grande', ?)",
+                java.util.stream.IntStream.rangeClosed(1, 727)
+                        .mapToObj(n -> new Object[]{UUID.randomUUID(), "Grande " + n, String.valueOf(n)}).toList());
+
+        assertThat(service.crea(utente, dati(12, 2, "grande")).pagine()).isEqualTo(61);
+    }
+
+    @Test
+    void checklistArtistaConCoautoriDalSetPiuVecchio() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata, data_uscita) VALUES ('pop5', 'POP 5', true, '2007-03-01')");
+        UUID insieme = carta("Pikachu", "pop5", "2");
+        UUID direzione = carta("Mewtwo", "base1", "10");
+        UUID altro = carta("Charizard", "base1", "4");
+        artista(insieme, "Shinji Higuchi + Sachiko Eba");
+        artista(direzione, "Kent Kanetsuna/Direc. Shinji Higuchi");
+        artista(altro, "Mitsuhiro Arita");
+
+        BinderResponseDTO creato = service.crea(utente, checklistArtista("shinji-higuchi"));
+
+        assertThat(service.getDettaglio(utente, creato.id()).slot()).extracting(s -> s.oggetto().id())
+                .containsExactly(direzione, insieme);
+    }
+
+    @Test
+    void checklistArtistaFuoriElenco404() {
+        assertThatThrownBy(() -> service.crea(utente, checklistArtista("nessuno")))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void checklistArtistaSenzaCarte400() {
+        assertThatThrownBy(() -> service.crea(utente, checklistArtista("sachiko-eba")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("L'artista non ha ancora carte nel catalogo");
+    }
+
+    @Test
+    void checklistArtistaEPokemonInsieme400() {
+        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, 25, "shinji-higuchi");
+
+        assertThatThrownBy(() -> service.crea(utente, entrambi))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Un binder checklist è di un set, di un Pokémon o di un artista, non di più");
     }
 
     @Test
@@ -374,15 +422,23 @@ class BinderServiceTest {
         return id;
     }
 
+    private void artista(UUID carta, String artista) {
+        jdbc.update("UPDATE oggetti SET artista = ? WHERE id = ?", artista, carta);
+    }
+
     private void pokedex(UUID carta, int numero) {
         jdbc.update("INSERT INTO oggetti_pokedex (oggetto_id, numero_pokedex) VALUES (?, ?)", carta, numero);
     }
 
     private static BinderDTO dati(int tasche, int pagine, String espansioneId) {
-        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true, espansioneId, null);
+        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true, espansioneId, null, null);
     }
 
     private static BinderDTO checklistPokemon(int numero) {
-        return new BinderDTO("Pikachu", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, numero);
+        return new BinderDTO("Pikachu", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, numero, null);
+    }
+
+    private static BinderDTO checklistArtista(String slug) {
+        return new BinderDTO("Higuchi", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, null, slug);
     }
 }

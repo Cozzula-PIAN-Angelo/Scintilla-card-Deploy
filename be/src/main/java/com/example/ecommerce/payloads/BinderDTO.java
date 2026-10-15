@@ -23,7 +23,7 @@ public record BinderDTO(
 
         @NotNull(message = "Il numero di pagine è obbligatorio")
         @Min(value = 2, message = "Un binder ha almeno 2 pagine")
-        @Max(value = 60, message = "Un binder ha al massimo 60 pagine")
+        @Max(value = 150, message = "Un binder ha al massimo 150 pagine")
         Integer pagine,
 
         @NotBlank(message = "Il colore è obbligatorio")
@@ -38,10 +38,12 @@ public record BinderDTO(
         @NotNull(message = "Indica se mostrare le mancanti in grigio")
         Boolean mostraMancanti,
 
-        // solo in creazione, al più uno dei due: binder checklist di un set o di un Pokémon, con tutte le sue
-        // carte e le pagine calcolate dal backend
+        // solo in creazione, al più uno dei tre: binder checklist di un set, di un Pokémon o di un artista (slug),
+        // con tutte le sue carte e le pagine calcolate dal backend
         String espansioneId,
 
-        Integer numeroPokedex
+        Integer numeroPokedex,
+
+        String artista
 ) {
 }

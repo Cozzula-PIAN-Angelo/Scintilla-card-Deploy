@@ -22,7 +22,8 @@ export const FORMATI_TASCHE = [
 ]
 
 export const PAGINE_MIN = 2
-export const PAGINE_MAX = 60
+// come il backend: con 12 tasche ci stanno anche le carte dell'artista più prolifico
+export const PAGINE_MAX = 150
 
 export function griglia(tasche: number) {
   if (tasche === 4) return { colonne: 2, righe: 2 }
