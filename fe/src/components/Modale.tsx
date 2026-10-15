@@ -23,7 +23,9 @@ export function Modale({ aperto, onChiudi, titolo, children, larghezza = 'max-w-
     const elementoPrecedente = document.activeElement as HTMLElement | null
     const overflowPrecedente = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    pannello.current?.focus()
+    // preventScroll: il pannello entra rimpicciolito e spostato in basso (animazione); il focus lo
+    // porterebbe in vista scorrendo un po', e un pannello più alto dello schermo non partirebbe dall'alto
+    pannello.current?.focus({ preventScroll: true })
 
     const tasto = (evento: KeyboardEvent) => {
       if (evento.key === 'Escape') chiudiRef.current()

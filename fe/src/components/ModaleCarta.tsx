@@ -120,7 +120,8 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
             transition={{ duration: 0.14, ease: 'easeOut' }}
             className="grid items-center gap-8 md:grid-cols-[1.1fr_1fr]"
           >
-            <div className="mx-auto w-full max-w-sm">
+            {/* larghezza limitata anche dall'altezza dello schermo: aperta da telefono la carta si vede intera */}
+            <div className="mx-auto w-full max-w-[min(24rem,calc((100dvh_-_7rem)*63/88))]">
               <div className="relative">
                 {/* col dito la carta si trascina di lato per passare alla vicina */}
                 <motion.div
