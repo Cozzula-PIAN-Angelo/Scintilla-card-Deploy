@@ -1,5 +1,5 @@
-import { Sparkles } from 'lucide-react'
 import { useRef } from 'react'
+import { Scintilla } from '../components/Forme'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { VetrinaEspansioni } from '../features/espansioni/VetrinaEspansioni'
 import { Hero } from '../features/oggetti/Hero'
@@ -23,7 +23,7 @@ export function CatalogoPage() {
         <div className="mb-8">
           <h2 className="flex items-center gap-2 text-4xl font-bold text-testo">
             Le espansioni
-            <Sparkles aria-hidden className="size-7 text-accento" />
+            <Scintilla className="w-6 fill-accento" />
           </h2>
           <p className="mt-1 text-testo/70">Scegli un'espansione per scoprirne le carte.</p>
         </div>
