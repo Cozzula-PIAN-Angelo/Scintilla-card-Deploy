@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion'
 import type { Binder } from '../../../types/api'
+import { percentuale } from '../../statistiche/calcoli'
 import { RAGGIO_ESTERNO, scuro } from '../aspetto'
 import { FoderaBinder } from '../CopertinaBinder'
+import type { StatisticheBinder } from '../statisticheBinder'
 import type { Lato } from './costanti'
 
-export function InternoCopertina({ binder }: { binder: Binder }) {
+export function InternoCopertina({ binder, statistiche }: { binder: Binder; statistiche: StatisticheBinder }) {
+  const { piene, totale, possedute, valore } = statistiche
   return (
     <FoderaBinder colore={binder.colore}>
       <div className="absolute inset-x-[12%] top-1/2 -translate-y-1/2 rounded-[3cqw] border-[0.5cqw] border-white/25 px-[6cqw] py-[7cqw] text-center text-white/85">
@@ -13,6 +16,30 @@ export function InternoCopertina({ binder }: { binder: Binder }) {
         <p className="mt-[3cqw] text-[3.4cqw]">
           {binder.pagine} pagine · {binder.tasche} tasche per pagina
         </p>
+        {/* statistiche del binder; da telefono (pagina singola) stanno nella barra del binder */}
+        <dl className="mt-[4cqw] grid gap-[2cqw] text-left text-[3.2cqw]">
+          <div>
+            <div className="flex justify-between">
+              <dt className="text-white/60">Tasche piene</dt>
+              <dd>
+                {piene} / {totale} · {percentuale(piene, totale)}%
+              </dd>
+            </div>
+            <div className="mt-[1cqw] h-[0.8cqw] overflow-hidden rounded-full bg-white/15">
+              <div className="h-full rounded-full bg-white/70" style={{ width: `${percentuale(piene, totale)}%` }} />
+            </div>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-white/60">Possedute</dt>
+            <dd>
+              {possedute} / {piene} · {percentuale(possedute, piene)}%
+            </dd>
+          </div>
+          <div className="flex justify-between">
+            <dt className="text-white/60">Valore</dt>
+            <dd>≈ {Math.round(valore).toLocaleString('it-IT')} €</dd>
+          </div>
+        </dl>
       </div>
     </FoderaBinder>
   )
