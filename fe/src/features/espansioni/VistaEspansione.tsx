@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion'
-import { useMemo } from 'react'
-import { Layers } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { BookPlus, Layers } from 'lucide-react'
+import { useNavigate } from 'react-router'
+import { Button } from '../../components/Button'
 import { GrigliaCartePaginata } from '../../components/GrigliaCartePaginata'
 import { ModaleCarta } from '../../components/ModaleCarta'
 import { useCartaSelezionata } from '../../hooks/useCartaSelezionata'
+import { ModaleBinder } from '../binder/ModaleBinder'
 import { BarraCollezione } from '../collezione/BarraCollezione'
 import { useCollezionePagina } from '../collezione/useCollezionePagina'
 import type { Espansione, Oggetto } from '../../types/api'
@@ -23,6 +26,8 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
   const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle: onTogglePreferito }, collezione, carte)
   const anno = espansione.dataUscita?.slice(0, 4)
   const totale = data?.length ?? espansione.totaleCarte
+  const navigate = useNavigate()
+  const [checklistAperta, setChecklistAperta] = useState(false)
 
   return (
     <motion.div
@@ -47,7 +52,24 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
             {[anno, totale != null && (totale === 1 ? '1 carta' : `${totale} carte`)].filter(Boolean).join(' · ')}
           </p>
         </div>
+        {/* barra presente = utente loggato */}
+        {barra && data && data.length > 0 && (
+          <Button variante="chiaro" dimensione="sm" onClick={() => setChecklistAperta(true)} className="sm:ml-auto">
+            <BookPlus aria-hidden className="size-4" />
+            Crea binder checklist
+          </Button>
+        )}
       </header>
+
+      {data && (
+        <ModaleBinder
+          aperta={checklistAperta}
+          binder={null}
+          espansione={{ id: espansione.id, nome: espansione.nome, carte: data.length }}
+          onChiudi={() => setChecklistAperta(false)}
+          onCreato={(binder) => navigate(`/binder/${binder.id}`)}
+        />
+      )}
 
       {barra && <BarraCollezione {...barra} />}
 

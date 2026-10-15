@@ -38,27 +38,33 @@ interface Props {
   onChiudi: () => void
   onCreato?: (binder: Binder) => void
   onEliminato?: () => void
+  // nuovo binder checklist di un set: nome del set, pagine calcolate dalle sue carte
+  espansione?: { id: string; nome: string; carte: number }
 }
 
 type StatoImmagine = { tipo: 'esistente' } | { tipo: 'nuova'; blob: Blob; url: string } | { tipo: 'nessuna' }
 
-export function ModaleBinder({ aperta, binder, onChiudi, onCreato, onEliminato }: Props) {
+export function ModaleBinder({ aperta, binder, onChiudi, onCreato, onEliminato, espansione }: Props) {
   return (
     <Modale aperto={aperta} onChiudi={onChiudi} titolo={binder ? 'Impostazioni del binder' : 'Nuovo binder'} larghezza="max-w-4xl">
       {/* rimontato a ogni apertura: il modulo riparte dai valori del binder */}
-      {aperta && <ModuloBinder binder={binder} onChiudi={onChiudi} onCreato={onCreato} onEliminato={onEliminato} />}
+      {aperta && <ModuloBinder binder={binder} onChiudi={onChiudi} onCreato={onCreato} onEliminato={onEliminato} espansione={espansione} />}
     </Modale>
   )
 }
 
-function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, 'aperta'>) {
+function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, espansione }: Omit<Props, 'aperta'>) {
   const toast = useToast()
-  const [nome, setNome] = useState(binder?.nome ?? '')
+  const [nome, setNome] = useState(binder?.nome ?? espansione?.nome.slice(0, 40) ?? '')
   const [tasche, setTasche] = useState(binder?.tasche ?? 9)
   const [pagine, setPagine] = useState(binder?.pagine ?? 10)
   const [colore, setColore] = useState(binder?.colore ?? COLORI_BINDER[0].valore)
   const [motivo, setMotivo] = useState<MotivoBinder>(binder?.motivo ?? 'STELLE')
   const [mostraMancanti, setMostraMancanti] = useState(binder?.mostraMancanti ?? true)
+  // binder checklist: le pagine le decide il set (stesso calcolo del backend), il cursore non c'è
+  const pagineSet = espansione ? Math.max(2, Math.ceil(espansione.carte / tasche)) : null
+  const setTroppoGrande = pagineSet != null && pagineSet > PAGINE_MAX
+  const pagineBinder = pagineSet ?? pagine
   const [carta, setCarta] = useState<Oggetto | null>(binder?.cartaCopertina ?? null)
   const [immagine, setImmagine] = useState<StatoImmagine>(binder?.immagineAggiornataIl ? { tipo: 'esistente' } : { tipo: 'nessuna' })
   const [sceltaCarta, setSceltaCarta] = useState(false)
@@ -107,11 +113,12 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
     const dati: DatiBinder = {
       nome: nomePulito,
       tasche,
-      pagine,
+      pagine: Math.min(pagineBinder, PAGINE_MAX),
       colore,
       motivo,
       cartaCopertinaId: carta?.id ?? null,
       mostraMancanti,
+      espansioneId: espansione?.id,
     }
     try {
       // binder già creato in un tentativo precedente (fallito sull'immagine): si modifica quello,
@@ -186,6 +193,13 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
           {errori.tasche && <p className="mt-1 text-sm font-medium text-errore">{errori.tasche}</p>}
         </fieldset>
 
+        {espansione ? (
+          <p className={cn('text-sm font-semibold', setTroppoGrande ? 'text-errore' : 'text-testo')}>
+            {setTroppoGrande
+              ? 'Il set non ci sta: scegli più tasche'
+              : `${pagineSet} pagine per le ${espansione.carte} carte del set`}
+          </p>
+        ) : (
         <div>
           <label htmlFor="pagine-binder" className="mb-2 flex items-baseline justify-between text-sm font-semibold text-testo">
             Pagine
@@ -204,6 +218,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
           />
           {errori.pagine && <p className="mt-1 text-sm font-medium text-errore">{errori.pagine}</p>}
         </div>
+        )}
 
         <fieldset>
           <legend className="mb-2 text-sm font-semibold text-testo">Colore</legend>
@@ -382,10 +397,10 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
             />
           </div>
           <p className="mt-3 text-center text-xs text-testo/60">
-            {colonne} × {righe} tasche · {pagine} pagine
+            {colonne} × {righe} tasche · {pagineBinder} pagine
           </p>
           <div className="mt-6 hidden flex-col gap-2 md:flex">
-            <Button type="submit" variante="primario" caricamento={salvataggio}>
+            <Button type="submit" variante="primario" caricamento={salvataggio} disabled={setTroppoGrande}>
               {binder ? 'Salva modifiche' : 'Crea binder'}
             </Button>
             <Button variante="fantasma" onClick={onChiudi}>
@@ -399,7 +414,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato }: Omit<Props, '
         <Button variante="fantasma" onClick={onChiudi}>
           Annulla
         </Button>
-        <Button type="submit" variante="primario" caricamento={salvataggio}>
+        <Button type="submit" variante="primario" caricamento={salvataggio} disabled={setTroppoGrande}>
           {binder ? 'Salva' : 'Crea binder'}
         </Button>
       </div>
