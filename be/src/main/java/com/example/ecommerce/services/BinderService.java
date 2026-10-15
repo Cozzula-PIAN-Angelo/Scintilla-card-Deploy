@@ -76,11 +76,34 @@ public class BinderService {
     @Transactional
     public BinderResponseDTO crea(Utente utente, BinderDTO body) {
         controllaTasche(body.tasche());
-        Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), body.pagine(), body.colore().toLowerCase(), body.motivo());
+        List<Oggetto> carte = body.espansioneId() == null ? List.of() : carteDelSet(body.espansioneId());
+        int pagine = body.espansioneId() == null ? body.pagine() : pagineChecklist(carte.size(), body.tasche());
+        Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), pagine, body.colore().toLowerCase(), body.motivo());
         binder.setMostraMancanti(body.mostraMancanti());
         binder.setCartaCopertina(cartaCopertina(body.cartaCopertinaId()));
         // flush immediato: così createdAt è valorizzato nella risposta
-        return BinderResponseDTO.from(binderRepository.saveAndFlush(binder), 0);
+        binderRepository.saveAndFlush(binder);
+        riscrivi(binder, new TreeMap<>(), compatte(carte));
+        return BinderResponseDTO.from(binder, carte.size());
+    }
+
+    // carte del set in ordine di numero, per il binder checklist
+    private List<Oggetto> carteDelSet(String espansioneId) {
+        List<Oggetto> carte = oggettoRepository.findByEspansioneId(espansioneId).stream()
+                .sorted(OrdineCarte.comparatore(CriterioOrdine.SET_NUMERO))
+                .toList();
+        if (carte.isEmpty()) {
+            throw new BadRequestException("Il set non ha ancora carte nel catalogo");
+        }
+        return carte;
+    }
+
+    private static int pagineChecklist(int carte, int tasche) {
+        int pagine = Math.max(2, (carte + tasche - 1) / tasche);
+        if (pagine > 60) {
+            throw new BadRequestException("Il set non ci sta: scegli più tasche");
+        }
+        return pagine;
     }
 
     @Transactional

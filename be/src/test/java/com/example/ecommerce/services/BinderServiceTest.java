@@ -6,6 +6,7 @@ import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.BinderDTO;
+import com.example.ecommerce.payloads.BinderResponseDTO;
 import com.example.ecommerce.payloads.CriterioOrdine;
 import com.example.ecommerce.payloads.DisposizioneSlotDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
@@ -223,6 +224,66 @@ class BinderServiceTest {
         assertThat(disposizione()).containsExactly("0:" + b, "1:" + x);
     }
 
+    @Test
+    void checklistPagineCalcolate() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base2', 'Jungle', true)");
+        List<UUID> carte = new java.util.ArrayList<>();
+        for (int n = 19; n >= 1; n--) {
+            carte.addFirst(carta("Carta", "base2", String.valueOf(n)));
+        }
+
+        BinderResponseDTO creato = service.crea(utente, dati(9, 2, "base2"));
+
+        assertThat(creato.pagine()).isEqualTo(3);
+        assertThat(creato.carteInserite()).isEqualTo(19);
+        assertThat(service.getDettaglio(utente, creato.id()).slot())
+                .extracting(s -> s.pagina() * 9 + s.posizione(), s -> s.oggetto().id())
+                .containsExactlyElementsOf(java.util.stream.IntStream.range(0, 19)
+                        .mapToObj(i -> org.assertj.core.groups.Tuple.tuple(i, carte.get(i))).toList());
+    }
+
+    @Test
+    void checklistMinimoDuePagine() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base2', 'Jungle', true)");
+        for (int n = 1; n <= 3; n++) {
+            carta("Carta", "base2", String.valueOf(n));
+        }
+
+        assertThat(service.crea(utente, dati(9, 10, "base2")).pagine()).isEqualTo(2);
+    }
+
+    @Test
+    void checklistSetVuoto400() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('vuoto', 'Vuoto', false)");
+
+        assertThatThrownBy(() -> service.crea(utente, dati(9, 2, "vuoto")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Il set non ha ancora carte nel catalogo");
+        assertThat(service.getBinder(utente)).hasSize(1);
+    }
+
+    @Test
+    void checklistTroppoGrande() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('enorme', 'Enorme', true)");
+        jdbc.batchUpdate("INSERT INTO oggetti (id, nome, prezzo, created_at, espansione_id, numero) VALUES (?, ?, 1.00, now(), 'enorme', ?)",
+                java.util.stream.IntStream.rangeClosed(1, 721)
+                        .mapToObj(n -> new Object[]{UUID.randomUUID(), "Enorme " + n, String.valueOf(n)}).toList());
+
+        assertThatThrownBy(() -> service.crea(utente, dati(12, 2, "enorme")))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Il set non ci sta: scegli più tasche");
+        assertThat(service.getBinder(utente)).hasSize(1);
+    }
+
+    @Test
+    void modificaIgnoraEspansione() {
+        carta("Carta", "base1", "1");
+
+        service.modifica(utente, binder, dati(9, 2, "base1"));
+
+        assertThat(service.getDettaglio(utente, binder).slot()).isEmpty();
+    }
+
     // tasche come "indice:idCarta", in ordine
     private List<String> disposizione() {
         return service.getDettaglio(utente, binder).slot().stream()
@@ -242,6 +303,6 @@ class BinderServiceTest {
     }
 
     private static BinderDTO dati(int tasche, int pagine, String espansioneId) {
-        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true);
+        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true, espansioneId);
     }
 }
