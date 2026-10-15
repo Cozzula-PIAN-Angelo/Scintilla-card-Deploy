@@ -38,11 +38,11 @@ export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
               </button>
             ))}
           </div>
-          <div className="grid gap-6">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
             {gruppi.map((g) => (
               <div key={g.serie ?? 'tutti'}>
                 {g.serie && <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-accento">{g.serie}</h3>}
-                <ul className="grid gap-1">
+                <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
                   {g.set.map((s) => (
                     <li key={s.id}>
                       <Link to={`/espansioni/${s.id}`} className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-tenue">

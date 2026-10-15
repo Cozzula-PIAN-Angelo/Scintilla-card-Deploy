@@ -42,8 +42,9 @@ export function SezioneValore({ valore }: { valore: Statistiche['valore'] }) {
           </ol>
         </>
       )}
+      {/* colonna minmax(0,1fr): senza, la colonna implicita si allarga quanto il nome più lungo ed esce dal riquadro */}
       {altre.length > 0 && (
-        <ol start={4} className="mt-4 grid gap-1 border-t border-linea/10 pt-3">
+        <ol start={4} className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-1 border-t border-linea/10 pt-3">
           {altre.map((c, i) => (
             <RigaPreziosa key={c.oggetto.id} carta={c} posizione={i + 4} onApri={() => apri(c.oggetto)} />
           ))}
