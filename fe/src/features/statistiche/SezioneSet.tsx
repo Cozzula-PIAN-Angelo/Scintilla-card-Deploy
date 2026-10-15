@@ -1,4 +1,4 @@
-import { CircleCheck } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import type { AvanzamentoSet } from '../../types/api'
@@ -38,11 +38,11 @@ export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
               </button>
             ))}
           </div>
-          <div className="grid gap-6">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
             {gruppi.map((g) => (
               <div key={g.serie ?? 'tutti'}>
                 {g.serie && <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-accento">{g.serie}</h3>}
-                <ul className="grid gap-1">
+                <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
                   {g.set.map((s) => (
                     <li key={s.id}>
                       <Link to={`/espansioni/${s.id}`} className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-tenue">
@@ -54,11 +54,16 @@ export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2 font-semibold text-testo">
                             <span className="truncate">{s.nome}</span>
-                            {s.possedute >= s.totale && <CircleCheck aria-label="Completato" className="size-4 shrink-0 text-accento" />}
+                            {s.possedute >= s.totale && (
+                              // oro su blu: il giallo da solo non si legge su superficie chiara
+                              <span className="grid size-4 shrink-0 place-items-center rounded-full bg-giallo-400 text-blu-900">
+                                <Check aria-label="Completato" strokeWidth={3} className="size-3" />
+                              </span>
+                            )}
                           </span>
                           {/* elenco unico per completamento: la serie si legge sotto il nome */}
                           {!g.serie && s.serie && <span className="block truncate text-xs text-testo/60">{s.serie}</span>}
-                          <Barra valore={s.possedute} totale={s.totale} className="mt-1" />
+                          <Barra valore={s.possedute} totale={s.totale} className="mt-1.5" colore={s.possedute >= s.totale ? 'bg-giallo-400' : undefined} />
                         </span>
                         <span className="w-24 shrink-0 text-right text-sm text-testo/80">
                           {s.possedute} / {s.totale}
