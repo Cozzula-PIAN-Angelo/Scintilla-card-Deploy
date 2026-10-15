@@ -105,7 +105,7 @@ export function GrigliaCartePaginata({
             {avvisoCaricamento}
           </p>
         )}
-        <GrigliaSkeleton />
+        <GrigliaSkeleton stretta={stretta} />
       </>
     )
   }
