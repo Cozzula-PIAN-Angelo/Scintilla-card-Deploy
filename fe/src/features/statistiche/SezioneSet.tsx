@@ -4,7 +4,7 @@ import { Link } from 'react-router'
 import type { AvanzamentoSet } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { Barra, percentuale } from './Barra'
-import { ordinaSet, raggruppaPerSerie, type OrdineSet } from './calcoli'
+import { gruppiSet, type OrdineSet } from './calcoli'
 import { Sezione } from './Sezione'
 
 const ORDINI: Array<{ valore: OrdineSet; etichetta: string }> = [
@@ -14,7 +14,7 @@ const ORDINI: Array<{ valore: OrdineSet; etichetta: string }> = [
 
 export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
   const [ordine, setOrdine] = useState<OrdineSet>('completamento')
-  const gruppi = raggruppaPerSerie(ordinaSet(set, ordine))
+  const gruppi = gruppiSet(set, ordine)
 
   return (
     <Sezione titolo="Set">
@@ -40,8 +40,8 @@ export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
           </div>
           <div className="grid gap-6">
             {gruppi.map((g) => (
-              <div key={g.serie}>
-                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-accento">{g.serie}</h3>
+              <div key={g.serie ?? 'tutti'}>
+                {g.serie && <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-accento">{g.serie}</h3>}
                 <ul className="grid gap-1">
                   {g.set.map((s) => (
                     <li key={s.id}>
@@ -56,6 +56,8 @@ export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
                             <span className="truncate">{s.nome}</span>
                             {s.possedute >= s.totale && <CircleCheck aria-label="Completato" className="size-4 shrink-0 text-accento" />}
                           </span>
+                          {/* elenco unico per completamento: la serie si legge sotto il nome */}
+                          {!g.serie && s.serie && <span className="block truncate text-xs text-testo/60">{s.serie}</span>}
                           <Barra valore={s.possedute} totale={s.totale} className="mt-1" />
                         </span>
                         <span className="w-24 shrink-0 text-right text-sm text-testo/80">

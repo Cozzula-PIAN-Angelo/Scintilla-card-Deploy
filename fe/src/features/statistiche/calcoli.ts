@@ -45,3 +45,9 @@ export function raggruppaPerSerie(set: AvanzamentoSet[]): Array<{ serie: string;
   }
   return [...gruppi.entries()].map(([serie, lista]) => ({ serie, set: lista }))
 }
+
+// come si mostrano i set: per completamento un elenco unico (raggrupparli per serie mescolerebbe l'ordine),
+// per data raggruppati per serie
+export function gruppiSet(set: AvanzamentoSet[], criterio: OrdineSet): Array<{ serie: string | null; set: AvanzamentoSet[] }> {
+  return criterio === 'completamento' ? [{ serie: null, set: ordinaSet(set, criterio) }] : raggruppaPerSerie(set)
+}

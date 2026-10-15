@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { AvanzamentoSet } from '../../types/api'
-import { avanzamentoPokedex, ordinaSet, raggruppaPerSerie } from './calcoli'
+import { avanzamentoPokedex, gruppiSet, ordinaSet, raggruppaPerSerie } from './calcoli'
 
 const set = (id: string, possedute: number, totale: number, dataUscita: string | null, serie: string | null = 'S'): AvanzamentoSet => ({
   id,
@@ -51,5 +51,16 @@ describe('raggruppaPerSerie', () => {
       ['Altro', ['b']],
       ['Base', ['c']],
     ])
+  })
+})
+
+describe('gruppiSet', () => {
+  it('per completamento un solo gruppo nell’ordine di completamento, senza mescolare per serie', () => {
+    const lista = [set('a95', 95, 100, '2020-01-01', 'A'), set('a10', 1, 10, '2020-01-02', 'A'), set('b90', 9, 10, '2020-01-03', 'B')]
+    expect(gruppiSet(lista, 'completamento')).toEqual([{ serie: null, set: [lista[0], lista[2], lista[1]] }])
+  })
+  it('per data raggruppa per serie', () => {
+    const lista = [set('a', 1, 2, null, 'A'), set('b', 1, 2, null, 'B')]
+    expect(gruppiSet(lista, 'data').map((g) => g.serie)).toEqual(['A', 'B'])
   })
 })

@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
 import { Skeleton } from '../../components/Skeleton'
-import { POKEDEX } from '../pokedex/pokedex'
+import { avanzamentoPokedex } from './calcoli'
 import { useGetStatisticheQuery } from './statisticheApi'
 
 // riquadro semplice in cima alla pagina Binder: quattro numeri e il link alla pagina completa.
@@ -13,9 +13,11 @@ export function RiepilogoCollezione() {
   if (isError || !data) return null
 
   const { totali, valore, pokemon } = data
+  // stesso conteggio della pagina /collezione: i numeri fuori dal Pokédex non contano
+  const pokedex = avanzamentoPokedex(pokemon)
   const numeri = [
     { etichetta: 'Carte', valore: totali.carteDiverse.toLocaleString('it-IT') },
-    { etichetta: 'Pokédex', valore: `${pokemon.length} / ${POKEDEX.length}` },
+    { etichetta: 'Pokédex', valore: `${pokedex.posseduti} / ${pokedex.totale}` },
     { etichetta: 'Valore', valore: `≈ ${Math.round(valore.totale).toLocaleString('it-IT')} €` },
     { etichetta: 'Set completati', valore: `${totali.setCompletati} su ${totali.setIniziati}` },
   ]

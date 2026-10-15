@@ -6,7 +6,7 @@ export const binderApi = api.injectEndpoints({
   endpoints: (build) => ({
     getBinder: build.query<Binder[], void>({
       query: () => '/me/binder',
-      providesTags: ['Statistiche', { type: 'Binder', id: 'LISTA' }],
+      providesTags: [{ type: 'Binder', id: 'LISTA' }],
     }),
     getBinderDettaglio: build.query<BinderDettaglio, string>({
       query: (id) => `/me/binder/${id}`,
