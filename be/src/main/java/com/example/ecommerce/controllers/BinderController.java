@@ -6,7 +6,9 @@ import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.payloads.BinderDTO;
 import com.example.ecommerce.payloads.BinderDettaglioDTO;
 import com.example.ecommerce.payloads.BinderResponseDTO;
+import com.example.ecommerce.payloads.DisposizioneSlotDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
+import com.example.ecommerce.payloads.RiordinaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
 import com.example.ecommerce.services.BinderService;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -78,6 +81,21 @@ public class BinderController {
         return binderService.inserisci(utente, id, body);
     }
 
+    @PostMapping("/{id}/riordina")
+    public List<SlotBinderResponseDTO> riordina(@AuthenticationPrincipal Utente utente,
+                                                @PathVariable UUID id,
+                                                @RequestBody @Valid RiordinaDTO body) {
+        return binderService.riordina(utente, id, body.criterio());
+    }
+
+    // sostituisce tutte le tasche (l'Annulla del riordino). PATCH e non PUT per il CORS
+    @PatchMapping("/{id}/slot")
+    public List<SlotBinderResponseDTO> ripristina(@AuthenticationPrincipal Utente utente,
+                                                  @PathVariable UUID id,
+                                                  @RequestBody @Valid List<@Valid DisposizioneSlotDTO> body) {
+        return binderService.ripristina(utente, id, body);
+    }
+
     @PostMapping("/{id}/slot/sposta")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void sposta(@AuthenticationPrincipal Utente utente,
@@ -91,8 +109,9 @@ public class BinderController {
     public void svuota(@AuthenticationPrincipal Utente utente,
                        @PathVariable UUID id,
                        @PathVariable int pagina,
-                       @PathVariable int posizione) {
-        binderService.svuota(utente, id, pagina, posizione);
+                       @PathVariable int posizione,
+                       @RequestParam(defaultValue = "false") boolean faiSpazio) {
+        binderService.svuota(utente, id, pagina, posizione, faiSpazio);
     }
 
     // body = i byte dell'immagine, non multipart: il browser la invia già ridimensionata.

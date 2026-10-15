@@ -1,10 +1,6 @@
 import { api } from '../../app/api'
-import type { Binder, BinderDettaglio, DatiBinder, Oggetto, Pagina } from '../../types/api'
-
-interface Posizione {
-  pagina: number
-  posizione: number
-}
+import type { Binder, BinderDettaglio, CriterioOrdine, DatiBinder, Oggetto, Pagina, SlotBinder } from '../../types/api'
+import { inserisci, sposta, togli, type Posizione } from './disposizione'
 
 export const binderApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -46,19 +42,52 @@ export const binderApi = api.injectEndpoints({
       invalidatesTags: (_risultato, _errore, id) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id }],
     }),
 
+    // la nuova disposizione arriva dal server: niente aggiornamento anticipato
+    riordinaBinder: build.mutation<SlotBinder[], { binderId: string; criterio: CriterioOrdine }>({
+      query: ({ binderId, criterio }) => ({ url: `/me/binder/${binderId}/riordina`, method: 'POST', body: { criterio } }),
+      async onQueryStarted({ binderId }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => { dettaglio.slot = data }))
+        } catch {
+          // l'errore lo mostra chi ha chiamato
+        }
+      },
+    }),
+    // rimette tutte le tasche com'erano (Annulla del riordino)
+    ripristinaBinder: build.mutation<SlotBinder[], { binderId: string; slot: SlotBinder[] }>({
+      query: ({ binderId, slot }) => ({
+        url: `/me/binder/${binderId}/slot`,
+        method: 'PATCH',
+        body: slot.map((s) => ({ pagina: s.pagina, posizione: s.posizione, oggettoId: s.oggetto.id })),
+      }),
+      // tra riordino e Annulla possono essere entrate o uscite carte: il conteggio nella lista cambia
+      invalidatesTags: [{ type: 'Binder', id: 'LISTA' }],
+      async onQueryStarted({ binderId, slot }, { dispatch, queryFulfilled }) {
+        const patch = dispatch(binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => { dettaglio.slot = slot }))
+        queryFulfilled.catch(patch.undo)
+      },
+    }),
+
     // Le tre operazioni sulle tasche aggiornano subito il binder aperto e tornano indietro
     // solo se la richiesta fallisce; la lista si ricarica per il conteggio delle carte. Dopo un inserimento
     // si rilegge anche il binder: il dettaglio porta le copie possedute della carta nuova
-    inserisciCarta: build.mutation<void, { binderId: string; oggetto: Oggetto } & Posizione>({
-      query: ({ binderId, pagina, posizione, oggetto }) => ({
+    // con faiSpazio le regole sono quelle di disposizione.ts, le stesse del backend
+    inserisciCarta: build.mutation<void, { binderId: string; oggetto: Oggetto; faiSpazio?: boolean } & Posizione>({
+      query: ({ binderId, pagina, posizione, oggetto, faiSpazio }) => ({
         url: `/me/binder/${binderId}/slot`,
         method: 'POST',
-        body: { pagina, posizione, oggettoId: oggetto.id },
+        body: { pagina, posizione, oggettoId: oggetto.id, faiSpazio },
       }),
       invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
-      async onQueryStarted({ binderId, pagina, posizione, oggetto }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ binderId, pagina, posizione, oggetto, faiSpazio }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {
+            if (faiSpazio) {
+              const { tasche, pagine } = dettaglio.binder
+              dettaglio.slot = inserisci(dettaglio.slot, tasche, pagine, { pagina, posizione }, oggetto) ?? dettaglio.slot
+              return
+            }
             const esistente = dettaglio.slot.find((s) => s.pagina === pagina && s.posizione === posizione)
             if (esistente) esistente.oggetto = oggetto
             else dettaglio.slot.push({ pagina, posizione, oggetto })
@@ -67,30 +96,42 @@ export const binderApi = api.injectEndpoints({
         queryFulfilled.catch(patch.undo)
       },
     }),
-    svuotaTasca: build.mutation<void, { binderId: string } & Posizione>({
-      query: ({ binderId, pagina, posizione }) => ({ url: `/me/binder/${binderId}/slot/${pagina}/${posizione}`, method: 'DELETE' }),
+    svuotaTasca: build.mutation<void, { binderId: string; faiSpazio?: boolean } & Posizione>({
+      query: ({ binderId, pagina, posizione, faiSpazio }) => ({
+        url: `/me/binder/${binderId}/slot/${pagina}/${posizione}`,
+        method: 'DELETE',
+        params: faiSpazio ? { faiSpazio } : undefined,
+      }),
       // il dettaglio si rilegge a operazioni finite: una GET partita prima non sovrascrive la modifica
       invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
-      async onQueryStarted({ binderId, pagina, posizione }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ binderId, pagina, posizione, faiSpazio }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {
+            if (faiSpazio) {
+              dettaglio.slot = togli(dettaglio.slot, dettaglio.binder.tasche, dettaglio.binder.pagine, { pagina, posizione })
+              return
+            }
             dettaglio.slot = dettaglio.slot.filter((s) => s.pagina !== pagina || s.posizione !== posizione)
           }),
         )
         queryFulfilled.catch(patch.undo)
       },
     }),
-    // arrivo occupato: le due carte si scambiano
-    spostaCarta: build.mutation<void, { binderId: string; da: Posizione; a: Posizione }>({
-      query: ({ binderId, da, a }) => ({
+    // arrivo occupato: le due carte si scambiano; con faiSpazio la carta si mette prima di quella d'arrivo
+    spostaCarta: build.mutation<void, { binderId: string; da: Posizione; a: Posizione; faiSpazio?: boolean }>({
+      query: ({ binderId, da, a, faiSpazio }) => ({
         url: `/me/binder/${binderId}/slot/sposta`,
         method: 'POST',
-        body: { daPagina: da.pagina, daPosizione: da.posizione, aPagina: a.pagina, aPosizione: a.posizione },
+        body: { daPagina: da.pagina, daPosizione: da.posizione, aPagina: a.pagina, aPosizione: a.posizione, faiSpazio },
       }),
       invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: binderId }],
-      async onQueryStarted({ binderId, da, a }, { dispatch, queryFulfilled }) {
+      async onQueryStarted({ binderId, da, a, faiSpazio }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {
+            if (faiSpazio) {
+              dettaglio.slot = sposta(dettaglio.slot, dettaglio.binder.tasche, dettaglio.binder.pagine, da, a)
+              return
+            }
             const partenza = dettaglio.slot.find((s) => s.pagina === da.pagina && s.posizione === da.posizione)
             if (!partenza) return
             const arrivo = dettaglio.slot.find((s) => s.pagina === a.pagina && s.posizione === a.posizione)
@@ -128,5 +169,7 @@ export const {
   useInserisciCartaMutation,
   useSvuotaTascaMutation,
   useSpostaCartaMutation,
+  useRiordinaBinderMutation,
+  useRipristinaBinderMutation,
   useCercaCatalogoQuery,
 } = binderApi

@@ -12,6 +12,8 @@ import com.example.ecommerce.payloads.BinderDTO;
 import com.example.ecommerce.payloads.BinderDettaglioDTO;
 import com.example.ecommerce.payloads.BinderResponseDTO;
 import com.example.ecommerce.payloads.CopiaDTO;
+import com.example.ecommerce.payloads.CriterioOrdine;
+import com.example.ecommerce.payloads.DisposizioneSlotDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
@@ -24,10 +26,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // l'Utente arriva sempre dal token: ogni binder si cerca per id E proprietario,
@@ -70,11 +76,43 @@ public class BinderService {
     @Transactional
     public BinderResponseDTO crea(Utente utente, BinderDTO body) {
         controllaTasche(body.tasche());
-        Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), body.pagine(), body.colore().toLowerCase(), body.motivo());
+        List<Oggetto> carte = carteChecklist(body);
+        int pagine = carte.isEmpty() ? body.pagine() : pagineChecklist(carte.size(), body.tasche(), body.espansioneId() != null
+                ? "Il set non ci sta: scegli più tasche"
+                : "Le carte di questo Pokémon non ci stanno: scegli più tasche");
+        Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), pagine, body.colore().toLowerCase(), body.motivo());
         binder.setMostraMancanti(body.mostraMancanti());
         binder.setCartaCopertina(cartaCopertina(body.cartaCopertinaId()));
         // flush immediato: così createdAt è valorizzato nella risposta
-        return BinderResponseDTO.from(binderRepository.saveAndFlush(binder), 0);
+        binderRepository.saveAndFlush(binder);
+        riscrivi(binder, new TreeMap<>(), compatte(carte));
+        return BinderResponseDTO.from(binder, carte.size());
+    }
+
+    // carte del binder checklist (di un set o di un Pokémon) dal set più vecchio, poi per numero; vuota per un binder normale
+    private List<Oggetto> carteChecklist(BinderDTO body) {
+        if (body.espansioneId() != null && body.numeroPokedex() != null) {
+            throw new BadRequestException("Un binder checklist è di un set o di un Pokémon, non di entrambi");
+        }
+        List<Oggetto> carte;
+        if (body.espansioneId() != null) {
+            carte = oggettoRepository.findByEspansioneId(body.espansioneId());
+            if (carte.isEmpty()) throw new BadRequestException("Il set non ha ancora carte nel catalogo");
+        } else if (body.numeroPokedex() != null) {
+            carte = oggettoRepository.findByNumeroPokedex(body.numeroPokedex());
+            if (carte.isEmpty()) throw new BadRequestException("Il Pokémon non ha ancora carte nel catalogo");
+        } else {
+            return List.of();
+        }
+        return carte.stream().sorted(OrdineCarte.comparatore(CriterioOrdine.SET_NUMERO)).toList();
+    }
+
+    private static int pagineChecklist(int carte, int tasche, String troppe) {
+        int pagine = Math.max(2, (carte + tasche - 1) / tasche);
+        if (pagine > 60) {
+            throw new BadRequestException(troppe);
+        }
+        return pagine;
     }
 
     @Transactional
@@ -115,6 +153,13 @@ public class BinderService {
         Oggetto oggetto = oggettoRepository.findById(body.oggettoId())
                 .orElseThrow(() -> new NotFoundException("Carta con id " + body.oggettoId() + " non trovata"));
 
+        if (Boolean.TRUE.equals(body.faiSpazio())) {
+            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            riscrivi(binder, prima, Disposizione.inserisci(prima, totale(binder), indice(binder, body.pagina(), body.posizione()), oggetto));
+            return slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.pagina(), body.posizione())
+                    .map(SlotBinderResponseDTO::from)
+                    .orElseThrow();
+        }
         SlotBinder slot = slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.pagina(), body.posizione())
                 .orElseGet(() -> new SlotBinder(binder, body.pagina(), body.posizione(), oggetto));
         slot.setOggetto(oggetto);
@@ -122,10 +167,15 @@ public class BinderService {
     }
 
     @Transactional
-    public void svuota(Utente utente, UUID id, int pagina, int posizione) {
-        findBinder(utente, id);
+    public void svuota(Utente utente, UUID id, int pagina, int posizione, boolean faiSpazio) {
+        Binder binder = findBinder(utente, id);
         SlotBinder slot = slotRepository.findByBinderIdAndPaginaAndPosizione(id, pagina, posizione)
                 .orElseThrow(() -> new NotFoundException("La tasca " + (posizione + 1) + " di pagina " + (pagina + 1) + " è già vuota"));
+        if (faiSpazio) {
+            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            riscrivi(binder, prima, Disposizione.togli(prima, totale(binder), indice(binder, pagina, posizione)));
+            return;
+        }
         slotRepository.delete(slot);
     }
 
@@ -140,6 +190,12 @@ public class BinderService {
 
         SlotBinder partenza = slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.daPagina(), body.daPosizione())
                 .orElseThrow(() -> new NotFoundException("Nella tasca di partenza non c'è nessuna carta"));
+        if (Boolean.TRUE.equals(body.faiSpazio())) {
+            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            riscrivi(binder, prima, Disposizione.sposta(prima, totale(binder),
+                    indice(binder, body.daPagina(), body.daPosizione()), indice(binder, body.aPagina(), body.aPosizione())));
+            return;
+        }
         slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.aPagina(), body.aPosizione())
                 .ifPresentOrElse(
                         // arrivo occupato: si scambiano le carte, le righe restano dove sono.
@@ -153,6 +209,43 @@ public class BinderService {
                             partenza.setPagina(body.aPagina());
                             partenza.setPosizione(body.aPosizione());
                         });
+    }
+
+    // tutte le carte, comprese le copie, tornano compatte dalla prima tasca nell'ordine del criterio
+    @Transactional
+    public List<SlotBinderResponseDTO> riordina(Utente utente, UUID id, CriterioOrdine criterio) {
+        Binder binder = findBinder(utente, id);
+        TreeMap<Integer, Oggetto> prima = tasche(binder);
+        List<Oggetto> carte = prima.values().stream().sorted(OrdineCarte.comparatore(criterio)).toList();
+        riscrivi(binder, prima, compatte(carte));
+        return slot(id);
+    }
+
+    // sostituisce tutte le tasche con quelle ricevute: serve all'Annulla del riordino
+    @Transactional
+    public List<SlotBinderResponseDTO> ripristina(Utente utente, UUID id, List<DisposizioneSlotDTO> body) {
+        Binder binder = findBinder(utente, id);
+        // il @Valid sugli elementi di una lista nel body non è garantito: senza questo controllo un null darebbe 500
+        for (DisposizioneSlotDTO s : body) {
+            if (s == null || s.pagina() == null || s.posizione() == null || s.oggettoId() == null || s.pagina() < 0 || s.posizione() < 0) {
+                throw new BadRequestException("Ogni tasca deve avere pagina, posizione e carta valide");
+            }
+        }
+        Map<UUID, Oggetto> trovate = oggettoRepository.findAllById(body.stream().map(DisposizioneSlotDTO::oggettoId).toList()).stream()
+                .collect(Collectors.toMap(Oggetto::getId, Function.identity()));
+        TreeMap<Integer, Oggetto> dopo = new TreeMap<>();
+        for (DisposizioneSlotDTO s : body) {
+            controllaPosizione(binder, s.pagina(), s.posizione());
+            Oggetto oggetto = trovate.get(s.oggettoId());
+            if (oggetto == null) {
+                throw new NotFoundException("Carta con id " + s.oggettoId() + " non trovata");
+            }
+            if (dopo.put(indice(binder, s.pagina(), s.posizione()), oggetto) != null) {
+                throw new BadRequestException("Due carte nella stessa tasca");
+            }
+        }
+        riscrivi(binder, tasche(binder), dopo);
+        return slot(id);
     }
 
     @Transactional
@@ -194,6 +287,61 @@ public class BinderService {
     private Binder findBinder(Utente utente, UUID id) {
         return binderRepository.findByIdAndUtenteId(id, utente.getId())
                 .orElseThrow(() -> new NotFoundException("Binder con id " + id + " non trovato"));
+    }
+
+    // tasche occupate come mappa indice lineare (pagina * tasche + posizione) -> carta
+    private TreeMap<Integer, Oggetto> tasche(Binder binder) {
+        TreeMap<Integer, Oggetto> tasche = new TreeMap<>();
+        slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId())
+                .forEach(s -> tasche.put(indice(binder, s.getPagina(), s.getPosizione()), s.getOggetto()));
+        return tasche;
+    }
+
+    private static TreeMap<Integer, Oggetto> compatte(List<Oggetto> carte) {
+        TreeMap<Integer, Oggetto> tasche = new TreeMap<>();
+        for (int i = 0; i < carte.size(); i++) {
+            tasche.put(i, carte.get(i));
+        }
+        return tasche;
+    }
+
+    private static int indice(Binder binder, int pagina, int posizione) {
+        return pagina * binder.getTasche() + posizione;
+    }
+
+    private static int totale(Binder binder) {
+        return binder.getPagine() * binder.getTasche();
+    }
+
+    // riscrive solo le tasche che cambiano. Prima si cancellano e si manda la DELETE al DB (flush), poi si
+    // inseriscono le nuove: Hibernate altrimenti farebbe gli INSERT prima e violerebbe il vincolo UNIQUE
+    private void riscrivi(Binder binder, SortedMap<Integer, Oggetto> prima, SortedMap<Integer, Oggetto> dopo) {
+        Set<Integer> cambiate = new HashSet<>();
+        prima.forEach((i, carta) -> {
+            Oggetto nuova = dopo.get(i);
+            if (nuova == null || !nuova.getId().equals(carta.getId())) cambiate.add(i);
+        });
+        dopo.forEach((i, carta) -> {
+            if (!prima.containsKey(i)) cambiate.add(i);
+        });
+        if (cambiate.isEmpty()) {
+            return;
+        }
+        List<SlotBinder> vecchie = slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId()).stream()
+                .filter(s -> cambiate.contains(indice(binder, s.getPagina(), s.getPosizione())))
+                .toList();
+        slotRepository.deleteAll(vecchie);
+        slotRepository.flush();
+        slotRepository.saveAll(cambiate.stream()
+                .filter(dopo::containsKey)
+                .map(i -> new SlotBinder(binder, i / binder.getTasche(), i % binder.getTasche(), dopo.get(i)))
+                .toList());
+    }
+
+    private List<SlotBinderResponseDTO> slot(UUID binderId) {
+        return slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binderId).stream()
+                .map(SlotBinderResponseDTO::from)
+                .toList();
     }
 
     private Oggetto cartaCopertina(UUID oggettoId) {

@@ -1,11 +1,12 @@
-import { ArrowLeft, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { ArrowLeft, BookPlus, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Button, LinkBottone } from '../components/Button'
 import { GrigliaCartePaginata } from '../components/GrigliaCartePaginata'
 import { ModaleCarta } from '../components/ModaleCarta'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
+import { ModaleBinder } from '../features/binder/ModaleBinder'
 import { BarraCollezione } from '../features/collezione/BarraCollezione'
 import { useCollezionePagina } from '../features/collezione/useCollezionePagina'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
@@ -30,6 +31,7 @@ export function PokemonPage() {
   const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione, carte)
   const location = useLocation()
   const navigate = useNavigate()
+  const [checklistAperta, setChecklistAperta] = useState(false)
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
 
   // quante pagine di Pokémon ci sono nella cronologia dopo il Pokédex: 1 arrivando dall'indice,
@@ -99,7 +101,24 @@ export function PokemonPage() {
               .join(' · ')}
           </p>
         </div>
+        {/* barra presente = utente loggato */}
+        {barra && data && data.length > 0 && (
+          <Button variante="chiaro" dimensione="sm" onClick={() => setChecklistAperta(true)} className="sm:ml-auto">
+            <BookPlus aria-hidden className="size-4" />
+            Crea binder checklist
+          </Button>
+        )}
       </header>
+
+      {data && (
+        <ModaleBinder
+          aperta={checklistAperta}
+          binder={null}
+          checklist={{ numeroPokedex: pokemon.numero, nome: pokemon.nome, carte: data.length }}
+          onChiudi={() => setChecklistAperta(false)}
+          onCreato={(binder) => navigate(`/binder/${binder.id}`)}
+        />
+      )}
 
       {barra && <BarraCollezione {...barra} />}
 

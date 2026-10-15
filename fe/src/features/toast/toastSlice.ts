@@ -6,6 +6,9 @@ export interface Toast {
   id: string
   tipo: TipoToast
   messaggio: string
+  // etichetta del bottone; cosa fa lo sa useToast (le funzioni non vanno nello store)
+  azione?: string
+  durata?: number
 }
 
 const MASSIMO_VISIBILI = 4
@@ -19,8 +22,8 @@ const toastSlice = createSlice({
         state.push(action.payload)
         if (state.length > MASSIMO_VISIBILI) state.shift()
       },
-      prepare(tipo: TipoToast, messaggio: string) {
-        return { payload: { id: nanoid(), tipo, messaggio } }
+      prepare(tipo: TipoToast, messaggio: string, opzioni: { azione?: string; durata?: number } = {}) {
+        return { payload: { id: nanoid(), tipo, messaggio, ...opzioni } }
       },
     },
     toastRimosso(state, action: PayloadAction<string>) {

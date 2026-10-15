@@ -1,6 +1,7 @@
-import { ArrowLeft, Book, BookOpen, Layers, Maximize2, Minimize2, Settings2 } from 'lucide-react'
+import { ArrowDownWideNarrow, ArrowLeft, BetweenHorizontalStart, Book, BookOpen, Layers, Maximize2, Minimize2, Settings2 } from 'lucide-react'
 import { Button } from '../../../components/Button'
 import type { Binder } from '../../../types/api'
+import { cn } from '../../../utils/cn'
 import type { Fase } from './costanti'
 
 interface Props {
@@ -10,15 +11,18 @@ interface Props {
   doppia: boolean
   cassettoLaterale: boolean
   espanso: boolean
+  faiSpazio: boolean
   onApri: () => void
   onChiudi: (destinazione: 'mensola' | 'resta') => void
   onCarte: () => void
   onAlternaEspanso: () => void
   onImpostazioni: (binder: Binder) => void
+  onFaiSpazio: (acceso: boolean) => void
+  onOrdina: () => void
 }
 
-// barra sopra il binder aperto: ritorno ai binder, nome e conteggio, Apri/Chiudi, carte,
-// schermo intero e impostazioni
+// barra sopra il binder aperto: ritorno ai binder, nome e conteggio, Apri/Chiudi, carte, Fai spazio,
+// Ordina per, schermo intero e impostazioni
 export function BarraBinder({
   binder,
   carteInserite,
@@ -26,11 +30,14 @@ export function BarraBinder({
   doppia,
   cassettoLaterale,
   espanso,
+  faiSpazio,
   onApri,
   onChiudi,
   onCarte,
   onAlternaEspanso,
   onImpostazioni,
+  onFaiSpazio,
+  onOrdina,
 }: Props) {
   return (
   <div className="flex shrink-0 items-center gap-3">
@@ -71,6 +78,29 @@ export function BarraBinder({
       >
         <Layers aria-hidden className="size-4" />
         <span className="hidden sm:inline">Carte</span>
+      </Button>
+      <Button
+        variante="chiaro"
+        dimensione="sm"
+        onClick={() => onFaiSpazio(!faiSpazio)}
+        aria-pressed={faiSpazio}
+        title={faiSpazio ? 'Fai spazio acceso: le carte scalano invece di essere sostituite' : 'Fai spazio spento'}
+        className={cn(faiSpazio && 'bg-blu-500 text-white hover:bg-blu-500/90')}
+      >
+        <BetweenHorizontalStart aria-hidden className="size-4" />
+        <span className="hidden sm:inline">Fai spazio</span>
+        <span className="sr-only sm:hidden">Fai spazio</span>
+      </Button>
+      <Button
+        variante="chiaro"
+        dimensione="sm"
+        onClick={onOrdina}
+        disabled={carteInserite === 0}
+        aria-label="Ordina le carte"
+        title="Ordina per…"
+      >
+        <ArrowDownWideNarrow aria-hidden className="size-4" />
+        <span className="hidden sm:inline">Ordina</span>
       </Button>
       <Button
         variante="chiaro"

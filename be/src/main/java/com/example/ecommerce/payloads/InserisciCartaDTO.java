@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-// mette una carta in una tasca; se la tasca era occupata, la carta precedente viene sostituita
+// mette una carta in una tasca; se la tasca era occupata, la carta precedente viene sostituita (o scala, con faiSpazio)
 public record InserisciCartaDTO(
         @NotNull(message = "La pagina è obbligatoria")
         @Min(value = 0, message = "La pagina non può essere negativa")
@@ -16,6 +16,9 @@ public record InserisciCartaDTO(
         Integer posizione,
 
         @NotNull(message = "La carta è obbligatoria")
-        UUID oggettoId
+        UUID oggettoId,
+
+        // true: in una tasca occupata le carte avanzano fino al primo buco invece di essere sostituite
+        Boolean faiSpazio
 ) {
 }
