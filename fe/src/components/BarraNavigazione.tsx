@@ -10,6 +10,10 @@ import { VOCI_PRINCIPALI, voceAttiva } from './vociNavigazione'
 const QUOTA_NASCONDI = 80
 const SOGLIA_MOVIMENTO = 8
 
+// molla senza rimbalzo per la bolla: con `molla` (smorzamento ~0.6) andando da un capo all'altro
+// la bolla oltrepassava l'arrivo di decine di pixel e usciva dalla barra
+const MOLLA_BOLLA = { type: 'spring', stiffness: 420, damping: 42 } as const
+
 // true scorrendo in giù, false appena si risale (o vicino all'inizio della pagina)
 function useNascostaScorrendo() {
   const [nascosta, setNascosta] = useState(false)
@@ -43,7 +47,7 @@ export function BarraNavigazione() {
       // 200%: esce del tutto, anche con la zona del gesto home sotto
       animate={{ y: nascosta ? '200%' : '0%' }}
       transition={molla}
-      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-md rounded-t-2xl rounded-b-[2.25rem] bg-notte/55 shadow-2xl shadow-ombra/40 ring-1 ring-white/15 backdrop-blur-xl backdrop-saturate-150 md:hidden"
+      className="fixed inset-x-3 overflow-hidden bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-md rounded-t-2xl rounded-b-[2.25rem] bg-notte/55 shadow-2xl shadow-ombra/40 ring-1 ring-white/15 backdrop-blur-xl backdrop-saturate-150 md:hidden"
     >
       <ul className="grid h-16 grid-cols-5 px-1.5">
         {VOCI_PRINCIPALI.map((voce, indice) => (
@@ -61,7 +65,7 @@ export function BarraNavigazione() {
                     {attiva && (
                       <motion.span
                         layoutId="barra-attiva"
-                        transition={molla}
+                        transition={MOLLA_BOLLA}
                         className={cn(
                           'absolute inset-x-0.5 inset-y-1.5 rounded-2xl bg-white/15 ring-1 ring-white/20',
                           // sulle voci ai lati la bolla segue la U della barra: angoli esterni concentrici a
