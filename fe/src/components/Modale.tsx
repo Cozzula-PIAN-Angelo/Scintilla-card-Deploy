@@ -64,7 +64,8 @@ export function Modale({ aperto, onChiudi, titolo, children, larghezza = 'max-w-
               type="button"
               onClick={onChiudi}
               aria-label="Chiudi"
-              className="absolute right-4 top-4 grid size-10 place-items-center rounded-full text-testo-2 transition-colors hover:bg-tenue"
+              // sfondo e ombra: resta visibile anche sopra un'immagine (la carta nel dettaglio, da telefono)
+              className="absolute right-4 top-4 z-10 grid size-10 place-items-center rounded-full bg-superficie/85 text-testo-2 shadow-sm shadow-ombra/20 backdrop-blur transition-colors hover:bg-tenue"
             >
               <X aria-hidden className="size-5" />
             </button>

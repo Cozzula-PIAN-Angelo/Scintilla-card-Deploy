@@ -6,6 +6,7 @@ import { piuPregiata } from '../features/collezione/varianti'
 import { RigaArtisti } from '../features/artisti/RigaArtisti'
 import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
 import type { Oggetto, Variante } from '../types/api'
+import { useIndietroChiude } from '../hooks/useIndietroChiude'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { cn } from '../utils/cn'
 import { formattaData, formattaPrezzo } from '../utils/formato'
@@ -79,6 +80,8 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
 
   // frecce della tastiera, solo a dettaglio aperto
   const aperto = oggetto !== null
+  // l'indietro del telefono chiude il dettaglio
+  useIndietroChiude(aperto, onChiudi)
   const tasti = useRef({ vaiIndietro, vaiAvanti })
   tasti.current = { vaiIndietro, vaiAvanti }
   useEffect(() => {
@@ -165,7 +168,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
                 <CalendarDays aria-hidden className="size-4" />
                 Nel catalogo dal {formattaData(mostrato.createdAt)}
               </p>
-              <RigaArtisti artisti={mostrato.artisti} onNavigazione={onChiudi} />
+              <RigaArtisti artisti={mostrato.artisti} onNavigazione={onChiudi} sostituisci />
               <div className="flex items-center gap-3 rounded-2xl bg-tenue p-3 pr-5">
                 <PulsanteCuore attivo={preferito} onToggle={() => onTogglePreferito(mostrato)} nome={mostrato.nome} />
                 <span className="text-sm font-semibold text-testo">

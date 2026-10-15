@@ -7,10 +7,12 @@ interface Props {
   artisti: ArtistaCarta[]
   // il link porta via dalla pagina: chi mostra la riga in un modale lo chiude
   onNavigazione?: () => void
+  // il link prende il posto della voce di cronologia attuale (dal dettaglio carta: indietro torna alla griglia)
+  sostituisci?: boolean
 }
 
 // "Illustrazione di A e B" nel dettaglio della carta, un link per autore
-export function RigaArtisti({ artisti, onNavigazione }: Props) {
+export function RigaArtisti({ artisti, onNavigazione, sostituisci }: Props) {
   if (artisti.length === 0) return null
   return (
     <p className="flex items-start gap-2 text-sm text-testo/70">
@@ -24,6 +26,7 @@ export function RigaArtisti({ artisti, onNavigazione }: Props) {
               <Link
                 to={`/artisti/${artista.slug}`}
                 onClick={onNavigazione}
+                replace={sostituisci}
                 className="font-semibold text-testo underline decoration-accento/50 underline-offset-2 hover:decoration-accento"
               >
                 {artista.nome}
