@@ -3,6 +3,7 @@ import { Button } from '../../../components/Button'
 import type { Binder } from '../../../types/api'
 import { percentuale } from '../../statistiche/calcoli'
 import type { StatisticheBinder } from '../statisticheBinder'
+import { BarraTasche } from './BarraTasche'
 import { cn } from '../../../utils/cn'
 import type { Fase } from './costanti'
 
@@ -64,10 +65,13 @@ export function BarraBinder({
       </div>
       {/* a pagina singola l'interno copertina non si vede: possedute e valore stanno qui */}
       {!doppia && (
-        <p className="truncate text-xs text-testo/70">
-          {statistiche.possedute} / {statistiche.piene} possedute · {percentuale(statistiche.possedute, statistiche.piene)}% · ≈{' '}
-          {Math.round(statistiche.valore).toLocaleString('it-IT')} €
-        </p>
+        <div className="mt-0.5 flex items-center justify-center gap-2 text-xs tabular-nums text-testo/70">
+          <BarraTasche statistiche={statistiche} possedute="bg-accento" daTrovare="bg-accento/35" className="h-1.5 w-12 shrink-0 bg-tenue" />
+          <p className="truncate">
+            <strong className="font-semibold text-testo">{statistiche.possedute}</strong> / {statistiche.piene} possedute ·{' '}
+            {percentuale(statistiche.possedute, statistiche.piene)}% · ≈ {Math.round(statistiche.valore).toLocaleString('it-IT')} €
+          </p>
+        </div>
       )}
     </div>
     <div className="flex gap-2">
