@@ -306,3 +306,14 @@
     animation: pulsa 1.6s ease-in-out infinite !important;
   }
 }
+
+/* spazio della barra di navigazione in basso (BarraNavigazione): solo da telefono e fuori dal binder
+   aperto. Lo usano il fondo della pagina e i toast */
+.con-barra {
+  --spazio-barra: calc(4rem + env(safe-area-inset-bottom));
+}
+@media (width >= 48rem) {
+  .con-barra {
+    --spazio-barra: 0px;
+  }
+}
