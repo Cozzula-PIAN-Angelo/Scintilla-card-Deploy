@@ -46,7 +46,7 @@ export function BarraNavigazione() {
       className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-md rounded-t-2xl rounded-b-[2.25rem] bg-notte/55 shadow-2xl shadow-ombra/40 ring-1 ring-white/15 backdrop-blur-xl backdrop-saturate-150 md:hidden"
     >
       <ul className="grid h-16 grid-cols-5 px-1.5">
-        {VOCI_PRINCIPALI.map((voce) => (
+        {VOCI_PRINCIPALI.map((voce, indice) => (
           <li key={voce.a}>
             <NavLink
               to={voce.a}
@@ -62,7 +62,13 @@ export function BarraNavigazione() {
                       <motion.span
                         layoutId="barra-attiva"
                         transition={molla}
-                        className="absolute inset-x-0.5 inset-y-1.5 rounded-2xl bg-white/15 ring-1 ring-white/20"
+                        className={cn(
+                          'absolute inset-x-0.5 inset-y-1.5 rounded-2xl bg-white/15 ring-1 ring-white/20',
+                          // sulle voci ai lati la bolla segue la U della barra: angoli esterni concentrici a
+                          // quelli della barra (raggio della barra meno la distanza dal bordo, ~0.4rem)
+                          indice === 0 && 'rounded-tl-[0.625rem] rounded-bl-[1.875rem]',
+                          indice === VOCI_PRINCIPALI.length - 1 && 'rounded-tr-[0.625rem] rounded-br-[1.875rem]',
+                        )}
                       />
                     )}
                     <motion.span whileTap={{ scale: 0.85 }} className="relative flex flex-col items-center gap-1">
