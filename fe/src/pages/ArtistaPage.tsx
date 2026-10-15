@@ -1,5 +1,5 @@
-import { ArrowLeft, Palette } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { ArrowLeft, BookPlus, Palette } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { statoErrore } from '../app/errori'
 import { Button, LinkBottone } from '../components/Button'
@@ -11,6 +11,7 @@ import { coautori, elencoNomi, SLUG_SCONOSCIUTO } from '../features/artisti/arti
 import { useGetArtistiQuery, useGetCarteArtistaQuery } from '../features/artisti/artistiApi'
 import { AvatarArtista } from '../features/artisti/AvatarArtista'
 import { memoriaArtisti } from '../features/artisti/memoriaArtisti'
+import { ModaleBinder } from '../features/binder/ModaleBinder'
 import { BarraCollezione } from '../features/collezione/BarraCollezione'
 import { useCollezionePagina } from '../features/collezione/useCollezionePagina'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
@@ -33,6 +34,7 @@ export function ArtistaPage() {
   const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione, carte)
   const location = useLocation()
   const navigate = useNavigate()
+  const [checklistAperta, setChecklistAperta] = useState(false)
   const nonTrovato = (elenco !== undefined && !artista) || statoErrore(error) === 404
   useTitolo(artista?.nome ?? (nonTrovato ? 'Artista non trovato' : 'Artisti'))
 
@@ -94,7 +96,24 @@ export function ArtistaPage() {
             </p>
           )}
         </div>
+        {/* barra presente = utente loggato. Artista sconosciuto: non è un artista vero, niente checklist */}
+        {barra && slug !== SLUG_SCONOSCIUTO && data && data.length > 0 && (
+          <Button variante="chiaro" dimensione="sm" onClick={() => setChecklistAperta(true)} className="sm:ml-auto">
+            <BookPlus aria-hidden className="size-4" />
+            Crea binder checklist
+          </Button>
+        )}
       </header>
+
+      {data && slug !== SLUG_SCONOSCIUTO && (
+        <ModaleBinder
+          aperta={checklistAperta}
+          binder={null}
+          checklist={{ artista: slug, nome, carte: data.length }}
+          onChiudi={() => setChecklistAperta(false)}
+          onCreato={(binder) => navigate(`/binder/${binder.id}`)}
+        />
+      )}
 
       {barra && <BarraCollezione {...barra} />}
 

@@ -38,11 +38,11 @@ interface Props {
   onChiudi: () => void
   onCreato?: (binder: Binder) => void
   onEliminato?: () => void
-  // nuovo binder checklist di un set o di un Pokémon: suo nome, pagine calcolate dalle sue carte
+  // nuovo binder checklist di un set, di un Pokémon o di un artista: suo nome, pagine calcolate dalle sue carte
   checklist?: Checklist
 }
 
-export type Checklist = { nome: string; carte: number } & ({ espansioneId: string } | { numeroPokedex: number })
+export type Checklist = { nome: string; carte: number } & ({ espansioneId: string } | { numeroPokedex: number } | { artista: string })
 
 type StatoImmagine = { tipo: 'esistente' } | { tipo: 'nuova'; blob: Blob; url: string } | { tipo: 'nessuna' }
 
@@ -123,6 +123,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, checklist }: Om
       mostraMancanti,
       espansioneId: checklist && 'espansioneId' in checklist ? checklist.espansioneId : undefined,
       numeroPokedex: checklist && 'numeroPokedex' in checklist ? checklist.numeroPokedex : undefined,
+      artista: checklist && 'artista' in checklist ? checklist.artista : undefined,
     }
     try {
       // binder già creato in un tentativo precedente (fallito sull'immagine): si modifica quello,
@@ -202,7 +203,9 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, checklist }: Om
             {setTroppoGrande
               ? delSet
                 ? 'Il set non ci sta: scegli più tasche'
-                : 'Le carte di questo Pokémon non ci stanno: scegli più tasche'
+                : 'artista' in checklist
+                  ? 'Le carte di questo artista non ci stanno: scegli più tasche'
+                  : 'Le carte di questo Pokémon non ci stanno: scegli più tasche'
               : `${pagineSet} pagine per le ${checklist.carte} carte ${delSet ? 'del set' : `di ${checklist.nome}`}`}
           </p>
         ) : (

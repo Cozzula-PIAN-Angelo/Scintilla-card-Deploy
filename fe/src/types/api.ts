@@ -124,6 +124,8 @@ export interface DatiBinder {
   // solo in creazione: binder checklist del set, pagine calcolate dal backend
   espansioneId?: string
   numeroPokedex?: number
+  // slug dell'artista
+  artista?: string
 }
 
 export type CriterioOrdine = 'SET_NUMERO' | 'POKEDEX' | 'NOME' | 'RARITA'

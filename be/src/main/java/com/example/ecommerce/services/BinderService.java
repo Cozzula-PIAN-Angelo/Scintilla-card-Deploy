@@ -30,12 +30,14 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // l'Utente arriva sempre dal token: ogni binder si cerca per id E proprietario,
 // quindi quello di un altro utente risponde 404 come se non esistesse
@@ -44,6 +46,8 @@ import java.util.stream.Collectors;
 public class BinderService {
 
     private static final Set<Integer> TASCHE_AMMESSE = Set.of(4, 9, 12);
+    // come il @Max di BinderDTO: con 12 tasche ci stanno 1800 carte, anche l'artista con più carte (5ban Graphics, 1651)
+    private static final int PAGINE_MASSIME = 150;
     // il browser ridimensiona e comprime prima dell'invio: ne arrivano 100-300 KB
     public static final int DIMENSIONE_MASSIMA_IMMAGINE = 1024 * 1024;
 
@@ -52,6 +56,7 @@ public class BinderService {
     private final ImmagineBinderRepository immagineRepository;
     private final OggettoRepository oggettoRepository;
     private final CollezioneService collezioneService;
+    private final ElencoArtisti elencoArtisti;
 
     @Transactional(readOnly = true)
     public List<BinderResponseDTO> getBinder(Utente utente) {
@@ -78,9 +83,7 @@ public class BinderService {
     public BinderResponseDTO crea(Utente utente, BinderDTO body) {
         controllaTasche(body.tasche());
         List<Oggetto> carte = carteChecklist(body);
-        int pagine = carte.isEmpty() ? body.pagine() : pagineChecklist(carte.size(), body.tasche(), body.espansioneId() != null
-                ? "Il set non ci sta: scegli più tasche"
-                : "Le carte di questo Pokémon non ci stanno: scegli più tasche");
+        int pagine = carte.isEmpty() ? body.pagine() : pagineChecklist(carte.size(), body.tasche(), troppe(body));
         Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), pagine, body.colore().toLowerCase(), body.motivo());
         binder.setMostraMancanti(body.mostraMancanti());
         binder.setCartaCopertina(cartaCopertina(body.cartaCopertinaId()));
@@ -90,10 +93,11 @@ public class BinderService {
         return BinderResponseDTO.from(binder, carte.size());
     }
 
-    // carte del binder checklist (di un set o di un Pokémon) dal set più vecchio, poi per numero; vuota per un binder normale
+    // carte del binder checklist (di un set, di un Pokémon o di un artista) dal set più vecchio, poi per numero;
+    // vuota per un binder normale
     private List<Oggetto> carteChecklist(BinderDTO body) {
-        if (body.espansioneId() != null && body.numeroPokedex() != null) {
-            throw new BadRequestException("Un binder checklist è di un set o di un Pokémon, non di entrambi");
+        if (Stream.of(body.espansioneId(), body.numeroPokedex(), body.artista()).filter(Objects::nonNull).count() > 1) {
+            throw new BadRequestException("Un binder checklist è di un set, di un Pokémon o di un artista, non di più");
         }
         List<Oggetto> carte;
         if (body.espansioneId() != null) {
@@ -102,15 +106,27 @@ public class BinderService {
         } else if (body.numeroPokedex() != null) {
             carte = oggettoRepository.findByNumeroPokedex(body.numeroPokedex());
             if (carte.isEmpty()) throw new BadRequestException("Il Pokémon non ha ancora carte nel catalogo");
+        } else if (body.artista() != null) {
+            // tutte le grafie dell'artista, anche con coautori, come nella sua pagina
+            ElencoArtisti.Artista artista = elencoArtisti.perSlug(body.artista())
+                    .orElseThrow(() -> new NotFoundException("Artista non trovato: " + body.artista()));
+            carte = oggettoRepository.findByArtistaIn(artista.grafie());
+            if (carte.isEmpty()) throw new BadRequestException("L'artista non ha ancora carte nel catalogo");
         } else {
             return List.of();
         }
         return carte.stream().sorted(OrdineCarte.comparatore(CriterioOrdine.SET_NUMERO)).toList();
     }
 
+    private static String troppe(BinderDTO body) {
+        if (body.espansioneId() != null) return "Il set non ci sta: scegli più tasche";
+        if (body.numeroPokedex() != null) return "Le carte di questo Pokémon non ci stanno: scegli più tasche";
+        return "Le carte di questo artista non ci stanno: scegli più tasche";
+    }
+
     private static int pagineChecklist(int carte, int tasche, String troppe) {
         int pagine = Math.max(2, (carte + tasche - 1) / tasche);
-        if (pagine > 60) {
+        if (pagine > PAGINE_MASSIME) {
             throw new BadRequestException(troppe);
         }
         return pagine;
