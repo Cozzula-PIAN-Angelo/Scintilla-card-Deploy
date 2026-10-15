@@ -3,21 +3,20 @@ import { Scintilla } from '../components/Forme'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { VetrinaEspansioni } from '../features/espansioni/VetrinaEspansioni'
 import { Hero } from '../features/oggetti/Hero'
-import { useGetOggettiQuery } from '../features/oggetti/oggettiApi'
-import { ORDINAMENTO_PREDEFINITO } from '../features/oggetti/ordinamenti'
+import { useUltimeCarte } from '../features/oggetti/useUltimeCarte'
 import { useTitolo } from '../hooks/useTitolo'
 
 export function CatalogoPage() {
   useTitolo('Catalogo')
-  // solo per il ventaglio dell'hero: le ultime carte arrivate
-  const { data: ultime } = useGetOggettiQuery({ page: 0, size: 12, sort: ORDINAMENTO_PREDEFINITO })
+  // solo per l'hero: le prime tre nel ventaglio, le altre sparse sullo sfondo
+  const ultime = useUltimeCarte()
   const sezione = useRef<HTMLElement>(null)
 
   const scorriAlCatalogo = () => sezione.current?.scrollIntoView({ block: 'start' })
 
   return (
     <PaginaAnimata>
-      <Hero vetrina={ultime?.content.filter((o) => o.immagineUrl).slice(0, 3) ?? []} onEsplora={scorriAlCatalogo} />
+      <Hero vetrina={ultime.slice(0, 3)} sfondo={ultime.slice(3)} onEsplora={scorriAlCatalogo} />
 
       <section ref={sezione} id="catalogo" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
         <div className="mb-8">
