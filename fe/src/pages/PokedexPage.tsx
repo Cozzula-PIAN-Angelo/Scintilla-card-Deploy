@@ -42,7 +42,8 @@ export function PokedexPage() {
         <p className="mt-1 text-testo/70">Scegli un Pokémon per vedere tutte le carte in cui compare.</p>
       </div>
 
-      <div className="sticky top-16 z-20 -mx-4 mb-10 bg-sfondo/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+      {/* top-15: attaccata alla navbar ridotta dallo scorrimento (pulsanti da 44px + py-2 = 60px) */}
+      <div className="sticky top-15 z-20 -mx-4 mb-10 bg-sfondo/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
         <label className="relative block max-w-md">
           <span className="sr-only">Cerca un Pokémon</span>
           <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-accento" />
