@@ -12,6 +12,8 @@ import com.example.ecommerce.payloads.BinderDTO;
 import com.example.ecommerce.payloads.BinderDettaglioDTO;
 import com.example.ecommerce.payloads.BinderResponseDTO;
 import com.example.ecommerce.payloads.CopiaDTO;
+import com.example.ecommerce.payloads.CriterioOrdine;
+import com.example.ecommerce.payloads.DisposizioneSlotDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
@@ -24,10 +26,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // l'Utente arriva sempre dal token: ogni binder si cerca per id E proprietario,
@@ -155,6 +161,37 @@ public class BinderService {
                         });
     }
 
+    // tutte le carte, comprese le copie, tornano compatte dalla prima tasca nell'ordine del criterio
+    @Transactional
+    public List<SlotBinderResponseDTO> riordina(Utente utente, UUID id, CriterioOrdine criterio) {
+        Binder binder = findBinder(utente, id);
+        TreeMap<Integer, Oggetto> prima = tasche(binder);
+        List<Oggetto> carte = prima.values().stream().sorted(OrdineCarte.comparatore(criterio)).toList();
+        riscrivi(binder, prima, compatte(carte));
+        return slot(id);
+    }
+
+    // sostituisce tutte le tasche con quelle ricevute: serve all'Annulla del riordino
+    @Transactional
+    public List<SlotBinderResponseDTO> ripristina(Utente utente, UUID id, List<DisposizioneSlotDTO> body) {
+        Binder binder = findBinder(utente, id);
+        Map<UUID, Oggetto> trovate = oggettoRepository.findAllById(body.stream().map(DisposizioneSlotDTO::oggettoId).toList()).stream()
+                .collect(Collectors.toMap(Oggetto::getId, Function.identity()));
+        TreeMap<Integer, Oggetto> dopo = new TreeMap<>();
+        for (DisposizioneSlotDTO s : body) {
+            controllaPosizione(binder, s.pagina(), s.posizione());
+            Oggetto oggetto = trovate.get(s.oggettoId());
+            if (oggetto == null) {
+                throw new NotFoundException("Carta con id " + s.oggettoId() + " non trovata");
+            }
+            if (dopo.put(indice(binder, s.pagina(), s.posizione()), oggetto) != null) {
+                throw new BadRequestException("Due carte nella stessa tasca");
+            }
+        }
+        riscrivi(binder, tasche(binder), dopo);
+        return slot(id);
+    }
+
     @Transactional
     public BinderResponseDTO salvaImmagine(Utente utente, UUID id, byte[] contenuto) {
         Binder binder = findBinder(utente, id);
@@ -194,6 +231,57 @@ public class BinderService {
     private Binder findBinder(Utente utente, UUID id) {
         return binderRepository.findByIdAndUtenteId(id, utente.getId())
                 .orElseThrow(() -> new NotFoundException("Binder con id " + id + " non trovato"));
+    }
+
+    // tasche occupate come mappa indice lineare (pagina * tasche + posizione) -> carta
+    private TreeMap<Integer, Oggetto> tasche(Binder binder) {
+        TreeMap<Integer, Oggetto> tasche = new TreeMap<>();
+        slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId())
+                .forEach(s -> tasche.put(indice(binder, s.getPagina(), s.getPosizione()), s.getOggetto()));
+        return tasche;
+    }
+
+    private static TreeMap<Integer, Oggetto> compatte(List<Oggetto> carte) {
+        TreeMap<Integer, Oggetto> tasche = new TreeMap<>();
+        for (int i = 0; i < carte.size(); i++) {
+            tasche.put(i, carte.get(i));
+        }
+        return tasche;
+    }
+
+    private static int indice(Binder binder, int pagina, int posizione) {
+        return pagina * binder.getTasche() + posizione;
+    }
+
+    // riscrive solo le tasche che cambiano. Prima si cancellano e si manda la DELETE al DB (flush), poi si
+    // inseriscono le nuove: Hibernate altrimenti farebbe gli INSERT prima e violerebbe il vincolo UNIQUE
+    private void riscrivi(Binder binder, SortedMap<Integer, Oggetto> prima, SortedMap<Integer, Oggetto> dopo) {
+        Set<Integer> cambiate = new HashSet<>();
+        prima.forEach((i, carta) -> {
+            Oggetto nuova = dopo.get(i);
+            if (nuova == null || !nuova.getId().equals(carta.getId())) cambiate.add(i);
+        });
+        dopo.forEach((i, carta) -> {
+            if (!prima.containsKey(i)) cambiate.add(i);
+        });
+        if (cambiate.isEmpty()) {
+            return;
+        }
+        List<SlotBinder> vecchie = slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId()).stream()
+                .filter(s -> cambiate.contains(indice(binder, s.getPagina(), s.getPosizione())))
+                .toList();
+        slotRepository.deleteAll(vecchie);
+        slotRepository.flush();
+        slotRepository.saveAll(cambiate.stream()
+                .filter(dopo::containsKey)
+                .map(i -> new SlotBinder(binder, i / binder.getTasche(), i % binder.getTasche(), dopo.get(i)))
+                .toList());
+    }
+
+    private List<SlotBinderResponseDTO> slot(UUID binderId) {
+        return slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binderId).stream()
+                .map(SlotBinderResponseDTO::from)
+                .toList();
     }
 
     private Oggetto cartaCopertina(UUID oggettoId) {

@@ -6,7 +6,9 @@ import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.payloads.BinderDTO;
 import com.example.ecommerce.payloads.BinderDettaglioDTO;
 import com.example.ecommerce.payloads.BinderResponseDTO;
+import com.example.ecommerce.payloads.DisposizioneSlotDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
+import com.example.ecommerce.payloads.RiordinaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
 import com.example.ecommerce.services.BinderService;
@@ -76,6 +78,21 @@ public class BinderController {
                                            @PathVariable UUID id,
                                            @RequestBody @Valid InserisciCartaDTO body) {
         return binderService.inserisci(utente, id, body);
+    }
+
+    @PostMapping("/{id}/riordina")
+    public List<SlotBinderResponseDTO> riordina(@AuthenticationPrincipal Utente utente,
+                                                @PathVariable UUID id,
+                                                @RequestBody @Valid RiordinaDTO body) {
+        return binderService.riordina(utente, id, body.criterio());
+    }
+
+    // sostituisce tutte le tasche (l'Annulla del riordino). PATCH e non PUT per il CORS
+    @PatchMapping("/{id}/slot")
+    public List<SlotBinderResponseDTO> ripristina(@AuthenticationPrincipal Utente utente,
+                                                  @PathVariable UUID id,
+                                                  @RequestBody @Valid List<@Valid DisposizioneSlotDTO> body) {
+        return binderService.ripristina(utente, id, body);
     }
 
     @PostMapping("/{id}/slot/sposta")
