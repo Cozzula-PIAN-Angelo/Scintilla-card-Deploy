@@ -3,9 +3,10 @@ import { CircleCheck, Info, TriangleAlert, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
 import { toastRimosso, type Toast, type TipoToast } from '../features/toast/toastSlice'
+import { dimenticaAzioneToast, eseguiAzioneToast } from '../features/toast/useToast'
 import { cn } from '../utils/cn'
 
-const DURATA_MS = 4000
+const DURATA_PREDEFINITA_MS = 4000
 
 const STILI: Record<TipoToast, { classe: string; icona: typeof Info; barra: string }> = {
   successo: { classe: 'bg-blu-900 text-white scuro:ring-1 scuro:ring-white/15', icona: CircleCheck, barra: 'bg-giallo-400' },
@@ -33,11 +34,15 @@ function ElementoToast({ toast }: { toast: Toast }) {
   const dispatch = useAppDispatch()
   const stile = STILI[toast.tipo]
   const Icona = stile.icona
+  const durata = toast.durata ?? DURATA_PREDEFINITA_MS
 
   useEffect(() => {
-    const timer = window.setTimeout(() => dispatch(toastRimosso(toast.id)), DURATA_MS)
+    const timer = window.setTimeout(() => dispatch(toastRimosso(toast.id)), durata)
     return () => window.clearTimeout(timer)
-  }, [dispatch, toast.id])
+  }, [dispatch, toast.id, durata])
+
+  // il toast sparisce (tempo scaduto, chiuso o spinto fuori dai nuovi): la sua azione non serve più
+  useEffect(() => () => dimenticaAzioneToast(toast.id), [toast.id])
 
   return (
     <motion.div
@@ -53,7 +58,21 @@ function ElementoToast({ toast }: { toast: Toast }) {
     >
       <div className="flex items-start gap-3 p-4 pr-11">
         <Icona aria-hidden className={cn('mt-0.5 size-5 shrink-0', toast.tipo === 'successo' && 'text-giallo-400')} />
-        <p className="text-sm font-medium">{toast.messaggio}</p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="text-sm font-medium">{toast.messaggio}</p>
+          {toast.azione && (
+            <button
+              type="button"
+              onClick={() => {
+                eseguiAzioneToast(toast.id)
+                dispatch(toastRimosso(toast.id))
+              }}
+              className="rounded-full px-2 py-0.5 text-sm font-bold underline underline-offset-2 transition-opacity hover:opacity-80"
+            >
+              {toast.azione}
+            </button>
+          )}
+        </div>
       </div>
       <button
         type="button"
@@ -68,7 +87,7 @@ function ElementoToast({ toast }: { toast: Toast }) {
         className={cn('absolute bottom-0 left-0 h-1 w-full origin-left', stile.barra)}
         initial={{ scaleX: 1 }}
         animate={{ scaleX: 0 }}
-        transition={{ duration: DURATA_MS / 1000, ease: 'linear' }}
+        transition={{ duration: durata / 1000, ease: 'linear' }}
       />
     </motion.div>
   )

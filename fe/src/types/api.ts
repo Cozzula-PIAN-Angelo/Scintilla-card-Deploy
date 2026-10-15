@@ -121,7 +121,11 @@ export interface DatiBinder {
   motivo: MotivoBinder
   cartaCopertinaId: string | null
   mostraMancanti: boolean
+  // solo in creazione: binder checklist del set, pagine calcolate dal backend
+  espansioneId?: string
 }
+
+export type CriterioOrdine = 'SET_NUMERO' | 'POKEDEX' | 'NOME' | 'RARITA'
 
 export interface CartaEsterna {
   idEsterno: string
