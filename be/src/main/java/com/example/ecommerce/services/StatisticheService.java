@@ -67,7 +67,8 @@ public class StatisticheService {
         List<CartaPreziosaDTO> piuPreziose = righe.stream()
                 .map(r -> {
                     Oggetto carta = carte.get(r.getKey());
-                    return new CartaPreziosaDTO(OggettoResponseDTO.from(carta), r.getValue(),
+                    String nomeSet = carta.getEspansione() == null ? null : carta.getEspansione().getNome();
+                    return new CartaPreziosaDTO(OggettoResponseDTO.from(carta), nomeSet, r.getValue(),
                             carta.getPrezzo().multiply(BigDecimal.valueOf(r.getValue())));
                 })
                 .toList();

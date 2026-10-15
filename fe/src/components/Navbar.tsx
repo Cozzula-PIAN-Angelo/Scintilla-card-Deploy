@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { CircleUserRound, LogOut, UserX, X } from 'lucide-react'
+import { ChartPie, CircleUserRound, LogOut, UserX, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
@@ -13,7 +13,7 @@ import { cn } from '../utils/cn'
 import { Button, LinkBottone } from './Button'
 import { Logo } from './Logo'
 import { PulsanteTema } from './PulsanteTema'
-import { VOCE_ADMIN, VOCI_PRINCIPALI, voceAttiva, type VoceMenu } from './vociNavigazione'
+import { VOCE_ADMIN, VOCE_COLLEZIONE, VOCI_PRINCIPALI, voceAttiva, type VoceMenu } from './vociNavigazione'
 
 export function Navbar() {
   const scrollato = useScrollato(24)
@@ -31,9 +31,9 @@ export function Navbar() {
   const attiva = (voce: VoceMenu, isActive: boolean) => voceAttiva(voce, isActive, pathname)
 
   // da desktop tutte le sezioni stanno qui; da telefono sono nella barra in basso (BarraNavigazione)
-  // e il pannello account tiene solo Admin
+  // e il pannello account tiene Collezione e Admin
   const voci: VoceMenu[] = [...VOCI_PRINCIPALI, ...(isAdmin ? [VOCE_ADMIN] : [])]
-  const vociAccount: VoceMenu[] = isAdmin ? [VOCE_ADMIN] : []
+  const vociAccount: VoceMenu[] = [...(utente ? [VOCE_COLLEZIONE] : []), ...(isAdmin ? [VOCE_ADMIN] : [])]
 
   return (
     <header
@@ -78,6 +78,10 @@ export function Navbar() {
                 <span className="text-sm text-white">
                   Ciao, <strong className="font-semibold text-giallo-400">{utente.username}</strong>
                 </span>
+                <LinkBottone to="/collezione" variante="suScuro" dimensione="sm" title="La mia collezione">
+                  <ChartPie aria-hidden className="size-4" />
+                  Collezione
+                </LinkBottone>
                 <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
                   <LogOut aria-hidden className="size-4" />
                   Esci

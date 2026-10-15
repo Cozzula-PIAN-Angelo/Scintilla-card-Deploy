@@ -11,6 +11,7 @@ import { AdminPage } from './pages/AdminPage'
 import { ArtistaPage } from './pages/ArtistaPage'
 import { ArtistiPage } from './pages/ArtistiPage'
 import { BinderPage } from './pages/BinderPage'
+import { CollezionePage } from './pages/CollezionePage'
 import { CatalogoPage } from './pages/CatalogoPage'
 import { EspansionePage } from './pages/EspansionePage'
 import { LoginPage } from './pages/LoginPage'
@@ -65,6 +66,14 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <PreferitiPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collezione"
+              element={
+                <ProtectedRoute>
+                  <CollezionePage />
                 </ProtectedRoute>
               }
             />

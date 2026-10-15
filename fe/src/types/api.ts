@@ -182,6 +182,7 @@ export interface AvanzamentoSet {
 
 export interface CartaPreziosa {
   oggetto: Oggetto
+  nomeSet: string | null
   copie: number
   // prezzo × copie
   valore: number

@@ -100,6 +100,7 @@ class StatisticheServiceTest {
         assertThat(v.piuPreziose()).extracting(c -> c.oggetto().nome()).startsWith("Charizard", "Abra", "Zubat");
         assertThat(v.piuPreziose().getFirst().copie()).isEqualTo(2);
         assertThat(v.piuPreziose().getFirst().valore()).isEqualByComparingTo("20.00");
+        assertThat(v.piuPreziose().getFirst().nomeSet()).isEqualTo("Base");
     }
 
     @Test

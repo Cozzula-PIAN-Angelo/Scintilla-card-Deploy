@@ -19,8 +19,8 @@ public record StatisticheDTO(Totali totali, Valore valore, List<AvanzamentoSetDT
     public record Valore(BigDecimal totale, List<CartaPreziosaDTO> piuPreziose) {
     }
 
-    // valore = prezzo × copie (tutte le varianti)
-    public record CartaPreziosaDTO(OggettoResponseDTO oggetto, int copie, BigDecimal valore) {
+    // valore = prezzo × copie (tutte le varianti); nomeSet null per le carte senza set
+    public record CartaPreziosaDTO(OggettoResponseDTO oggetto, String nomeSet, int copie, BigDecimal valore) {
     }
 
     // possedute = carte diverse del set con almeno una copia
