@@ -8,6 +8,7 @@ import { BinderAperto } from '../features/binder/BinderAperto'
 import { Mensola } from '../features/binder/Mensola'
 import { ModaleBinder } from '../features/binder/ModaleBinder'
 import { ProviderCollezioneBinder } from '../features/binder/ProviderCollezioneBinder'
+import { RiepilogoCollezione } from '../features/statistiche/RiepilogoCollezione'
 import { useTitolo } from '../hooks/useTitolo'
 import type { Binder } from '../types/api'
 
@@ -49,6 +50,7 @@ export function BinderPage() {
               </div>
             </section>
             <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+              <RiepilogoCollezione />
               <Mensola
                 onApri={(binder) => navigate(`/binder/${binder.id}`)}
                 onNuovo={() => apriImpostazioni(null)}

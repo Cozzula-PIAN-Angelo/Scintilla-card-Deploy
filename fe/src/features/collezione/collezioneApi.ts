@@ -50,6 +50,8 @@ export const collezioneApi = api.injectEndpoints({
         method: 'PATCH',
         body: { oggettoId, variante, delta },
       }),
+      // le statistiche (riquadro della pagina Binder, /collezione) si rileggono alla prossima apertura
+      invalidatesTags: ['Statistiche'],
       async onQueryStarted({ oggettoId, variante, delta, filtro, binderId }, { dispatch, getState, queryFulfilled }) {
         const applica = (copie: Copia[]) => {
           const attuale = copie.find((c) => c.oggettoId === oggettoId && c.variante === variante)?.quantita ?? 0
