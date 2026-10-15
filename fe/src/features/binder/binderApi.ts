@@ -6,7 +6,7 @@ export const binderApi = api.injectEndpoints({
   endpoints: (build) => ({
     getBinder: build.query<Binder[], void>({
       query: () => '/me/binder',
-      providesTags: [{ type: 'Binder', id: 'LISTA' }],
+      providesTags: ['Statistiche', { type: 'Binder', id: 'LISTA' }],
     }),
     getBinderDettaglio: build.query<BinderDettaglio, string>({
       query: (id) => `/me/binder/${id}`,
@@ -15,16 +15,16 @@ export const binderApi = api.injectEndpoints({
 
     creaBinder: build.mutation<Binder, DatiBinder>({
       query: (body) => ({ url: '/me/binder', method: 'POST', body }),
-      invalidatesTags: [{ type: 'Binder', id: 'LISTA' }],
+      invalidatesTags: ['Statistiche', { type: 'Binder', id: 'LISTA' }],
     }),
     // il backend sostituisce tutte le impostazioni: si inviano sempre tutte
     modificaBinder: build.mutation<Binder, { id: string; dati: DatiBinder }>({
       query: ({ id, dati }) => ({ url: `/me/binder/${id}`, method: 'PATCH', body: dati }),
-      invalidatesTags: (_risultato, _errore, { id }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id }],
+      invalidatesTags: (_risultato, _errore, { id }) => ['Statistiche', { type: 'Binder', id: 'LISTA' }, { type: 'Binder', id }],
     }),
     cancellaBinder: build.mutation<void, string>({
       query: (id) => ({ url: `/me/binder/${id}`, method: 'DELETE' }),
-      invalidatesTags: [{ type: 'Binder', id: 'LISTA' }],
+      invalidatesTags: ['Statistiche', { type: 'Binder', id: 'LISTA' }],
     }),
 
     // immagine già compressa dal browser: si inviano i byte, col loro Content-Type
@@ -35,11 +35,11 @@ export const binderApi = api.injectEndpoints({
         body: immagine,
         headers: { 'Content-Type': immagine.type },
       }),
-      invalidatesTags: (_risultato, _errore, { id }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id }],
+      invalidatesTags: (_risultato, _errore, { id }) => ['Statistiche', { type: 'Binder', id: 'LISTA' }, { type: 'Binder', id }],
     }),
     rimuoviImmagineBinder: build.mutation<Binder, string>({
       query: (id) => ({ url: `/me/binder/${id}/immagine`, method: 'DELETE' }),
-      invalidatesTags: (_risultato, _errore, id) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id }],
+      invalidatesTags: (_risultato, _errore, id) => ['Statistiche', { type: 'Binder', id: 'LISTA' }, { type: 'Binder', id }],
     }),
 
     // la nuova disposizione arriva dal server: niente aggiornamento anticipato
@@ -62,7 +62,7 @@ export const binderApi = api.injectEndpoints({
         body: slot.map((s) => ({ pagina: s.pagina, posizione: s.posizione, oggettoId: s.oggetto.id })),
       }),
       // tra riordino e Annulla possono essere entrate o uscite carte: il conteggio nella lista cambia
-      invalidatesTags: [{ type: 'Binder', id: 'LISTA' }],
+      invalidatesTags: ['Statistiche', { type: 'Binder', id: 'LISTA' }],
       async onQueryStarted({ binderId, slot }, { dispatch, queryFulfilled }) {
         const patch = dispatch(binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => { dettaglio.slot = slot }))
         queryFulfilled.catch(patch.undo)
@@ -79,7 +79,7 @@ export const binderApi = api.injectEndpoints({
         method: 'POST',
         body: { pagina, posizione, oggettoId: oggetto.id, faiSpazio },
       }),
-      invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
+      invalidatesTags: (_risultato, _errore, { binderId }) => ['Statistiche', { type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
       async onQueryStarted({ binderId, pagina, posizione, oggetto, faiSpazio }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {
@@ -103,7 +103,7 @@ export const binderApi = api.injectEndpoints({
         params: faiSpazio ? { faiSpazio } : undefined,
       }),
       // il dettaglio si rilegge a operazioni finite: una GET partita prima non sovrascrive la modifica
-      invalidatesTags: (_risultato, _errore, { binderId }) => [{ type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
+      invalidatesTags: (_risultato, _errore, { binderId }) => ['Statistiche', { type: 'Binder', id: 'LISTA' }, { type: 'Binder', id: binderId }],
       async onQueryStarted({ binderId, pagina, posizione, faiSpazio }, { dispatch, queryFulfilled }) {
         const patch = dispatch(
           binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => {

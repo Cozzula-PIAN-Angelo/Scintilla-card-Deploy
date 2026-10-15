@@ -167,3 +167,39 @@ export interface ErroreApi {
   timestamp: string
   errors?: Record<string, string>
 }
+
+// statistiche della collezione (GET /me/statistiche)
+export interface AvanzamentoSet {
+  id: string
+  nome: string
+  serie: string | null
+  simboloUrl: string | null
+  dataUscita: string | null
+  // carte diverse del set con almeno una copia
+  possedute: number
+  totale: number
+}
+
+export interface CartaPreziosa {
+  oggetto: Oggetto
+  copie: number
+  // prezzo × copie
+  valore: number
+}
+
+export interface Statistiche {
+  totali: {
+    carteDiverse: number
+    copie: number
+    copiePerVariante: Partial<Record<Variante, number>>
+    setIniziati: number
+    setCompletati: number
+    binder: number
+    carteNeiBinder: number
+  }
+  valore: { totale: number; piuPreziose: CartaPreziosa[] }
+  // set iniziati, dal più recente
+  set: AvanzamentoSet[]
+  // numeri di Pokédex presenti in almeno una carta posseduta
+  pokemon: number[]
+}
