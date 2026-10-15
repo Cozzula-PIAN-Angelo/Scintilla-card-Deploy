@@ -18,7 +18,9 @@ import { BarraBinder } from './aperto/BarraBinder'
 import { CassettoDalBasso, CassettoLaterale } from './aperto/Cassetto'
 import { NavigazionePagine } from './aperto/NavigazionePagine'
 import { useAperturaBinder } from './aperto/useAperturaBinder'
+import { ModaleOrdina } from './aperto/ModaleOrdina'
 import { useCarteBinder } from './aperto/useCarteBinder'
+import { useFaiSpazio } from './aperto/useFaiSpazio'
 import { useSchermoIntero } from './aperto/useSchermoIntero'
 import { useSfoglio } from './aperto/useSfoglio'
 import { useSfoglioPuntatore } from './aperto/useSfoglioPuntatore'
@@ -60,7 +62,9 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   const { binder, slot } = dettaglio
   const doppia = useMediaQuery('(min-width: 1024px)')
   const preferiti = usePreferiti()
-  const carte = useCarteBinder(binder.id)
+  const [faiSpazio, setFaiSpazio] = useFaiSpazio()
+  const [ordinaAperto, setOrdinaAperto] = useState(false)
+  const carte = useCarteBinder(binder, slot, faiSpazio)
 
   const [cassettoAperto, setCassettoAperto] = useState(false)
   const [cassettoLaterale, setCassettoLaterale] = useState(true)
@@ -134,6 +138,9 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
               doppia={doppia}
               cassettoLaterale={cassettoLaterale}
               espanso={schermo.espanso}
+              faiSpazio={faiSpazio}
+              onFaiSpazio={setFaiSpazio}
+              onOrdina={() => setOrdinaAperto(true)}
               onApri={apri}
               onChiudi={chiudi}
               onCarte={() => (doppia ? setCassettoLaterale((visibile) => !visibile) : setCassettoAperto(true))}
@@ -186,6 +193,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
             onChiudi={chiudiCarta}
             sfoglio={sfoglioDettaglio}
           />
+          <ModaleOrdina aperto={ordinaAperto} dettaglio={dettaglio} onChiudi={() => setOrdinaAperto(false)} />
         </>,
       )}
     </Contesto.Provider>
