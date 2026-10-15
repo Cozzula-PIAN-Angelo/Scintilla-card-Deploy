@@ -3,12 +3,14 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.entities.MotivoBinder;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.exceptions.BadRequestException;
+import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.BinderDTO;
 import com.example.ecommerce.payloads.CriterioOrdine;
 import com.example.ecommerce.payloads.DisposizioneSlotDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
+import com.example.ecommerce.payloads.SpostaCartaDTO;
 import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.CollezioneRepository;
 import com.example.ecommerce.repositories.ImmagineBinderRepository;
@@ -150,8 +152,86 @@ class BinderServiceTest {
         assertThatThrownBy(() -> service.ripristina(altro, binder, List.of())).isInstanceOf(NotFoundException.class);
     }
 
+    @Test
+    void inserisciConSpazioScala() {
+        UUID a = carta("A", "base1", "1");
+        UUID b = carta("B", "base1", "2");
+        UUID x = carta("X", "base1", "3");
+        metti(0, 0, a);
+        metti(0, 1, b);
+
+        service.inserisci(utente, binder, new InserisciCartaDTO(0, 0, x, true));
+
+        assertThat(disposizione()).containsExactly("0:" + x, "1:" + a, "2:" + b);
+    }
+
+    @Test
+    void inserisciConSpazioPieno409SenzaModifiche() {
+        UUID a = carta("A", "base1", "1");
+        UUID x = carta("X", "base1", "2");
+        for (int i = 0; i < 18; i++) {
+            metti(i / 9, i % 9, a);
+        }
+
+        assertThatThrownBy(() -> service.inserisci(utente, binder, new InserisciCartaDTO(1, 0, x, true)))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Binder pieno: non c'è una tasca libera dopo questa");
+        assertThat(disposizione()).hasSize(18).allMatch(s -> s.endsWith(a.toString()));
+    }
+
+    @Test
+    void svuotaConSpazioRichiude() {
+        UUID a = carta("A", "base1", "1");
+        UUID b = carta("B", "base1", "2");
+        UUID c = carta("C", "base1", "3");
+        metti(0, 0, a);
+        metti(0, 1, b);
+        metti(0, 2, c);
+
+        service.svuota(utente, binder, 0, 0, true);
+
+        assertThat(disposizione()).containsExactly("0:" + b, "1:" + c);
+    }
+
+    @Test
+    void spostaConSpazioMettePrimaDellArrivo() {
+        UUID a = carta("A", "base1", "1");
+        UUID b = carta("B", "base1", "2");
+        UUID c = carta("C", "base1", "3");
+        UUID d = carta("D", "base1", "4");
+        metti(0, 0, a);
+        metti(0, 1, b);
+        metti(0, 2, c);
+        metti(0, 3, d);
+
+        service.sposta(utente, binder, new SpostaCartaDTO(0, 0, 0, 2, true));
+
+        assertThat(disposizione()).containsExactly("0:" + b, "1:" + a, "2:" + c, "3:" + d);
+    }
+
+    @Test
+    void senzaSpazioComeOggi() {
+        UUID a = carta("A", "base1", "1");
+        UUID b = carta("B", "base1", "2");
+        UUID x = carta("X", "base1", "3");
+        metti(0, 0, a);
+        metti(0, 1, b);
+
+        service.inserisci(utente, binder, new InserisciCartaDTO(0, 0, x, null));
+        service.sposta(utente, binder, new SpostaCartaDTO(0, 0, 0, 1, false));
+
+        assertThat(disposizione()).containsExactly("0:" + b, "1:" + x);
+    }
+
+    // tasche come "indice:idCarta", in ordine
+    private List<String> disposizione() {
+        return service.getDettaglio(utente, binder).slot().stream()
+                .map(s -> (s.pagina() * 9 + s.posizione()) + ":" + s.oggetto().id())
+                .toList();
+    }
+
     private void metti(int pagina, int posizione, UUID carta) {
-        service.inserisci(utente, binder, new InserisciCartaDTO(pagina, posizione, carta));
+        service.inserisci(utente, binder, new InserisciCartaDTO(pagina, posizione, carta, null));
     }
 
     private UUID carta(String nome, String set, String numero) {

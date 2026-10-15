@@ -121,6 +121,13 @@ public class BinderService {
         Oggetto oggetto = oggettoRepository.findById(body.oggettoId())
                 .orElseThrow(() -> new NotFoundException("Carta con id " + body.oggettoId() + " non trovata"));
 
+        if (Boolean.TRUE.equals(body.faiSpazio())) {
+            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            riscrivi(binder, prima, Disposizione.inserisci(prima, totale(binder), indice(binder, body.pagina(), body.posizione()), oggetto));
+            return slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.pagina(), body.posizione())
+                    .map(SlotBinderResponseDTO::from)
+                    .orElseThrow();
+        }
         SlotBinder slot = slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.pagina(), body.posizione())
                 .orElseGet(() -> new SlotBinder(binder, body.pagina(), body.posizione(), oggetto));
         slot.setOggetto(oggetto);
@@ -128,10 +135,15 @@ public class BinderService {
     }
 
     @Transactional
-    public void svuota(Utente utente, UUID id, int pagina, int posizione) {
-        findBinder(utente, id);
+    public void svuota(Utente utente, UUID id, int pagina, int posizione, boolean faiSpazio) {
+        Binder binder = findBinder(utente, id);
         SlotBinder slot = slotRepository.findByBinderIdAndPaginaAndPosizione(id, pagina, posizione)
                 .orElseThrow(() -> new NotFoundException("La tasca " + (posizione + 1) + " di pagina " + (pagina + 1) + " è già vuota"));
+        if (faiSpazio) {
+            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            riscrivi(binder, prima, Disposizione.togli(prima, totale(binder), indice(binder, pagina, posizione)));
+            return;
+        }
         slotRepository.delete(slot);
     }
 
@@ -146,6 +158,12 @@ public class BinderService {
 
         SlotBinder partenza = slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.daPagina(), body.daPosizione())
                 .orElseThrow(() -> new NotFoundException("Nella tasca di partenza non c'è nessuna carta"));
+        if (Boolean.TRUE.equals(body.faiSpazio())) {
+            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            riscrivi(binder, prima, Disposizione.sposta(prima, totale(binder),
+                    indice(binder, body.daPagina(), body.daPosizione()), indice(binder, body.aPagina(), body.aPosizione())));
+            return;
+        }
         slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.aPagina(), body.aPosizione())
                 .ifPresentOrElse(
                         // arrivo occupato: si scambiano le carte, le righe restano dove sono.
@@ -251,6 +269,10 @@ public class BinderService {
 
     private static int indice(Binder binder, int pagina, int posizione) {
         return pagina * binder.getTasche() + posizione;
+    }
+
+    private static int totale(Binder binder) {
+        return binder.getPagine() * binder.getTasche();
     }
 
     // riscrive solo le tasche che cambiano. Prima si cancellano e si manda la DELETE al DB (flush), poi si

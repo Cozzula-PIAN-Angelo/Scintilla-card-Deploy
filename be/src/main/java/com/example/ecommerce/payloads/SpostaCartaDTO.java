@@ -19,6 +19,9 @@ public record SpostaCartaDTO(
 
         @NotNull(message = "La posizione di arrivo è obbligatoria")
         @Min(value = 0, message = "La posizione non può essere negativa")
-        Integer aPosizione
+        Integer aPosizione,
+
+        // true: su un arrivo occupato la carta si mette prima di quella che c'era, e la partenza si richiude
+        Boolean faiSpazio
 ) {
 }

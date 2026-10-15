@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -108,8 +109,9 @@ public class BinderController {
     public void svuota(@AuthenticationPrincipal Utente utente,
                        @PathVariable UUID id,
                        @PathVariable int pagina,
-                       @PathVariable int posizione) {
-        binderService.svuota(utente, id, pagina, posizione);
+                       @PathVariable int posizione,
+                       @RequestParam(defaultValue = "false") boolean faiSpazio) {
+        binderService.svuota(utente, id, pagina, posizione, faiSpazio);
     }
 
     // body = i byte dell'immagine, non multipart: il browser la invia già ridimensionata.
