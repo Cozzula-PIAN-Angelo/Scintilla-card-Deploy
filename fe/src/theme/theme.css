@@ -44,6 +44,8 @@
 
   --animate-gradiente: gradiente 18s ease-in-out infinite;
   --animate-fluttua: fluttua 9s ease-in-out infinite;
+  /* lenta e senza rotazione: le carte di sfondo di hero e login */
+  --animate-deriva: deriva 16s ease-in-out infinite;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-rimbalzo: rimbalzo 0.55s cubic-bezier(0.33, 0, 0.66, 1) infinite alternate;
   --animate-rotazione: rotazione 1.4s linear infinite;
@@ -56,6 +58,10 @@
   @keyframes fluttua {
     0%, 100% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-18px) rotate(10deg); }
+  }
+  @keyframes deriva {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(8px, -14px); }
   }
   @keyframes shimmer {
     from { background-position: 200% 0; }

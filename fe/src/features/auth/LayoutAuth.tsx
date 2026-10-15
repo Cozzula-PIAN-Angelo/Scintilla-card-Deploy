@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
-import { FormeFluttuanti, Scintilla } from '../../components/Forme'
+import { CarteSfondo } from '../../components/CarteSfondo'
+import { Scintilla } from '../../components/Forme'
 import { PaginaAnimata } from '../../components/PaginaAnimata'
+import { useUltimeCarte } from '../oggetti/useUltimeCarte'
 
 interface Props {
   titolo: string
@@ -10,9 +12,10 @@ interface Props {
 }
 
 export function LayoutAuth({ titolo, sottotitolo, children }: Props) {
+  const carte = useUltimeCarte()
   return (
     <PaginaAnimata className="sfondo-hero relative flex min-h-[calc(100vh-5rem)] animate-gradiente items-center justify-center overflow-hidden px-4 py-16">
-      <FormeFluttuanti />
+      <CarteSfondo carte={carte} />
       <motion.div
         initial={{ opacity: 0, y: 40, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 200, damping: 22, delay: 0.1 } }}

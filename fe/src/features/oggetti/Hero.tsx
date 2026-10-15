@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { Button } from '../../components/Button'
-import { FormeFluttuanti } from '../../components/Forme'
+import { CarteSfondo } from '../../components/CarteSfondo'
 import { ImmagineCarta } from '../../components/ImmagineCarta'
 import type { Oggetto } from '../../types/api'
 
 interface Props {
   vetrina: Oggetto[]
+  // carte sparse dietro, diverse da quelle del ventaglio
+  sfondo: Oggetto[]
   onEsplora: () => void
 }
 
@@ -17,10 +19,10 @@ const VENTAGLIO = [
   { rotazione: 14, x: 70, y: 18, ritardo: 0.5 },
 ]
 
-export function Hero({ vetrina, onEsplora }: Props) {
+export function Hero({ vetrina, sfondo, onEsplora }: Props) {
   return (
     <section className="sfondo-hero relative animate-gradiente overflow-hidden text-white">
-      <FormeFluttuanti />
+      <CarteSfondo carte={sfondo} />
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-[1.15fr_1fr]">
         <div>
           <motion.span
