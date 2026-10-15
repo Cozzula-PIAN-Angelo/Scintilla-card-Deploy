@@ -100,6 +100,16 @@ class DisposizioneTest {
     }
 
     @Test
+    void spostaAvantiOltreIlGruppoSenzaBuchiDopo() {
+        // dopo l'arrivo non c'è posto: la carta va subito prima di C5 facendo arretrare quelle prima, nel buco lasciato
+        TreeMap<Integer, String> tasche = piene(TOTALE);
+        tasche.remove(1);
+        tasche.put(0, "A");
+        assertThat(Disposizione.sposta(tasche, TOTALE, 0, 5))
+                .isEqualTo(Map.of(1, "C2", 2, "C3", 3, "C4", 4, "A", 5, "C5", 6, "C6", 7, "C7", 8, "C8"));
+    }
+
+    @Test
     void copieDellaStessaCarta() {
         assertThat(Disposizione.togli(tasche(Map.of(0, "A", 1, "A")), TOTALE, 0)).isEqualTo(Map.of(0, "A"));
         assertThat(Disposizione.inserisci(tasche(Map.of(0, "A")), TOTALE, 0, "A")).isEqualTo(Map.of(0, "A", 1, "A"));

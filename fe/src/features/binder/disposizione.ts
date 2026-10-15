@@ -61,7 +61,8 @@ export function togli(slot: SlotBinder[], tasche: number, pagine: number, dove: 
   return inLista(togliDaMappa(inMappa(slot, tasche), pagine * tasche, indice(dove, tasche)), tasche)
 }
 
-// su una tasca vuota la carta va lì; su una occupata finisce subito prima della carta che c'era
+// su una tasca vuota la carta va lì; su una occupata finisce subito prima della carta che c'era.
+// Non fallisce mai: la carta tolta lascia sempre un posto libero
 export function sposta(slot: SlotBinder[], tasche: number, pagine: number, da: Posizione, a: Posizione): SlotBinder[] {
   const totale = pagine * tasche
   const mappa = inMappa(slot, tasche)
@@ -78,6 +79,14 @@ export function sposta(slot: SlotBinder[], tasche: number, pagine: number, da: P
   // la carta d'arrivo arretra di una tasca se sta nel gruppo che si richiude dopo la partenza
   const buco = primoBuco(mappa, d, totale)
   const dove = i > d && i < buco ? i - 1 : i
-  // dopo il togli c'è sempre un buco dopo `dove`: l'inserimento non può fallire
-  return inLista(inserisciInMappa(togliDaMappa(mappa, totale, d), totale, dove, carta)!, tasche)
+  const senza = togliDaMappa(mappa, totale, d)
+  const inserita = inserisciInMappa(senza, totale, dove, carta)
+  if (inserita) return inLista(inserita, tasche)
+  // nessun posto dopo l'arrivo: arretrano le carte tra il buco precedente (quello lasciato dalla
+  // carta, al più tardi) e l'arrivo, e la carta va subito prima della carta d'arrivo
+  let prima = dove - 1
+  while (senza.has(prima)) prima--
+  for (let k = prima + 1; k < dove; k++) senza.set(k - 1, senza.get(k)!)
+  senza.set(dove - 1, carta)
+  return inLista(senza, tasche)
 }

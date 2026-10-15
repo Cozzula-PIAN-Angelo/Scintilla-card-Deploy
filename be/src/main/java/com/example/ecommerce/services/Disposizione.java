@@ -42,7 +42,8 @@ final class Disposizione {
         return nuove;
     }
 
-    // su una tasca vuota la carta va esattamente lì; su una occupata finisce subito prima della carta che c'era
+    // su una tasca vuota la carta va esattamente lì; su una occupata finisce subito prima della carta che c'era.
+    // Non fallisce mai: la carta tolta lascia sempre un posto libero
     static <T> TreeMap<Integer, T> sposta(SortedMap<Integer, T> tasche, int totale, int da, int a) {
         TreeMap<Integer, T> nuove = new TreeMap<>(tasche);
         T carta = nuove.get(da);
@@ -57,7 +58,21 @@ final class Disposizione {
         // la carta d'arrivo arretra di una tasca se sta nel gruppo che si richiude dopo la partenza
         int buco = primoBuco(nuove, da, totale);
         int dove = a > da && a < buco ? a - 1 : a;
-        return inserisci(togli(nuove, totale, da), totale, dove, carta);
+        TreeMap<Integer, T> senza = togli(nuove, totale, da);
+        if (primoBuco(senza, dove, totale) < totale) {
+            return inserisci(senza, totale, dove, carta);
+        }
+        // nessun posto dopo l'arrivo: arretrano le carte tra il buco precedente (quello lasciato dalla
+        // carta, al più tardi) e l'arrivo, e la carta va subito prima della carta d'arrivo
+        int prima = dove - 1;
+        while (senza.containsKey(prima)) {
+            prima--;
+        }
+        for (int i = prima + 1; i < dove; i++) {
+            senza.put(i - 1, senza.get(i));
+        }
+        senza.put(dove - 1, carta);
+        return senza;
     }
 
     // primo indice libero dopo `indice`, oppure `totale` se non ce ne sono

@@ -142,6 +142,18 @@ class BinderServiceTest {
     }
 
     @Test
+    void ripristinoCampiMancanti400() {
+        // la validazione dei singoli elementi della lista nel controller non è garantita: il service si difende
+        UUID a = carta("Abra", "base1", "43");
+        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(null, 0, a))))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(0, 0, null))))
+                .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(0, -1, a))))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
     void ripristinoCartaInesistente404() {
         assertThatThrownBy(() -> service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(0, 0, UUID.randomUUID()))))
                 .isInstanceOf(NotFoundException.class);

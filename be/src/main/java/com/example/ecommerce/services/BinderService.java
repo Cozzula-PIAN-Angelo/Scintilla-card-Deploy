@@ -216,6 +216,12 @@ public class BinderService {
     @Transactional
     public List<SlotBinderResponseDTO> ripristina(Utente utente, UUID id, List<DisposizioneSlotDTO> body) {
         Binder binder = findBinder(utente, id);
+        // il @Valid sugli elementi di una lista nel body non è garantito: senza questo controllo un null darebbe 500
+        for (DisposizioneSlotDTO s : body) {
+            if (s == null || s.pagina() == null || s.posizione() == null || s.oggettoId() == null || s.pagina() < 0 || s.posizione() < 0) {
+                throw new BadRequestException("Ogni tasca deve avere pagina, posizione e carta valide");
+            }
+        }
         Map<UUID, Oggetto> trovate = oggettoRepository.findAllById(body.stream().map(DisposizioneSlotDTO::oggettoId).toList()).stream()
                 .collect(Collectors.toMap(Oggetto::getId, Function.identity()));
         TreeMap<Integer, Oggetto> dopo = new TreeMap<>();

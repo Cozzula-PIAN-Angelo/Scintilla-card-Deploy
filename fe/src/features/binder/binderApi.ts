@@ -61,6 +61,8 @@ export const binderApi = api.injectEndpoints({
         method: 'PATCH',
         body: slot.map((s) => ({ pagina: s.pagina, posizione: s.posizione, oggettoId: s.oggetto.id })),
       }),
+      // tra riordino e Annulla possono essere entrate o uscite carte: il conteggio nella lista cambia
+      invalidatesTags: [{ type: 'Binder', id: 'LISTA' }],
       async onQueryStarted({ binderId, slot }, { dispatch, queryFulfilled }) {
         const patch = dispatch(binderApi.util.updateQueryData('getBinderDettaglio', binderId, (dettaglio) => { dettaglio.slot = slot }))
         queryFulfilled.catch(patch.undo)

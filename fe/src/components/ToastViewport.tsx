@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { CircleCheck, Info, TriangleAlert, X } from 'lucide-react'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
 import { toastRimosso, type Toast, type TipoToast } from '../features/toast/toastSlice'
 import { dimenticaAzioneToast, eseguiAzioneToast } from '../features/toast/useToast'
@@ -36,13 +36,17 @@ function ElementoToast({ toast }: { toast: Toast }) {
   const Icona = stile.icona
   const durata = toast.durata ?? DURATA_PREDEFINITA_MS
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => dispatch(toastRimosso(toast.id)), durata)
-    return () => window.clearTimeout(timer)
-  }, [dispatch, toast.id, durata])
+  // chiuso o scaduto: l'azione si dimentica qui e non nella pulizia di un effetto, che StrictMode
+  // esegue anche subito dopo il primo montaggio e cancellerebbe l'azione prima del clic
+  const chiudi = useCallback(() => {
+    dimenticaAzioneToast(toast.id)
+    dispatch(toastRimosso(toast.id))
+  }, [dispatch, toast.id])
 
-  // il toast sparisce (tempo scaduto, chiuso o spinto fuori dai nuovi): la sua azione non serve più
-  useEffect(() => () => dimenticaAzioneToast(toast.id), [toast.id])
+  useEffect(() => {
+    const timer = window.setTimeout(chiudi, durata)
+    return () => window.clearTimeout(timer)
+  }, [chiudi, durata])
 
   return (
     <motion.div
@@ -65,7 +69,7 @@ function ElementoToast({ toast }: { toast: Toast }) {
               type="button"
               onClick={() => {
                 eseguiAzioneToast(toast.id)
-                dispatch(toastRimosso(toast.id))
+                chiudi()
               }}
               className="rounded-full px-2 py-0.5 text-sm font-bold underline underline-offset-2 transition-opacity hover:opacity-80"
             >
@@ -76,7 +80,7 @@ function ElementoToast({ toast }: { toast: Toast }) {
       </div>
       <button
         type="button"
-        onClick={() => dispatch(toastRimosso(toast.id))}
+        onClick={chiudi}
         aria-label="Chiudi la notifica"
         className="absolute right-2 top-2 grid size-8 place-items-center rounded-full opacity-80 transition-opacity hover:opacity-100"
       >

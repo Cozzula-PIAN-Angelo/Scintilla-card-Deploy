@@ -65,6 +65,12 @@ describe('sposta', () => {
   it('indietro', () => {
     expect(mappa(sposta(slot({ 0: 'A', 1: 'B', 2: 'C' }), TASCHE, 1, pos(2), pos(0)))).toEqual({ 0: 'C', 1: 'A', 2: 'B' })
   })
+  it('in avanti oltre il gruppo, senza buchi dopo: arretrano le carte prima', () => {
+    const lista = [...piene([1]).filter((s) => s.posizione !== 0), ...slot({ 0: 'A' })]
+    expect(mappa(sposta(lista, TASCHE, 1, pos(0), pos(5)))).toEqual({
+      1: 'C2', 2: 'C3', 3: 'C4', 4: 'A', 5: 'C5', 6: 'C6', 7: 'C7', 8: 'C8',
+    })
+  })
   it('tra pagine', () => {
     expect(mappa(sposta(slot({ 3: 'A', 4: 'B', 12: 'C', 13: 'D' }), TASCHE, 2, pos(3), pos(12)))).toEqual({
       3: 'B', 12: 'A', 13: 'C', 14: 'D',
