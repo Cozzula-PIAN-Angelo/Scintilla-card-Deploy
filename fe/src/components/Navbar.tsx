@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Album, BookOpen, Heart, LayoutGrid, LogOut, Menu, Palette, ShieldCheck, UserX, X, type LucideIcon } from 'lucide-react'
+import { CircleUserRound, LogOut, UserX, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
@@ -13,12 +13,7 @@ import { cn } from '../utils/cn'
 import { Button, LinkBottone } from './Button'
 import { Logo } from './Logo'
 import { PulsanteTema } from './PulsanteTema'
-
-interface VoceMenu {
-  a: string
-  etichetta: string
-  icona: LucideIcon
-}
+import { VOCE_ADMIN, VOCI_PRINCIPALI, voceAttiva, type VoceMenu } from './vociNavigazione'
 
 export function Navbar() {
   const scrollato = useScrollato(24)
@@ -33,18 +28,12 @@ export function Navbar() {
 
   useEffect(() => setMenuAperto(false), [pathname])
 
-  // la pagina di un'espansione fa parte del catalogo
-  const attiva = (voce: VoceMenu, isActive: boolean) =>
-    isActive || (voce.a === '/' && pathname.startsWith('/espansioni/'))
+  const attiva = (voce: VoceMenu, isActive: boolean) => voceAttiva(voce, isActive, pathname)
 
-  const voci: VoceMenu[] = [
-    { a: '/', etichetta: 'Catalogo', icona: LayoutGrid },
-    { a: '/pokedex', etichetta: 'Pokédex', icona: BookOpen },
-    { a: '/artisti', etichetta: 'Artisti', icona: Palette },
-    { a: '/preferiti', etichetta: 'Preferiti', icona: Heart },
-    { a: '/binder', etichetta: 'Binder', icona: Album },
-    ...(isAdmin ? [{ a: '/admin', etichetta: 'Admin', icona: ShieldCheck }] : []),
-  ]
+  // da desktop tutte le sezioni stanno qui; da telefono sono nella barra in basso (BarraNavigazione)
+  // e il pannello account tiene solo Admin
+  const voci: VoceMenu[] = [...VOCI_PRINCIPALI, ...(isAdmin ? [VOCE_ADMIN] : [])]
+  const vociAccount: VoceMenu[] = isAdmin ? [VOCE_ADMIN] : []
 
   return (
     <header
@@ -122,7 +111,7 @@ export function Navbar() {
             onClick={() => setMenuAperto((aperto) => !aperto)}
             aria-expanded={menuAperto}
             aria-controls="menu-mobile"
-            aria-label={menuAperto ? 'Chiudi il menu' : 'Apri il menu'}
+            aria-label={menuAperto ? "Chiudi il menu dell'account" : "Apri il menu dell'account"}
             className="grid size-11 place-items-center rounded-full text-white transition-colors hover:bg-white/10 md:hidden"
           >
             <AnimatePresence mode="wait" initial={false}>
@@ -133,7 +122,7 @@ export function Navbar() {
                 exit={{ rotate: 90, opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                {menuAperto ? <X aria-hidden className="size-6" /> : <Menu aria-hidden className="size-6" />}
+                {menuAperto ? <X aria-hidden className="size-6" /> : <CircleUserRound aria-hidden className="size-6" />}
               </motion.span>
             </AnimatePresence>
           </button>
@@ -150,7 +139,7 @@ export function Navbar() {
             className="overflow-hidden md:hidden"
           >
             <div className="mx-4 mt-3 space-y-1 rounded-3xl bg-notte-2 p-3 shadow-xl">
-              {voci.map((voce, indice) => (
+              {vociAccount.map((voce, indice) => (
                 <motion.div key={voce.a} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1, transition: { delay: indice * 0.05 } }}>
                   <NavLink
                     to={voce.a}
@@ -167,7 +156,7 @@ export function Navbar() {
                   </NavLink>
                 </motion.div>
               ))}
-              <div className="mt-2 border-t border-white/20 pt-3">
+              <div className={cn(vociAccount.length > 0 && 'mt-2 border-t border-white/20 pt-3')}>
                 {utente ? (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-3 px-2">

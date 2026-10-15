@@ -1,6 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
 import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router'
+import { BarraNavigazione } from './components/BarraNavigazione'
 import { Footer } from './components/Footer'
 import { Navbar } from './components/Navbar'
 import { ToastViewport } from './components/ToastViewport'
@@ -18,6 +19,7 @@ import { PokedexPage } from './pages/PokedexPage'
 import { PokemonPage } from './pages/PokemonPage'
 import { PreferitiPage } from './pages/PreferitiPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { cn } from './utils/cn'
 
 export function App() {
   const location = useLocation()
@@ -31,6 +33,9 @@ export function App() {
         ? '/binder'
         : location.pathname
 
+  // binder aperto: niente barra in basso, all'album serve tutta l'altezza (si esce dal pulsante della mensola)
+  const barraVisibile = !/^\/binder\/[^/]+/.test(location.pathname)
+
   // cambio pagina: si riparte dall'alto (i cambi di query string, come la paginazione, no).
   // Istantaneo: con lo scroll-behavior smooth del tema si vedrebbe la pagina risalire
   useEffect(() => {
@@ -38,7 +43,8 @@ export function App() {
   }, [location.pathname])
 
   return (
-    <div className="flex min-h-screen flex-col">
+    // con-barra: da telefono la pagina lascia in fondo lo spazio della barra di navigazione
+    <div className={cn('flex min-h-screen flex-col', barraVisibile && 'con-barra pb-(--spazio-barra)')}>
       <AuthBootstrap />
       <SessionWatcher />
       <Navbar />
@@ -84,6 +90,7 @@ export function App() {
       </div>
 
       <Footer />
+      {barraVisibile && <BarraNavigazione />}
       <ToastViewport />
     </div>
   )
