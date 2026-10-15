@@ -6,6 +6,7 @@ import { piuPregiata } from '../features/collezione/varianti'
 import { RigaArtisti } from '../features/artisti/RigaArtisti'
 import { SezioneCollezione } from '../features/collezione/SezioneCollezione'
 import type { Oggetto, Variante } from '../types/api'
+import { useIndietroChiude } from '../hooks/useIndietroChiude'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { cn } from '../utils/cn'
 import { formattaData, formattaPrezzo } from '../utils/formato'
@@ -79,6 +80,8 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
 
   // frecce della tastiera, solo a dettaglio aperto
   const aperto = oggetto !== null
+  // l'indietro del telefono chiude il dettaglio
+  useIndietroChiude(aperto, onChiudi)
   const tasti = useRef({ vaiIndietro, vaiAvanti })
   tasti.current = { vaiIndietro, vaiAvanti }
   useEffect(() => {
@@ -117,7 +120,8 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
             transition={{ duration: 0.14, ease: 'easeOut' }}
             className="grid items-center gap-8 md:grid-cols-[1.1fr_1fr]"
           >
-            <div className="mx-auto w-full max-w-sm">
+            {/* larghezza limitata anche dall'altezza dello schermo: aperta da telefono la carta si vede intera */}
+            <div className="mx-auto w-full max-w-[min(24rem,calc((100dvh_-_7rem)*63/88))]">
               <div className="relative">
                 {/* col dito la carta si trascina di lato per passare alla vicina */}
                 <motion.div
@@ -165,7 +169,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
                 <CalendarDays aria-hidden className="size-4" />
                 Nel catalogo dal {formattaData(mostrato.createdAt)}
               </p>
-              <RigaArtisti artisti={mostrato.artisti} onNavigazione={onChiudi} />
+              <RigaArtisti artisti={mostrato.artisti} onNavigazione={onChiudi} sostituisci />
               <div className="flex items-center gap-3 rounded-2xl bg-tenue p-3 pr-5">
                 <PulsanteCuore attivo={preferito} onToggle={() => onTogglePreferito(mostrato)} nome={mostrato.nome} />
                 <span className="text-sm font-semibold text-testo">

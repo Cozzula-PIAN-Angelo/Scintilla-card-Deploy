@@ -51,7 +51,7 @@ export function EspansionePage() {
           <div>
             <Skeleton className="h-9 w-52 rounded-full" />
             <Skeleton className="mb-10 mt-6 h-28 w-full max-w-md rounded-3xl" />
-            <GrigliaSkeleton quante={6} />
+            <GrigliaSkeleton quante={6} stretta />
           </div>
         </div>
       ) : isError ? (
