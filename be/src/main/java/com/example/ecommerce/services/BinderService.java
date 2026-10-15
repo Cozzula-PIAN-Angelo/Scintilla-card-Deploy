@@ -15,6 +15,7 @@ import com.example.ecommerce.payloads.CopiaDTO;
 import com.example.ecommerce.payloads.CriterioOrdine;
 import com.example.ecommerce.payloads.DisposizioneSlotDTO;
 import com.example.ecommerce.payloads.InserisciCartaDTO;
+import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
 import com.example.ecommerce.repositories.BinderRepository;
@@ -156,9 +157,7 @@ public class BinderService {
         if (Boolean.TRUE.equals(body.faiSpazio())) {
             TreeMap<Integer, Oggetto> prima = tasche(binder);
             riscrivi(binder, prima, Disposizione.inserisci(prima, totale(binder), indice(binder, body.pagina(), body.posizione()), oggetto));
-            return slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.pagina(), body.posizione())
-                    .map(SlotBinderResponseDTO::from)
-                    .orElseThrow();
+            return new SlotBinderResponseDTO(body.pagina(), body.posizione(), OggettoResponseDTO.from(oggetto));
         }
         SlotBinder slot = slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.pagina(), body.posizione())
                 .orElseGet(() -> new SlotBinder(binder, body.pagina(), body.posizione(), oggetto));
@@ -215,10 +214,10 @@ public class BinderService {
     @Transactional
     public List<SlotBinderResponseDTO> riordina(Utente utente, UUID id, CriterioOrdine criterio) {
         Binder binder = findBinder(utente, id);
-        TreeMap<Integer, Oggetto> prima = tasche(binder);
-        List<Oggetto> carte = prima.values().stream().sorted(OrdineCarte.comparatore(criterio)).toList();
-        riscrivi(binder, prima, compatte(carte));
-        return slot(id);
+        TreeMap<Integer, Oggetto> prima = perIndice(binder, slotRepository.findConCarteComplete(id));
+        TreeMap<Integer, Oggetto> dopo = compatte(prima.values().stream().sorted(OrdineCarte.comparatore(criterio)).toList());
+        riscrivi(binder, prima, dopo);
+        return risposta(binder, dopo);
     }
 
     // sostituisce tutte le tasche con quelle ricevute: serve all'Annulla del riordino
@@ -245,7 +244,7 @@ public class BinderService {
             }
         }
         riscrivi(binder, tasche(binder), dopo);
-        return slot(id);
+        return risposta(binder, dopo);
     }
 
     @Transactional
@@ -291,9 +290,12 @@ public class BinderService {
 
     // tasche occupate come mappa indice lineare (pagina * tasche + posizione) -> carta
     private TreeMap<Integer, Oggetto> tasche(Binder binder) {
+        return perIndice(binder, slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId()));
+    }
+
+    private static TreeMap<Integer, Oggetto> perIndice(Binder binder, List<SlotBinder> slot) {
         TreeMap<Integer, Oggetto> tasche = new TreeMap<>();
-        slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId())
-                .forEach(s -> tasche.put(indice(binder, s.getPagina(), s.getPosizione()), s.getOggetto()));
+        slot.forEach(s -> tasche.put(indice(binder, s.getPagina(), s.getPosizione()), s.getOggetto()));
         return tasche;
     }
 
@@ -313,8 +315,8 @@ public class BinderService {
         return binder.getPagine() * binder.getTasche();
     }
 
-    // riscrive solo le tasche che cambiano. Prima si cancellano e si manda la DELETE al DB (flush), poi si
-    // inseriscono le nuove: Hibernate altrimenti farebbe gli INSERT prima e violerebbe il vincolo UNIQUE
+    // riscrive solo le tasche che cambiano. Prima una DELETE sola (va subito al DB), poi le nuove righe, che
+    // Hibernate manda a blocchi al flush: con gli INSERT prima della DELETE si violerebbe il vincolo UNIQUE
     private void riscrivi(Binder binder, SortedMap<Integer, Oggetto> prima, SortedMap<Integer, Oggetto> dopo) {
         Set<Integer> cambiate = new HashSet<>();
         prima.forEach((i, carta) -> {
@@ -327,20 +329,18 @@ public class BinderService {
         if (cambiate.isEmpty()) {
             return;
         }
-        List<SlotBinder> vecchie = slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId()).stream()
-                .filter(s -> cambiate.contains(indice(binder, s.getPagina(), s.getPosizione())))
-                .toList();
-        slotRepository.deleteAll(vecchie);
-        slotRepository.flush();
+        slotRepository.svuotaIndici(binder.getId(), binder.getTasche(), cambiate);
         slotRepository.saveAll(cambiate.stream()
                 .filter(dopo::containsKey)
                 .map(i -> new SlotBinder(binder, i / binder.getTasche(), i % binder.getTasche(), dopo.get(i)))
                 .toList());
     }
 
-    private List<SlotBinderResponseDTO> slot(UUID binderId) {
-        return slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binderId).stream()
-                .map(SlotBinderResponseDTO::from)
+    // risposta costruita dalla disposizione appena scritta, senza rileggere le tasche
+    private static List<SlotBinderResponseDTO> risposta(Binder binder, SortedMap<Integer, Oggetto> tasche) {
+        return tasche.entrySet().stream()
+                .map(e -> new SlotBinderResponseDTO(e.getKey() / binder.getTasche(), e.getKey() % binder.getTasche(),
+                        OggettoResponseDTO.from(e.getValue())))
                 .toList();
     }
 
