@@ -2,7 +2,8 @@ import { cn } from '../../utils/cn'
 import { percentuale as calcola } from './calcoli'
 
 // barra di avanzamento con la percentuale per i lettori di schermo
-export function Barra({ valore, totale, className }: { valore: number; totale: number; className?: string }) {
+// colore: del tratto pieno (oro per i set completati)
+export function Barra({ valore, totale, className, colore = 'bg-blu-500' }: { valore: number; totale: number; className?: string; colore?: string }) {
   const percentuale = calcola(valore, totale)
   return (
     <div
@@ -12,7 +13,7 @@ export function Barra({ valore, totale, className }: { valore: number; totale: n
       aria-valuemax={100}
       className={cn('h-2 overflow-hidden rounded-full bg-tenue', className)}
     >
-      <div className="h-full rounded-full bg-blu-500" style={{ width: `${percentuale}%` }} />
+      <div className={cn('h-full rounded-full', colore)} style={{ width: `${percentuale}%` }} />
     </div>
   )
 }
