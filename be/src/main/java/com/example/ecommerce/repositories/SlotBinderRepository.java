@@ -3,9 +3,11 @@ package com.example.ecommerce.repositories;
 import com.example.ecommerce.entities.SlotBinder;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +19,16 @@ public interface SlotBinderRepository extends JpaRepository<SlotBinder, UUID> {
 
     @EntityGraph(attributePaths = "oggetto")
     Optional<SlotBinder> findByBinderIdAndPaginaAndPosizione(UUID binderId, int pagina, int posizione);
+
+    // tasche con le carte complete di set e numeri di Pokédex, che servono ai criteri del riordino: una query sola
+    @EntityGraph(attributePaths = {"oggetto", "oggetto.espansione", "oggetto.numeriPokedex"})
+    @Query("SELECT s FROM SlotBinder s WHERE s.binder.id = :binderId")
+    List<SlotBinder> findConCarteComplete(@Param("binderId") UUID binderId);
+
+    // svuota in una sola DELETE le tasche con questi indici lineari (pagina * tasche + posizione)
+    @Modifying
+    @Query("DELETE FROM SlotBinder s WHERE s.binder.id = :binderId AND s.pagina * :tasche + s.posizione IN :indici")
+    void svuotaIndici(@Param("binderId") UUID binderId, @Param("tasche") int tasche, @Param("indici") Collection<Integer> indici);
 
     long countByBinderId(UUID binderId);
 

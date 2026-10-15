@@ -18,6 +18,8 @@ import com.example.ecommerce.repositories.ImmagineBinderRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.SlotBinderRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 // tasche dei binder su un PostgreSQL vero: le riscritture devono rispettare il vincolo UNIQUE sulla posizione
-@DataJpaTest
+@DataJpaTest(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @AutoConfigureEmbeddedDatabase(provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY)
 class BinderServiceTest {
@@ -88,6 +90,11 @@ class BinderServiceTest {
 
         assertThat(slot).extracting(s -> s.pagina() * 9 + s.posizione()).containsExactly(0, 1, 2);
         assertThat(slot).extracting(s -> s.oggetto().id()).containsExactly(due, cinque, dieci);
+    }
+
+    @Test
+    void riordinoPerPokedexConQueryCheNonCresconoConLeCarte() {
+        assertThat(queryDelRiordino(30)).isEqualTo(queryDelRiordino(3));
     }
 
     @Test
@@ -337,6 +344,23 @@ class BinderServiceTest {
         return service.getDettaglio(utente, binder).slot().stream()
                 .map(s -> (s.pagina() * 9 + s.posizione()) + ":" + s.oggetto().id())
                 .toList();
+    }
+
+    // query mandate al DB da un riordino per Pokédex di un binder con n carte sparse, a contesto vuoto come in una richiesta vera
+    private long queryDelRiordino(int n) {
+        UUID id = service.crea(utente, dati(9, 8, null)).id();
+        for (int i = 0; i < n; i++) {
+            UUID c = carta("Carta", "base1", String.valueOf(n - i));
+            pokedex(c, n - i);
+            service.inserisci(utente, id, new InserisciCartaDTO(i * 2 / 9, i * 2 % 9, c, null));
+        }
+        em.flush();
+        em.clear();
+        Statistics statistiche = em.getEntityManager().getEntityManagerFactory().unwrap(SessionFactory.class).getStatistics();
+        statistiche.clear();
+        service.riordina(utente, id, CriterioOrdine.POKEDEX);
+        em.flush();
+        return statistiche.getPrepareStatementCount();
     }
 
     private void metti(int pagina, int posizione, UUID carta) {
