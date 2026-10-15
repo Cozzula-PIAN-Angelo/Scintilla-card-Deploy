@@ -65,7 +65,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
         <ModaleBinder
           aperta={checklistAperta}
           binder={null}
-          espansione={{ id: espansione.id, nome: espansione.nome, carte: data.length }}
+          checklist={{ espansioneId: espansione.id, nome: espansione.nome, carte: data.length }}
           onChiudi={() => setChecklistAperta(false)}
           onCreato={(binder) => navigate(`/binder/${binder.id}`)}
         />

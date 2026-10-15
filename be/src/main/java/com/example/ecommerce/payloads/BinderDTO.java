@@ -38,7 +38,10 @@ public record BinderDTO(
         @NotNull(message = "Indica se mostrare le mancanti in grigio")
         Boolean mostraMancanti,
 
-        // solo in creazione: binder checklist del set, con tutte le sue carte e le pagine calcolate dal backend
-        String espansioneId
+        // solo in creazione, al più uno dei due: binder checklist di un set o di un Pokémon, con tutte le sue
+        // carte e le pagine calcolate dal backend
+        String espansioneId,
+
+        Integer numeroPokedex
 ) {
 }

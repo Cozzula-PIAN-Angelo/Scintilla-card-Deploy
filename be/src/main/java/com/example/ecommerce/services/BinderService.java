@@ -76,8 +76,10 @@ public class BinderService {
     @Transactional
     public BinderResponseDTO crea(Utente utente, BinderDTO body) {
         controllaTasche(body.tasche());
-        List<Oggetto> carte = body.espansioneId() == null ? List.of() : carteDelSet(body.espansioneId());
-        int pagine = body.espansioneId() == null ? body.pagine() : pagineChecklist(carte.size(), body.tasche());
+        List<Oggetto> carte = carteChecklist(body);
+        int pagine = carte.isEmpty() ? body.pagine() : pagineChecklist(carte.size(), body.tasche(), body.espansioneId() != null
+                ? "Il set non ci sta: scegli più tasche"
+                : "Le carte di questo Pokémon non ci stanno: scegli più tasche");
         Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), pagine, body.colore().toLowerCase(), body.motivo());
         binder.setMostraMancanti(body.mostraMancanti());
         binder.setCartaCopertina(cartaCopertina(body.cartaCopertinaId()));
@@ -87,21 +89,28 @@ public class BinderService {
         return BinderResponseDTO.from(binder, carte.size());
     }
 
-    // carte del set in ordine di numero, per il binder checklist
-    private List<Oggetto> carteDelSet(String espansioneId) {
-        List<Oggetto> carte = oggettoRepository.findByEspansioneId(espansioneId).stream()
-                .sorted(OrdineCarte.comparatore(CriterioOrdine.SET_NUMERO))
-                .toList();
-        if (carte.isEmpty()) {
-            throw new BadRequestException("Il set non ha ancora carte nel catalogo");
+    // carte del binder checklist (di un set o di un Pokémon) dal set più vecchio, poi per numero; vuota per un binder normale
+    private List<Oggetto> carteChecklist(BinderDTO body) {
+        if (body.espansioneId() != null && body.numeroPokedex() != null) {
+            throw new BadRequestException("Un binder checklist è di un set o di un Pokémon, non di entrambi");
         }
-        return carte;
+        List<Oggetto> carte;
+        if (body.espansioneId() != null) {
+            carte = oggettoRepository.findByEspansioneId(body.espansioneId());
+            if (carte.isEmpty()) throw new BadRequestException("Il set non ha ancora carte nel catalogo");
+        } else if (body.numeroPokedex() != null) {
+            carte = oggettoRepository.findByNumeroPokedex(body.numeroPokedex());
+            if (carte.isEmpty()) throw new BadRequestException("Il Pokémon non ha ancora carte nel catalogo");
+        } else {
+            return List.of();
+        }
+        return carte.stream().sorted(OrdineCarte.comparatore(CriterioOrdine.SET_NUMERO)).toList();
     }
 
-    private static int pagineChecklist(int carte, int tasche) {
+    private static int pagineChecklist(int carte, int tasche, String troppe) {
         int pagine = Math.max(2, (carte + tasche - 1) / tasche);
         if (pagine > 60) {
-            throw new BadRequestException("Il set non ci sta: scegli più tasche");
+            throw new BadRequestException(troppe);
         }
         return pagine;
     }

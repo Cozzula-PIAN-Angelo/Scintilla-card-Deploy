@@ -38,31 +38,34 @@ interface Props {
   onChiudi: () => void
   onCreato?: (binder: Binder) => void
   onEliminato?: () => void
-  // nuovo binder checklist di un set: nome del set, pagine calcolate dalle sue carte
-  espansione?: { id: string; nome: string; carte: number }
+  // nuovo binder checklist di un set o di un Pokémon: suo nome, pagine calcolate dalle sue carte
+  checklist?: Checklist
 }
+
+export type Checklist = { nome: string; carte: number } & ({ espansioneId: string } | { numeroPokedex: number })
 
 type StatoImmagine = { tipo: 'esistente' } | { tipo: 'nuova'; blob: Blob; url: string } | { tipo: 'nessuna' }
 
-export function ModaleBinder({ aperta, binder, onChiudi, onCreato, onEliminato, espansione }: Props) {
+export function ModaleBinder({ aperta, binder, onChiudi, onCreato, onEliminato, checklist }: Props) {
   return (
     <Modale aperto={aperta} onChiudi={onChiudi} titolo={binder ? 'Impostazioni del binder' : 'Nuovo binder'} larghezza="max-w-4xl">
       {/* rimontato a ogni apertura: il modulo riparte dai valori del binder */}
-      {aperta && <ModuloBinder binder={binder} onChiudi={onChiudi} onCreato={onCreato} onEliminato={onEliminato} espansione={espansione} />}
+      {aperta && <ModuloBinder binder={binder} onChiudi={onChiudi} onCreato={onCreato} onEliminato={onEliminato} checklist={checklist} />}
     </Modale>
   )
 }
 
-function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, espansione }: Omit<Props, 'aperta'>) {
+function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, checklist }: Omit<Props, 'aperta'>) {
   const toast = useToast()
-  const [nome, setNome] = useState(binder?.nome ?? espansione?.nome.slice(0, 40) ?? '')
+  const [nome, setNome] = useState(binder?.nome ?? checklist?.nome.slice(0, 40) ?? '')
   const [tasche, setTasche] = useState(binder?.tasche ?? 9)
   const [pagine, setPagine] = useState(binder?.pagine ?? 10)
   const [colore, setColore] = useState(binder?.colore ?? COLORI_BINDER[0].valore)
   const [motivo, setMotivo] = useState<MotivoBinder>(binder?.motivo ?? 'STELLE')
   const [mostraMancanti, setMostraMancanti] = useState(binder?.mostraMancanti ?? true)
-  // binder checklist: le pagine le decide il set (stesso calcolo del backend), il cursore non c'è
-  const pagineSet = espansione ? Math.max(2, Math.ceil(espansione.carte / tasche)) : null
+  // binder checklist: le pagine le decidono le carte (stesso calcolo del backend), il cursore non c'è
+  const pagineSet = checklist ? Math.max(2, Math.ceil(checklist.carte / tasche)) : null
+  const delSet = checklist != null && 'espansioneId' in checklist
   const setTroppoGrande = pagineSet != null && pagineSet > PAGINE_MAX
   const pagineBinder = pagineSet ?? pagine
   const [carta, setCarta] = useState<Oggetto | null>(binder?.cartaCopertina ?? null)
@@ -118,7 +121,8 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, espansione }: O
       motivo,
       cartaCopertinaId: carta?.id ?? null,
       mostraMancanti,
-      espansioneId: espansione?.id,
+      espansioneId: checklist && 'espansioneId' in checklist ? checklist.espansioneId : undefined,
+      numeroPokedex: checklist && 'numeroPokedex' in checklist ? checklist.numeroPokedex : undefined,
     }
     try {
       // binder già creato in un tentativo precedente (fallito sull'immagine): si modifica quello,
@@ -193,11 +197,13 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, espansione }: O
           {errori.tasche && <p className="mt-1 text-sm font-medium text-errore">{errori.tasche}</p>}
         </fieldset>
 
-        {espansione ? (
+        {checklist ? (
           <p className={cn('text-sm font-semibold', setTroppoGrande ? 'text-errore' : 'text-testo')}>
             {setTroppoGrande
-              ? 'Il set non ci sta: scegli più tasche'
-              : `${pagineSet} pagine per le ${espansione.carte} carte del set`}
+              ? delSet
+                ? 'Il set non ci sta: scegli più tasche'
+                : 'Le carte di questo Pokémon non ci stanno: scegli più tasche'
+              : `${pagineSet} pagine per le ${checklist.carte} carte ${delSet ? 'del set' : `di ${checklist.nome}`}`}
           </p>
         ) : (
         <div>

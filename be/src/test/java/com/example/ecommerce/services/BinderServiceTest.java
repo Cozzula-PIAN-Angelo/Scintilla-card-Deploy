@@ -288,6 +288,42 @@ class BinderServiceTest {
     }
 
     @Test
+    void checklistPokemonDalSetPiuVecchio() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata, data_uscita) VALUES ('sv1', 'Scarlatto', true, '2023-03-31')");
+        UUID nuova = carta("Pikachu ex", "sv1", "1");
+        UUID coppia = carta("Pikachu & Zekrom", "base1", "33");
+        UUID vecchia = carta("Pikachu", "base1", "58");
+        UUID altro = carta("Raichu", "base1", "14");
+        pokedex(nuova, 25);
+        pokedex(coppia, 25);
+        pokedex(coppia, 644);
+        pokedex(vecchia, 25);
+        pokedex(altro, 26);
+
+        BinderResponseDTO creato = service.crea(utente, checklistPokemon(25));
+
+        assertThat(creato.pagine()).isEqualTo(2);
+        assertThat(service.getDettaglio(utente, creato.id()).slot()).extracting(s -> s.oggetto().id())
+                .containsExactly(coppia, vecchia, nuova);
+    }
+
+    @Test
+    void checklistPokemonSenzaCarte400() {
+        assertThatThrownBy(() -> service.crea(utente, checklistPokemon(151)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Il Pokémon non ha ancora carte nel catalogo");
+    }
+
+    @Test
+    void checklistSetEPokemonInsieme400() {
+        UUID carta = carta("Pikachu", "base1", "58");
+        pokedex(carta, 25);
+        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, "base1", 25);
+
+        assertThatThrownBy(() -> service.crea(utente, entrambi)).isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
     void modificaIgnoraEspansione() {
         carta("Carta", "base1", "1");
 
@@ -314,7 +350,15 @@ class BinderServiceTest {
         return id;
     }
 
+    private void pokedex(UUID carta, int numero) {
+        jdbc.update("INSERT INTO oggetti_pokedex (oggetto_id, numero_pokedex) VALUES (?, ?)", carta, numero);
+    }
+
     private static BinderDTO dati(int tasche, int pagine, String espansioneId) {
-        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true, espansioneId);
+        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true, espansioneId, null);
+    }
+
+    private static BinderDTO checklistPokemon(int numero) {
+        return new BinderDTO("Pikachu", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, numero);
     }
 }

@@ -123,6 +123,7 @@ export interface DatiBinder {
   mostraMancanti: boolean
   // solo in creazione: binder checklist del set, pagine calcolate dal backend
   espansioneId?: string
+  numeroPokedex?: number
 }
 
 export type CriterioOrdine = 'SET_NUMERO' | 'POKEDEX' | 'NOME' | 'RARITA'
