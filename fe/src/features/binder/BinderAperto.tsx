@@ -27,6 +27,8 @@ import { useSfoglioPuntatore } from './aperto/useSfoglioPuntatore'
 import { proporzionePagina } from './aspetto'
 import { useGetBinderDettaglioQuery } from './binderApi'
 import { Contesto, stessaPosizione } from './contesto'
+import { statisticheBinder } from './statisticheBinder'
+import { copieTotali, creaMappa } from '../collezione/conteggi'
 
 interface Props {
   id: string
@@ -60,6 +62,11 @@ export function BinderAperto({ id, onChiuso, onImpostazioni }: Props) {
 
 function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: BinderDettaglio } & Omit<Props, 'id'>) {
   const { binder, slot } = dettaglio
+  // dalla collezione del dettaglio: si aggiorna con le tasche e con "Ce l'ho"
+  const statistiche = useMemo(() => {
+    const mappa = creaMappa(dettaglio.collezione)
+    return statisticheBinder(slot, binder.pagine * binder.tasche, (id) => copieTotali(mappa, id) > 0)
+  }, [dettaglio.collezione, slot, binder.pagine, binder.tasche])
   const doppia = useMediaQuery('(min-width: 1024px)')
   const preferiti = usePreferiti()
   const [faiSpazio, setFaiSpazio] = useFaiSpazio()
@@ -139,6 +146,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
               cassettoLaterale={cassettoLaterale}
               espanso={schermo.espanso}
               faiSpazio={faiSpazio}
+              statistiche={statistiche}
               onFaiSpazio={setFaiSpazio}
               onOrdina={() => setOrdinaAperto(true)}
               onApri={apri}
@@ -155,6 +163,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
                   <Album
                     binder={binder}
                     slot={slot}
+                    statistiche={statistiche}
                     doppia={doppia}
                     proporzione={proporzione}
                     rapporto={rapporto}

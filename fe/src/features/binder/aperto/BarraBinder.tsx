@@ -1,6 +1,9 @@
 import { ArrowDownWideNarrow, ArrowLeft, BetweenHorizontalStart, Book, BookOpen, Layers, Maximize2, Minimize2, Settings2 } from 'lucide-react'
 import { Button } from '../../../components/Button'
 import type { Binder } from '../../../types/api'
+import { percentuale } from '../../statistiche/calcoli'
+import type { StatisticheBinder } from '../statisticheBinder'
+import { BarraTasche } from './BarraTasche'
 import { cn } from '../../../utils/cn'
 import type { Fase } from './costanti'
 
@@ -12,6 +15,7 @@ interface Props {
   cassettoLaterale: boolean
   espanso: boolean
   faiSpazio: boolean
+  statistiche: StatisticheBinder
   onApri: () => void
   onChiudi: (destinazione: 'mensola' | 'resta') => void
   onCarte: () => void
@@ -31,6 +35,7 @@ export function BarraBinder({
   cassettoLaterale,
   espanso,
   faiSpazio,
+  statistiche,
   onApri,
   onChiudi,
   onCarte,
@@ -51,11 +56,23 @@ export function BarraBinder({
       <ArrowLeft aria-hidden className="size-4" />
       <span className="hidden sm:inline">I miei binder</span>
     </Button>
-    <div className="flex min-w-0 flex-1 items-baseline justify-center gap-3">
-      <h1 className="truncate text-xl font-bold text-testo sm:text-2xl">{binder.nome}</h1>
-      <p className="shrink-0 text-sm text-testo/70">
-        {carteInserite} / {binder.pagine * binder.tasche} carte
-      </p>
+    <div className="min-w-0 flex-1 text-center">
+      <div className="flex items-baseline justify-center gap-3">
+        <h1 className="truncate text-xl font-bold text-testo sm:text-2xl">{binder.nome}</h1>
+        <p className="shrink-0 text-sm text-testo/70">
+          {carteInserite} / {binder.pagine * binder.tasche} carte
+        </p>
+      </div>
+      {/* a pagina singola l'interno copertina non si vede: possedute e valore stanno qui */}
+      {!doppia && (
+        <div className="mt-0.5 flex items-center justify-center gap-2 text-xs tabular-nums text-testo/70">
+          <BarraTasche statistiche={statistiche} possedute="bg-accento" daTrovare="bg-accento/35" className="h-1.5 w-12 shrink-0 bg-tenue" />
+          <p className="truncate">
+            <strong className="font-semibold text-testo">{statistiche.possedute}</strong> / {statistiche.piene} possedute ·{' '}
+            {percentuale(statistiche.possedute, statistiche.piene)}% · ≈ {Math.round(statistiche.valore).toLocaleString('it-IT')} €
+          </p>
+        </div>
+      )}
     </div>
     <div className="flex gap-2">
       <Button

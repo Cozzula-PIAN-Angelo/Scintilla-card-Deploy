@@ -10,6 +10,7 @@ import { BordoSfoglio } from './BordoSfoglio'
 import { CURVA, DURATA_COPERTINA, type Lato } from './costanti'
 import { Foglio } from './Foglio'
 import { ManigliaPagina } from './ManigliaPagina'
+import type { StatisticheBinder } from '../statisticheBinder'
 import { Anelli, CopertinaAperta, Dorso, InternoCopertina } from './Rilegatura'
 import { SoloFoglio, Tavola } from './Tavola'
 import type { Apertura } from './useAperturaBinder'
@@ -26,11 +27,12 @@ interface Props {
   apertura: Apertura
   sfoglio: Sfoglio
   puntatore: SfoglioPuntatore
+  statistiche: StatisticheBinder
 }
 
 // Il libro: copertina che ruota, facciate con la pila dei fogli, foglio che gira, maniglie e
 // bordi di sfoglio. Il puntatore si afferra sul contenitore
-export function Album({ binder, slot, doppia, proporzione, rapporto, larghezzaLibro, apertura, sfoglio, puntatore }: Props) {
+export function Album({ binder, slot, doppia, proporzione, rapporto, larghezzaLibro, apertura, sfoglio, puntatore, statistiche }: Props) {
   const { fase, apri } = apertura
   const { vista, numeroViste, giro, avanti, angolo, vaiA } = sfoglio
   const { trascinata } = useContestoBinder()
@@ -61,7 +63,7 @@ export function Album({ binder, slot, doppia, proporzione, rapporto, larghezzaLi
     } else if (lato === 'sinistra') {
       contenuto =
         v === 0 ? (
-          <InternoCopertina binder={binder} />
+          <InternoCopertina binder={binder} statistiche={statistiche} />
         ) : (
           <PaginaBinder numero={2 * v - 1} tasche={binder.tasche} carte={cartePerPagina.get(2 * v - 1) ?? new Map()} lato="sinistra" inerte={inerte} />
         )
@@ -185,7 +187,7 @@ export function Album({ binder, slot, doppia, proporzione, rapporto, larghezzaLi
             </div>
             <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
               <Tavola colore={binder.colore} lato="sinistra" proporzione={proporzione} fodera>
-                <InternoCopertina binder={binder} />
+                <InternoCopertina binder={binder} statistiche={statistiche} />
               </Tavola>
             </div>
           </motion.div>

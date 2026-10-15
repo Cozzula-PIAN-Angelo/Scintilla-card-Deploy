@@ -1,10 +1,14 @@
 import { motion } from 'framer-motion'
 import type { Binder } from '../../../types/api'
+import { percentuale } from '../../statistiche/calcoli'
+import { BarraTasche } from './BarraTasche'
 import { RAGGIO_ESTERNO, scuro } from '../aspetto'
 import { FoderaBinder } from '../CopertinaBinder'
+import type { StatisticheBinder } from '../statisticheBinder'
 import type { Lato } from './costanti'
 
-export function InternoCopertina({ binder }: { binder: Binder }) {
+export function InternoCopertina({ binder, statistiche }: { binder: Binder; statistiche: StatisticheBinder }) {
+  const { piene, totale, possedute, valore } = statistiche
   return (
     <FoderaBinder colore={binder.colore}>
       <div className="absolute inset-x-[12%] top-1/2 -translate-y-1/2 rounded-[3cqw] border-[0.5cqw] border-white/25 px-[6cqw] py-[7cqw] text-center text-white/85">
@@ -13,6 +17,40 @@ export function InternoCopertina({ binder }: { binder: Binder }) {
         <p className="mt-[3cqw] text-[3.4cqw]">
           {binder.pagine} pagine · {binder.tasche} tasche per pagina
         </p>
+        {/* statistiche del binder; da telefono (pagina singola) stanno nella barra del binder */}
+        <div className="mt-[4.5cqw] border-t border-white/20 pt-[4cqw] text-left text-[3cqw] tabular-nums">
+          <p className="flex items-baseline justify-between">
+            <span className="text-white/65">Tasche piene</span>
+            <span>
+              {piene} / {totale} · {percentuale(piene, totale)}%
+            </span>
+          </p>
+          <BarraTasche statistiche={statistiche} possedute="bg-white/90" daTrovare="bg-white/40" className="mt-[1.6cqw] h-[1.4cqw] bg-white/10" />
+          <ul className="mt-[2.6cqw] grid gap-[1.2cqw]">
+            <li className="flex items-center gap-[1.6cqw]">
+              <span aria-hidden className="size-[2cqw] rounded-[0.5cqw] bg-white/90" />
+              <span>
+                <strong className="font-semibold">{possedute}</strong> possedute
+              </span>
+            </li>
+            <li className="flex items-center gap-[1.6cqw]">
+              <span aria-hidden className="size-[2cqw] rounded-[0.5cqw] bg-white/40" />
+              <span>
+                <strong className="font-semibold">{piene - possedute}</strong> da trovare
+              </span>
+            </li>
+            <li className="flex items-center gap-[1.6cqw]">
+              <span aria-hidden className="size-[2cqw] rounded-[0.5cqw] bg-white/10 ring-[0.3cqw] ring-white/30" />
+              <span>
+                <strong className="font-semibold">{totale - piene}</strong> {totale - piene === 1 ? 'tasca libera' : 'tasche libere'}
+              </span>
+            </li>
+          </ul>
+          <p className="mt-[3.4cqw] flex items-baseline justify-between border-t border-white/15 pt-[2.6cqw]">
+            <span className="text-white/65">Valore stimato</span>
+            <span className="font-titolo text-[4.8cqw] font-bold">≈ {Math.round(valore).toLocaleString('it-IT')} €</span>
+          </p>
+        </div>
       </div>
     </FoderaBinder>
   )
