@@ -7,7 +7,7 @@ import { elementoGriglia } from '../theme/motion'
 import { cn } from '../utils/cn'
 import { formattaData, formattaPrezzo } from '../utils/formato'
 import { HoloCard } from './HoloCard'
-import { ImmagineCarta } from './ImmagineCarta'
+import { FORMA_CARTA, ImmagineCarta } from './ImmagineCarta'
 import { PulsanteCuore } from './PulsanteCuore'
 
 interface Props {
@@ -67,7 +67,8 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
             alt={oggetto.nome}
             riflesso={effetto}
             className={cn(
-              'aspect-[63/88] w-full rounded-2xl transition-[filter] duration-300',
+              'aspect-[63/88] w-full transition-[filter] duration-300',
+              FORMA_CARTA,
               // non posseduta: in grigio (salvo la scelta «Mancanti a colori»), a colori in hover o con il focus sulla carta
               collezione && !collezione.aColori && copie === 0 && 'grayscale group-hover:grayscale-0 group-focus-visible:grayscale-0',
             )}

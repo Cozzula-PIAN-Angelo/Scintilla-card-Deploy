@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Button } from '../../components/Button'
 import { CarteSfondo } from '../../components/CarteSfondo'
-import { ImmagineCarta } from '../../components/ImmagineCarta'
+import { FORMA_CARTA, ImmagineCarta } from '../../components/ImmagineCarta'
 import type { Oggetto } from '../../types/api'
 
 interface Props {
@@ -74,7 +74,7 @@ export function Hero({ vetrina, sfondo, onEsplora }: Props) {
                     src={oggetto?.immagineUrlPiccola ?? oggetto?.immagineUrl ?? null}
                     alt={oggetto?.nome ?? 'CeloManca'}
                     priorita
-                    className="aspect-[63/88] w-full rounded-2xl shadow-2xl shadow-ombra/60 ring-4 ring-white/80"
+                    className={`aspect-[63/88] w-full shadow-2xl shadow-ombra/60 ${FORMA_CARTA}`}
                   />
                 </div>
               </motion.div>

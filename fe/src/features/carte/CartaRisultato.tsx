@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { CircleCheck, Download } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../components/Button'
-import { ImmagineCarta } from '../../components/ImmagineCarta'
+import { FORMA_CARTA, ImmagineCarta } from '../../components/ImmagineCarta'
 import type { CartaEsterna } from '../../types/api'
 import { elementoGriglia } from '../../theme/motion'
 import { cn } from '../../utils/cn'
@@ -16,7 +16,7 @@ export function CartaRisultato({ carta }: { carta: CartaEsterna }) {
   return (
     <motion.li variants={elementoGriglia} className="relative list-none overflow-hidden rounded-3xl bg-superficie p-3 shadow-lg shadow-ombra/10 ring-1 ring-linea/5">
       <div className="relative">
-        <ImmagineCarta src={carta.immagineUrlPiccola ?? carta.immagineUrl} alt={carta.nome} className="aspect-[63/88] w-full rounded-2xl" />
+        <ImmagineCarta src={carta.immagineUrlPiccola ?? carta.immagineUrl} alt={carta.nome} className={`aspect-[63/88] w-full ${FORMA_CARTA}`} />
         <AnimatePresence>
           {carta.giaImportata && (
             <motion.span
