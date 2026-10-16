@@ -17,16 +17,19 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 // Database nuovo (es. ricreato dal Blueprint di Render dopo la scadenza di quello gratuito): lo riempie con i
 // dati esportati da scripts/esporta-dati.ps1, letti da app.seed.dati (su Render un Secret File).
 // Gira prima di DatabaseSeeder e CatalogoSeeder (HIGHEST_PRECEDENCE vale anche se un giorno prendono un
-// @Order): dopo l'import loro trovano admin e catalogo e saltano. Se qualcosa va storto annulla tutto e
-// l'avvio prosegue con il database vuoto, come senza file
+// @Order): dopo l'import loro trovano admin e catalogo e saltano. Se il file c'è ma l'import non riesce,
+// annulla tutto e ferma l'avvio: proseguendo, gli altri seeder riempirebbero il database e l'import non
+// ripartirebbe più. Si corregge il file, o lo si toglie per partire senza dati
 @Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -37,7 +40,7 @@ public class DatiInizialiSeeder implements CommandLineRunner {
     static final List<String> TABELLE = List.of(
             "ruoli", "utenti", "ruoli_utenti", "espansioni", "oggetti", "oggetti_pokedex", "pokemon_importati",
             "artisti_importati", "utenti_oggetti_preferiti", "binder", "binder_slot", "binder_immagini",
-            "collezione");
+            "collezione", "token_revocati");
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transazione;
@@ -66,7 +69,8 @@ public class DatiInizialiSeeder implements CommandLineRunner {
             Map<String, Integer> inserite = transazione.execute(stato -> inserisci(dati));
             log.info("Dati iniziali: inserite {}", inserite);
         } catch (RuntimeException | IOException ex) {
-            log.error("Dati iniziali: import da '{}' non riuscito, il database resta vuoto ({})", percorso, ex.toString());
+            throw new IllegalStateException("Dati iniziali: import da '" + percorso + "' non riuscito, database "
+                    + "lasciato vuoto. Correggere il file o toglierlo (app.seed.dati / SEED_DATI)", ex);
         }
     }
 
@@ -88,9 +92,9 @@ public class DatiInizialiSeeder implements CommandLineRunner {
                 log.warn("Dati iniziali: tabella '{}' sconosciuta nel file, ignorata", nome);
             }
         });
-        // senza utenti i ruoli eventualmente creati da un avvio precedente non sono legati a nulla:
-        // si tengono quelli del file, con i loro id
-        jdbc.update("DELETE FROM ruoli");
+        // senza utenti né carte restano solo dati di avvii precedenti (ruoli, espansioni sincronizzate,
+        // token): si tengono quelli del file, con i loro id
+        jdbc.execute("TRUNCATE " + String.join(", ", TABELLE));
 
         Map<String, Integer> inserite = new LinkedHashMap<>();
         for (String tabella : TABELLE) {
@@ -98,10 +102,23 @@ public class DatiInizialiSeeder implements CommandLineRunner {
             if (righe == null || !righe.isArray() || righe.isEmpty()) {
                 continue;
             }
-            int n = jdbc.update("INSERT INTO " + tabella + " SELECT * FROM json_populate_recordset(NULL::" + tabella
-                    + ", ?::json)", righe.toString());
+            String colonne = String.join(", ", colonneNelFile(tabella, righe));
+            int n = jdbc.update("INSERT INTO " + tabella + " (" + colonne + ") SELECT " + colonne
+                    + " FROM json_populate_recordset(NULL::" + tabella + ", ?::json)", righe.toString());
             inserite.put(tabella, n);
         }
         return inserite;
+    }
+
+    // solo le colonne della tabella che il file ha davvero: quelle aggiunte dopo l'export prendono il loro
+    // DEFAULT invece di NULL. I nomi vengono dal catalogo del database, le chiavi del file servono solo a filtrarli
+    private List<String> colonneNelFile(String tabella, JsonNode righe) {
+        Set<String> chiavi = new HashSet<>();
+        righe.forEach(riga -> riga.fieldNames().forEachRemaining(chiavi::add));
+        return jdbc.queryForList("""
+                        SELECT column_name FROM information_schema.columns
+                        WHERE table_schema = current_schema() AND table_name = ? ORDER BY ordinal_position""",
+                        String.class, tabella)
+                .stream().filter(chiavi::contains).toList();
     }
 }

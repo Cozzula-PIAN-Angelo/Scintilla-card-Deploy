@@ -17,7 +17,8 @@ $ErrorActionPreference = 'Stop'
 # stesso ordine di DatiInizialiSeeder.TABELLE: prima le tabelle a cui puntano le chiavi esterne
 $tabelle = @(
     'ruoli', 'utenti', 'ruoli_utenti', 'espansioni', 'oggetti', 'oggetti_pokedex', 'pokemon_importati',
-    'artisti_importati', 'utenti_oggetti_preferiti', 'binder', 'binder_slot', 'binder_immagini', 'collezione'
+    'artisti_importati', 'utenti_oggetti_preferiti', 'binder', 'binder_slot', 'binder_immagini', 'collezione',
+    'token_revocati'
 )
 $limite = 1048576       # 1 MB: limite di Render per tutti i Secret File di un servizio
 $soglia = 900 * 1024
@@ -32,14 +33,15 @@ $codificaPrima = [Console]::OutputEncoding
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 try {
     $json = (& $Psql $url -X -A -t -q -c $query | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or -not $json) { throw "Export non riuscito: psql ha restituito $LASTEXITCODE" }
+    # righe per tabella contate dal database: ConvertFrom-Json di PowerShell 5.1 si ferma sopra ~2 MB di JSON
+    $conti = ($tabelle | ForEach-Object { "SELECT '$_', count(*) FROM $_" }) -join ' UNION ALL '
+    & $Psql $url -X -A -t -q -F ' ' -c $conti | ForEach-Object {
+        $tabella, $righe = $_ -split ' '
+        Write-Host ('{0,-26} {1,6} righe' -f $tabella, $righe)
+    }
 } finally {
     [Console]::OutputEncoding = $codificaPrima
-}
-if ($LASTEXITCODE -ne 0 -or -not $json) { throw "Export non riuscito: psql ha restituito $LASTEXITCODE" }
-
-$dati = $json | ConvertFrom-Json
-foreach ($tabella in $tabelle) {
-    Write-Host ('{0,-26} {1,6} righe' -f $tabella, @($dati.$tabella).Count)
 }
 
 $memoria = New-Object System.IO.MemoryStream

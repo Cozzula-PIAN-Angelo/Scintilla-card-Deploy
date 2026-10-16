@@ -28,6 +28,7 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 // Il seeder dei dati iniziali su un PostgreSQL vero (embedded, come MigrazioniTest): i file di prova hanno
 // lo stesso formato di scripts/esporta-dati.ps1. Senza transazione del test, così il rollback del seeder
@@ -70,6 +71,30 @@ class DatiInizialiSeederTest {
         assertThat(jdbc.queryForObject("""
                 SELECT u.username FROM binder_slot s JOIN binder b ON b.id = s.id_binder
                 JOIN utenti u ON u.id = b.id_utente""", String.class)).isEqualTo("ash");
+        // i logout fatti prima restano validi: i token revocati passano anche loro
+        assertThat(conta("token_revocati")).isEqualTo(1);
+    }
+
+    @Test
+    void colonnaAssenteNelFilePrendeIlDefault() throws Exception {
+        // file esportato prima di una migrazione che aggiunge una colonna NOT NULL DEFAULT (es. V4 mostra_mancanti)
+        Map<String, List<Map<String, Object>>> dati = datiCompleti();
+        dati.get("binder").getFirst().remove("mostra_mancanti");
+
+        seeder(scriviFile(dati)).run();
+
+        assertThat(jdbc.queryForObject("SELECT mostra_mancanti FROM binder", Boolean.class)).isTrue();
+    }
+
+    @Test
+    void tabelleDiCacheGiaPieneVengonoSostituite() throws Exception {
+        // es. espansioni sincronizzate da un avvio precedente senza utenti né carte
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Vecchia', false)");
+
+        seeder(scriviFile(datiCompleti())).run();
+
+        assertThat(jdbc.queryForObject("SELECT nome FROM espansioni", String.class)).isEqualTo("Base");
+        assertThat(conta("oggetti")).isEqualTo(1);
     }
 
     @Test
@@ -102,20 +127,21 @@ class DatiInizialiSeederTest {
     }
 
     @Test
-    void fileNonBase64NonFaNulla() throws Exception {
+    void fileNonBase64FermaLAvvio() throws Exception {
         Path file = cartella.resolve("rotto.b64");
         Files.writeString(file, "questo non è base64 né gzip");
 
-        assertThatCode(seeder(file)::run).doesNotThrowAnyException();
+        // con il file presente un import fallito ferma l'avvio: gli altri seeder non devono riempire il database
+        assertThatThrownBy(seeder(file)::run).isInstanceOf(IllegalStateException.class);
         assertTuttoVuoto();
     }
 
     @Test
-    void vincoloViolatoAnnullaTutto() throws Exception {
+    void vincoloViolatoAnnullaTuttoEFermaLAvvio() throws Exception {
         Map<String, List<Map<String, Object>>> dati = datiCompleti();
         dati.get("binder_slot").getFirst().put("id_binder", "99999999-9999-9999-9999-999999999999");
 
-        assertThatCode(seeder(scriviFile(dati))::run).doesNotThrowAnyException();
+        assertThatThrownBy(seeder(scriviFile(dati))::run).isInstanceOf(IllegalStateException.class);
         assertTuttoVuoto();
     }
 
@@ -196,6 +222,7 @@ class DatiInizialiSeederTest {
                 "content_type", "image/png")));
         dati.put("collezione", lista(riga("id", "88888888-8888-8888-8888-888888888888", "id_utente", UTENTE,
                 "id_oggetto", CARTA, "variante", "NORMALE", "quantita", 2, "aggiornata_il", QUANDO)));
+        dati.put("token_revocati", lista(riga("jti", "99999999-0000-0000-0000-000000000000", "scadenza", QUANDO)));
         return dati;
     }
 

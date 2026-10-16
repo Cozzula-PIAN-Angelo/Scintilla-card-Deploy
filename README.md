@@ -168,11 +168,12 @@ cancellato). Per ripartire da un database nuovo senza perdere i dati:
    admin e catalogo e saltano.
 
 Il seeder non fa nulla se il file non c'è (in locale, `app.seed.dati` / `SEED_DATI`) o se nel database ci
-sono già utenti o carte. Se l'import fallisce annulla tutto e il backend parte con il database vuoto, come
-senza file. Limiti:
+sono già utenti o carte. Le colonne aggiunte dopo l'export prendono il loro valore di default. Se il file
+c'è ma l'import fallisce, annulla tutto e **ferma l'avvio** (il deploy risulta fallito, nel log
+`Dati iniziali: import ... non riuscito`): così gli altri seeder non riempiono il database al posto dei dati
+veri. Si corregge il file, oppure lo si toglie dai Secret File per partire senza dati. Limiti:
 - le password sono quelle del database di origine: l'admin entra con la password che aveva lì;
-- dopo una migrazione che aggiunge colonne obbligatorie il file va riesportato (le colonne assenti
-  diventano NULL).
+- una migrazione che aggiunge una colonna obbligatoria **senza** default richiede di riesportare il file.
 
 ## Struttura
 
