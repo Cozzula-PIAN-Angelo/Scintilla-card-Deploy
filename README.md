@@ -147,6 +147,34 @@ e non ricrea le tabelle dopo il reset (`ddl-auto` agisce solo all'avvio); poi il
 il **Manual Deploy**, senza aprire il sito finché non è finito.
 Sospenderla non basta: **Resume Web Service** riavvia la stessa versione vecchia, che ricrea le tabelle.
 
+### Database nuovo dal Blueprint con i dati di prima
+
+Il database gratuito di Render scade 30 giorni dopo la creazione (poi 14 giorni di tolleranza, poi viene
+cancellato). Per ripartire da un database nuovo senza perdere i dati:
+
+1. **Prima della scadenza**, esportare i dati: in un file di testo (fuori dal repo) si mette solo
+   l'**External Database URL** di `scintilla-db` (Connect > External Connection), poi
+   ```
+   powershell -ExecutionPolicy Bypass -File scripts\esporta-dati.ps1 -FileUrl C:\percorso\render-url.txt
+   ```
+   Nasce `dati-iniziali.b64` (base64 di gzip di un JSON con le righe di ogni tabella). Contiene email e
+   hash delle password: non va in git (è nel `.gitignore`).
+2. `scintilla-be` > **Environment** > **Secret Files**: aggiungere `dati-iniziali.b64` con il contenuto
+   del file. Render ne accetta al massimo 1 MB in tutto: lo script avvisa sopra 900 kB e si ferma oltre.
+3. Cancellare il vecchio `scintilla-db` (un solo database gratuito per volta), poi **Blueprint** >
+   **Manual Sync**: nasce un `scintilla-db` vuoto, collegato da solo al backend.
+4. `scintilla-be` > **Manual Deploy**. Al primo avvio Flyway crea le tabelle e `DatiInizialiSeeder`, visto
+   il database vuoto, lo riempie: nel log `Dati iniziali: inserite {...}`. Dopo, gli altri seeder trovano
+   admin e catalogo e saltano.
+
+Il seeder non fa nulla se il file non c'è (in locale, `app.seed.dati` / `SEED_DATI`) o se nel database ci
+sono già utenti o carte. Le colonne aggiunte dopo l'export prendono il loro valore di default. Se il file
+c'è ma l'import fallisce, annulla tutto e **ferma l'avvio** (il deploy risulta fallito, nel log
+`Dati iniziali: import ... non riuscito`): così gli altri seeder non riempiono il database al posto dei dati
+veri. Si corregge il file, oppure lo si toglie dai Secret File per partire senza dati. Limiti:
+- le password sono quelle del database di origine: l'admin entra con la password che aveva lì;
+- una migrazione che aggiunge una colonna obbligatoria **senza** default richiede di riesportare il file.
+
 ## Struttura
 
 ```
