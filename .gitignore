@@ -21,3 +21,7 @@ Thumbs.db
 # bozze del brainstorming e impostazioni locali degli strumenti di design
 .superpowers/
 .impeccable/
+
+# dati esportati dal database (email e hash delle password): solo come Secret File su Render
+dati-iniziali.b64
+*.b64
