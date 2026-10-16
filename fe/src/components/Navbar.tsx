@@ -1,26 +1,24 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChartPie, CircleUserRound, LogOut, UserX, X } from 'lucide-react'
+import { CircleUserRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
-import { selectIsAdmin, selectToken, selectUtente } from '../features/auth/authSlice'
+import { selectToken, selectUtente } from '../features/auth/authSlice'
 import { ModaleCancellaAccount } from '../features/auth/ModaleCancellaAccount'
-import { useLogout } from '../features/auth/useLogout'
 import { useScrollato } from '../hooks/useScrollato'
 import { molla } from '../theme/motion'
 import { useTema } from '../theme/tema'
 import { cn } from '../utils/cn'
-import { Button, LinkBottone, classiBottone } from './Button'
+import { LinkBottone } from './Button'
 import { Logo } from './Logo'
+import { ContenutoAccount, MenuAccount } from './MenuAccount'
 import { PulsanteTema } from './PulsanteTema'
-import { VOCE_ADMIN, VOCE_COLLEZIONE, VOCI_PRINCIPALI, voceAttiva, type VoceMenu } from './vociNavigazione'
+import { VOCI_PRINCIPALI, voceAttiva, type VoceMenu } from './vociNavigazione'
 
 export function Navbar() {
   const scrollato = useScrollato(24)
   const token = useAppSelector(selectToken)
   const utente = useAppSelector(selectUtente)
-  const isAdmin = useAppSelector(selectIsAdmin)
-  const { esci, inUscita } = useLogout()
   const { tema, alterna } = useTema()
   const [menuAperto, setMenuAperto] = useState(false)
   const [cancellazioneAperta, setCancellazioneAperta] = useState(false)
@@ -30,10 +28,8 @@ export function Navbar() {
 
   const attiva = (voce: VoceMenu, isActive: boolean) => voceAttiva(voce, isActive, pathname)
 
-  // da desktop tutte le sezioni stanno qui; da telefono sono nella barra in basso (BarraNavigazione)
-  // e il pannello account tiene Collezione e Admin
-  const voci: VoceMenu[] = [...VOCI_PRINCIPALI, ...(isAdmin ? [VOCE_ADMIN] : [])]
-  const vociAccount: VoceMenu[] = [...(utente ? [VOCE_COLLEZIONE] : []), ...(isAdmin ? [VOCE_ADMIN] : [])]
+  // da desktop le sezioni stanno qui; sotto lg (telefono e tablet) nella barra in basso (BarraNavigazione).
+  // Collezione e Admin stanno nel pannello account (MenuAccount), uguale ovunque
 
   return (
     <header
@@ -45,8 +41,8 @@ export function Navbar() {
       <nav aria-label="Principale" className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Logo compatto={scrollato} />
 
-        <ul className="hidden items-center gap-1 md:flex">
-          {voci.map((voce) => (
+        <ul className="hidden items-center gap-1 lg:flex">
+          {VOCI_PRINCIPALI.map((voce) => (
             <li key={voce.a}>
               <NavLink
                 to={voce.a}
@@ -69,52 +65,22 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="flex items-center gap-1 md:gap-3">
+        <div className="flex items-center gap-1 lg:gap-2">
           <PulsanteTema tema={tema} onAlterna={alterna} />
 
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden lg:block">
             {utente ? (
-              <>
-                <span className="text-sm text-white">
-                  Ciao, <strong className="font-semibold text-giallo-400">{utente.username}</strong>
-                </span>
-                {/* NavLink e non LinkBottone: sulla pagina /collezione resta evidenziata (e aria-current) come le altre voci */}
-                <NavLink
-                  to={VOCE_COLLEZIONE.a}
-                  title="La mia collezione"
-                  className={({ isActive }) => classiBottone('suScuro', 'sm', cn('gap-2', isActive && 'bg-white/15 ring-white/60'))}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <ChartPie aria-hidden className={cn('size-4', isActive && 'text-giallo-400')} />
-                      {VOCE_COLLEZIONE.etichetta}
-                    </>
-                  )}
-                </NavLink>
-                <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
-                  <LogOut aria-hidden className="size-4" />
-                  Esci
-                </Button>
-                <Button
-                  variante="suScuro"
-                  dimensione="sm"
-                  onClick={() => setCancellazioneAperta(true)}
-                  aria-label="Cancella il tuo account"
-                  title="Cancella account"
-                >
-                  <UserX aria-hidden className="size-4" />
-                </Button>
-              </>
+              <MenuAccount onCancellaAccount={() => setCancellazioneAperta(true)} />
             ) : (
               !token && (
-                <>
+                <div className="flex items-center gap-2">
                   <LinkBottone to="/login" variante="suScuro" dimensione="sm">
                     Accedi
                   </LinkBottone>
                   <LinkBottone to="/register" variante="secondario" dimensione="sm">
                     Registrati
                   </LinkBottone>
-                </>
+                </div>
               )
             )}
           </div>
@@ -125,7 +91,7 @@ export function Navbar() {
             aria-expanded={menuAperto}
             aria-controls="menu-mobile"
             aria-label={menuAperto ? "Chiudi il menu dell'account" : "Apri il menu dell'account"}
-            className="grid size-11 place-items-center rounded-full text-white transition-colors hover:bg-white/10 md:hidden"
+            className="grid size-11 place-items-center rounded-full text-white transition-colors hover:bg-white/10 lg:hidden"
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
@@ -149,60 +115,10 @@ export function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden md:hidden"
+            className="overflow-hidden lg:hidden"
           >
-            <div className="mx-4 mt-3 space-y-1 rounded-3xl bg-notte-2 p-3 shadow-xl">
-              {vociAccount.map((voce, indice) => (
-                <motion.div key={voce.a} initial={{ x: -16, opacity: 0 }} animate={{ x: 0, opacity: 1, transition: { delay: indice * 0.05 } }}>
-                  <NavLink
-                    to={voce.a}
-                    end={voce.a === '/'}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold',
-                        attiva(voce, isActive) ? 'bg-white text-blu-900' : 'text-white hover:bg-white/10',
-                      )
-                    }
-                  >
-                    <voce.icona aria-hidden className="size-5" />
-                    {voce.etichetta}
-                  </NavLink>
-                </motion.div>
-              ))}
-              <div className={cn(vociAccount.length > 0 && 'mt-2 border-t border-white/20 pt-3')}>
-                {utente ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-3 px-2">
-                      <span className="text-sm text-white">
-                        Ciao, <strong className="text-giallo-400">{utente.username}</strong>
-                      </span>
-                      <Button variante="chiaro" dimensione="sm" onClick={esci} caricamento={inUscita}>
-                        <LogOut aria-hidden className="size-4" />
-                        Esci
-                      </Button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setCancellazioneAperta(true)}
-                      className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold text-white/80 hover:bg-white/10"
-                    >
-                      <UserX aria-hidden className="size-5" />
-                      Cancella account
-                    </button>
-                  </div>
-                ) : (
-                  !token && (
-                    <div className="flex gap-2 px-2">
-                      <LinkBottone to="/login" variante="chiaro" dimensione="sm" className="flex-1">
-                        Accedi
-                      </LinkBottone>
-                      <LinkBottone to="/register" variante="secondario" dimensione="sm" className="flex-1">
-                        Registrati
-                      </LinkBottone>
-                    </div>
-                  )
-                )}
-              </div>
+            <div className="mx-4 mt-3 rounded-3xl bg-notte-2 p-3 shadow-xl sm:ml-auto sm:mr-6 sm:max-w-sm">
+              <ContenutoAccount onCancellaAccount={() => setCancellazioneAperta(true)} />
             </div>
           </motion.div>
         )}

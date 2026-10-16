@@ -11,6 +11,10 @@ interface Props {
   riflesso?: 'arcobaleno' | 'specchio' | null
 }
 
+// forma di una carta vera: angoli come quelli stampati (le stesse proporzioni delle tasche del binder);
+// sfondo trasparente perché le immagini hanno già gli angoli trasparenti
+export const FORMA_CARTA = 'rounded-[6%/4.3%] bg-transparent!'
+
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato
 export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null }: Props) {
   // stato legato allo src: se cambia, si riparte da "non caricata"

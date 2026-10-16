@@ -66,7 +66,7 @@ export function RegisterPage() {
     // registrazione riuscita: accesso automatico con le stesse credenziali
     try {
       await login({ identificativo: inviati.email, password: inviati.password }).unwrap()
-      toast.successo(`Benvenuto su Scintilla, ${inviati.username}!`)
+      toast.successo(`Benvenuto su CeloManca, ${inviati.username}!`)
       navigate('/', { replace: true })
     } catch {
       toast.successo('Registrazione completata! Ora puoi accedere.')

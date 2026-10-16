@@ -51,7 +51,7 @@ export function LoginPage() {
 
     try {
       await login({ identificativo: dati.identificativo.trim(), password: dati.password }).unwrap()
-      toast.successo('Bentornato su Scintilla!')
+      toast.successo('Bentornato su CeloManca!')
       navigate(stato.da ?? '/', { replace: true })
     } catch (errore) {
       setErrori(erroriCampi(errore))

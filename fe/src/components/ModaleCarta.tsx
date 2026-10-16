@@ -11,7 +11,7 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 import { cn } from '../utils/cn'
 import { formattaData, formattaPrezzo } from '../utils/formato'
 import { HoloCard } from './HoloCard'
-import { ImmagineCarta } from './ImmagineCarta'
+import { FORMA_CARTA, ImmagineCarta } from './ImmagineCarta'
 import { Modale } from './Modale'
 import { PulsanteCuore } from './PulsanteCuore'
 import type { SfoglioCarte } from './sfoglioCarte'
@@ -130,13 +130,13 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
                   dragElastic={0.5}
                   onDragEnd={fineScorrimento}
                 >
-                  <HoloCard className="w-full rounded-3xl">
+                  <HoloCard className="w-full rounded-[6%/4.3%]">
                     <ImmagineCarta
                       src={mostrato.immagineUrl}
                       alt={mostrato.nome}
                       priorita
                       riflesso={effetto}
-                      className="aspect-[63/88] w-full rounded-3xl shadow-2xl shadow-ombra/30"
+                      className={`aspect-[63/88] w-full shadow-2xl shadow-ombra/30 ${FORMA_CARTA}`}
                     />
                   </HoloCard>
                 </motion.div>
