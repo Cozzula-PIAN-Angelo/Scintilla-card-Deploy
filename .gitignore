@@ -23,5 +23,4 @@ Thumbs.db
 .impeccable/
 
 # dati esportati dal database (email e hash delle password): solo come Secret File su Render
-dati-iniziali.b64
 *.b64

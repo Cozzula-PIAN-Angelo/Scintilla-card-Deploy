@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,6 +75,30 @@ class DatiInizialiSeederTest {
                 JOIN utenti u ON u.id = b.id_utente""", String.class)).isEqualTo("ash");
         // i logout fatti prima restano validi: i token revocati passano anche loro
         assertThat(conta("token_revocati")).isEqualTo(1);
+    }
+
+    // una tabella aggiunta da una migrazione va elencata in TABELLE (e nello script), altrimenti i suoi dati
+    // si perderebbero al prossimo cambio di database senza nessun avviso
+    @Test
+    void ogniTabellaDelloSchemaEElencata() {
+        List<String> tabelleVere = jdbc.queryForList("""
+                SELECT table_name FROM information_schema.tables
+                WHERE table_schema = current_schema() AND table_type = 'BASE TABLE'
+                  AND table_name <> 'flyway_schema_history'""", String.class);
+
+        assertThat(DatiInizialiSeeder.TABELLE).containsExactlyInAnyOrderElementsOf(tabelleVere);
+    }
+
+    // la lista di scripts/esporta-dati.ps1 deve essere la stessa, nello stesso ordine (le chiavi esterne)
+    @Test
+    void scriptEsportaLeStesseTabelle() throws Exception {
+        String script = Files.readString(Path.of("..", "scripts", "esporta-dati.ps1"));
+        Matcher lista = Pattern.compile("\\$tabelle = @\\(([^)]*)\\)").matcher(script);
+        assertThat(lista.find()).as("lista $tabelle nello script").isTrue();
+        List<String> nelloScript = Pattern.compile("'([a-z_]+)'").matcher(lista.group(1)).results()
+                .map(nome -> nome.group(1)).toList();
+
+        assertThat(nelloScript).containsExactlyElementsOf(DatiInizialiSeeder.TABELLE);
     }
 
     @Test

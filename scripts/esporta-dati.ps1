@@ -24,6 +24,11 @@ $limite = 1048576       # 1 MB: limite di Render per tutti i Secret File di un s
 $soglia = 900 * 1024
 
 $url = (Get-Content $FileUrl -Raw).Trim()
+# la password passa a psql con PGPASSWORD: negli argomenti resterebbe visibile nell'elenco dei processi
+if ($url -match '^(postgres(?:ql)?://[^:/@]+):([^@]*)@(.+)$') {
+    $env:PGPASSWORD = [Uri]::UnescapeDataString($Matches[2])
+    $url = "$($Matches[1])@$($Matches[3])"
+}
 $campi = ($tabelle | ForEach-Object { "'$_', coalesce((SELECT json_agg(t) FROM $_ t), '[]'::json)" }) -join ', '
 $query = "SELECT json_build_object($campi);"
 
@@ -42,6 +47,7 @@ try {
     }
 } finally {
     [Console]::OutputEncoding = $codificaPrima
+    Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
 }
 
 $memoria = New-Object System.IO.MemoryStream
