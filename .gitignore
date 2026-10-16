@@ -17,3 +17,7 @@ fe/.env.local
 *.log
 .DS_Store
 Thumbs.db
+
+# bozze del brainstorming e impostazioni locali degli strumenti di design
+.superpowers/
+.impeccable/

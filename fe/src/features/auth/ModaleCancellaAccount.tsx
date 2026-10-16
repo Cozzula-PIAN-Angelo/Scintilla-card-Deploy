@@ -56,7 +56,7 @@ export function ModaleCancellaAccount({ aperta, onChiudi }: Props) {
     // il token non vale più: uscita locale, come nel logout
     dispatch(logoutLocale())
     dispatch(api.util.resetApiState())
-    toast.info('Il tuo account è stato cancellato. Grazie per essere passato da Scintilla!')
+    toast.info('Il tuo account è stato cancellato. Grazie per essere passato da CeloManca!')
     onChiudi()
     navigate('/', { replace: true })
   }

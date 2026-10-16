@@ -3,7 +3,7 @@ import type { MotivoBinder } from '../../types/api'
 
 // colori proposti per la copertina; si può sceglierne anche uno libero
 export const COLORI_BINDER = [
-  { nome: 'Blu Scintilla', valore: '#2a75bb' },
+  { nome: 'Blu CeloManca', valore: '#2a75bb' },
   { nome: 'Notte', valore: '#1d2359' },
   { nome: 'Rosso', valore: '#c8332b' },
   { nome: 'Smeraldo', valore: '#1f8a5b' },

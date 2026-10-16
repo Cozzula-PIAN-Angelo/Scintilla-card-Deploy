@@ -1,4 +1,4 @@
-# Scintilla - vetrina di carte collezionabili
+# CeloManca - il binder delle tue carte collezionabili
 
 Backend REST (Spring Boot + JWT) e frontend React per sfogliare carte Pokémon,
 salvarle tra i preferiti e, come admin, importarle dall'API Pokémon TCG.

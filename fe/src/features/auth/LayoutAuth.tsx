@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { CarteSfondo } from '../../components/CarteSfondo'
-import { Scintilla } from '../../components/Forme'
+import { MarchioIcona } from '../../components/Marchio'
 import { PaginaAnimata } from '../../components/PaginaAnimata'
 import { useUltimeCarte } from '../oggetti/useUltimeCarte'
 
@@ -27,7 +27,7 @@ export function LayoutAuth({ titolo, sottotitolo, children }: Props) {
             animate={{ rotate: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 14, delay: 0.25 } }}
             className="mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-blu-500 shadow-lg shadow-blu-500/40"
           >
-            <Scintilla className="w-8 fill-giallo-400" />
+            <MarchioIcona className="h-11" />
           </motion.div>
           <h1 className="text-3xl font-bold text-testo">{titolo}</h1>
           <p className="mt-2 text-testo/70">{sottotitolo}</p>
