@@ -313,13 +313,13 @@
   }
 }
 
-/* spazio della barra di navigazione in basso (BarraNavigazione): solo da telefono e fuori dal binder
+/* spazio della barra di navigazione in basso (BarraNavigazione): solo sotto lg (telefono e tablet) e fuori dal binder
    aperto. Barra alta 4rem, staccata 0.75rem dal fondo, più un po' di respiro. Lo usano il fondo
    della pagina e i toast */
 .con-barra {
   --spazio-barra: calc(5.25rem + env(safe-area-inset-bottom));
 }
-@media (width >= 48rem) {
+@media (width >= 64rem) {
   .con-barra {
     --spazio-barra: 0px;
   }

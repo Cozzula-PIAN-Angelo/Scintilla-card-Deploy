@@ -33,7 +33,7 @@ function useNascostaScorrendo() {
   return nascosta
 }
 
-// Da telefono le sezioni stanno in una barra a U che galleggia in basso, a portata di pollice (al posto
+// Da telefono e tablet (sotto lg) le sezioni stanno in una barra a U che galleggia in basso, a portata di pollice (al posto
 // dell'hamburger): vetro sfocato, angoli in basso tondi come quelli dello schermo. Si nasconde scorrendo
 // in giù e torna risalendo. Lo spazio che occupa lo riserva --spazio-barra (theme.css)
 export function BarraNavigazione() {
@@ -47,7 +47,7 @@ export function BarraNavigazione() {
       // 200%: esce del tutto, anche con la zona del gesto home sotto
       animate={{ y: nascosta ? '200%' : '0%' }}
       transition={molla}
-      className="fixed inset-x-3 overflow-hidden bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-md rounded-t-2xl rounded-b-[2.25rem] bg-notte/55 shadow-2xl shadow-ombra/40 ring-1 ring-white/15 backdrop-blur-xl backdrop-saturate-150 md:hidden"
+      className="fixed inset-x-3 overflow-hidden bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 mx-auto max-w-md rounded-t-2xl rounded-b-[2.25rem] bg-notte/55 shadow-2xl shadow-ombra/40 ring-1 ring-white/15 backdrop-blur-xl backdrop-saturate-150 lg:hidden"
     >
       <ul className="grid h-16 grid-cols-5 px-1.5">
         {VOCI_PRINCIPALI.map((voce, indice) => (
