@@ -24,17 +24,25 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JWTTools jwtTools;
     private final TokenRevocatoService tokenRevocatoService;
+    private final LimitatoreLogin limitatoreLogin;
 
     @Transactional(readOnly = true)
-    public LoginResponseDTO login(LoginDTO body) {
+    public LoginResponseDTO login(LoginDTO body, String ip) {
+        String identificativo = body.identificativo().trim();
+        // oltre il limite dei tentativi falliti la password non si controlla nemmeno (429)
+        limitatoreLogin.controlla(ip, identificativo);
         // stesso messaggio per utente inesistente e password errata:
         // non si rivela quali email o username sono registrati
-        return cercaUtente(body.identificativo().trim())
+        Optional<Utente> utente = cercaUtente(identificativo)
                 // un account cancellato non accede più (la password è comunque casuale: è una seconda difesa)
-                .filter(utente -> !utente.isAnonimizzato())
-                .filter(utente -> passwordEncoder.matches(body.password(), utente.getPassword()))
-                .map(utente -> new LoginResponseDTO(jwtTools.generaToken(utente)))
-                .orElseThrow(() -> new UnauthorizedException("Credenziali non valide"));
+                .filter(trovato -> !trovato.isAnonimizzato())
+                .filter(trovato -> passwordEncoder.matches(body.password(), trovato.getPassword()));
+        if (utente.isEmpty()) {
+            limitatoreLogin.fallito(ip, identificativo);
+            throw new UnauthorizedException("Credenziali non valide");
+        }
+        limitatoreLogin.riuscito(identificativo);
+        return new LoginResponseDTO(jwtTools.generaToken(utente.get()));
     }
 
     // Gli username non possono contenere '@' (RegistrazioneDTO): con la chiocciola è un'email, senza è uno username.
