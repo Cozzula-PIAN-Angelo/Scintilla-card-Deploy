@@ -12,15 +12,8 @@
       rel="stylesheet"
     />
     <title>CeloManca · Il binder delle tue carte</title>
-    <script>
-      // tema applicato prima del primo disegno, senza lampo di bianco: scelta salvata o, in mancanza, quella del sistema
-      // (stessa chiave di src/theme/tema.ts)
-      try {
-        var tema = localStorage.getItem('scintilla.tema')
-        if (tema !== 'chiaro' && tema !== 'scuro') tema = matchMedia('(prefers-color-scheme: dark)').matches ? 'scuro' : 'chiaro'
-        document.documentElement.dataset.tema = tema
-      } catch (e) {}
-    </script>
+    <!-- tema prima del primo disegno: script sincrono, nel <head>, senza type=module -->
+    <script src="/tema-iniziale.js"></script>
   </head>
   <body>
     <div id="root"></div>
