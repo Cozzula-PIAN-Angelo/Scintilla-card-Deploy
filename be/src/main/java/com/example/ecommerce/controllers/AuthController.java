@@ -26,10 +26,11 @@ public class AuthController {
     private final UtenteService utenteService;
     private final AuthService authService;
 
+    // l'IP serve al limite sulle registrazioni rifiutate (vedi LimitatoreRegistrazione)
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public UtenteResponseDTO register(@RequestBody @Valid RegistrazioneDTO body) {
-        return utenteService.registra(body);
+    public UtenteResponseDTO register(@RequestBody @Valid RegistrazioneDTO body, HttpServletRequest request) {
+        return utenteService.registra(body, request.getRemoteAddr());
     }
 
     // l'IP serve al limite sui tentativi falliti (vedi LimitatoreLogin)

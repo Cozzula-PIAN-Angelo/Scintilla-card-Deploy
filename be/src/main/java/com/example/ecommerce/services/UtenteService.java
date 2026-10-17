@@ -37,9 +37,10 @@ public class UtenteService {
     private final RuoloUtenteRepository ruoloUtenteRepository;
     private final RuoloService ruoloService;
     private final PasswordEncoder passwordEncoder;
+    private final LimitatoreRegistrazione limitatoreRegistrazione;
 
     @Transactional
-    public UtenteResponseDTO registra(RegistrazioneDTO body) {
+    public UtenteResponseDTO registra(RegistrazioneDTO body, String ip) {
         // oltre i 72 byte BCryptPasswordEncoder.encode lancia IllegalArgumentException (500)
         if (body.password().getBytes(StandardCharsets.UTF_8).length > MASSIMO_BYTE_PASSWORD) {
             throw new BadRequestException("La password è troppo lunga: lettere accentate ed emoji occupano più spazio, "
@@ -52,12 +53,16 @@ public class UtenteService {
             throw new BadRequestException("Lo username deve avere tra 3 e 30 caratteri, spazi esclusi");
         }
         // IgnoreCase: "Mario" e "mario" sarebbero due account indistinguibili. Si salva com'è scritto
+        // dopo i controlli che non rivelano niente: solo username ed email già usati consumano il limite
+        limitatoreRegistrazione.controlla(ip);
         if (utenteRepository.existsByUsernameIgnoreCase(username)) {
+            limitatoreRegistrazione.rifiutata(ip);
             throw new ConflictException("Lo username '" + username + "' è già in uso");
         }
         String email = Utente.normalizzaEmail(body.email());
         // IgnoreCase: copre anche gli account registrati prima, con le maiuscole nell'email
         if (utenteRepository.existsByEmailIgnoreCase(email)) {
+            limitatoreRegistrazione.rifiutata(ip);
             throw new ConflictException("L'email '" + email + "' è già registrata");
         }
 
