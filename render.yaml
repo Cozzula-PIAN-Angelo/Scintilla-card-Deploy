@@ -61,6 +61,21 @@ services:
       # Indirizzo del BE, es. https://scintilla-be.onrender.com (senza / finale)
       - key: VITE_API_URL
         sync: false
+    # Header di sicurezza (HSTS e nosniff li mette già Render). La CSP ammette solo gli script del sito:
+    # se un giorno passasse una falla XSS, uno script iniettato non partirebbe e non potrebbe mandare
+    # il token altrove. Le immagini arrivano da host che decide pokemontcg.io (images.pokemontcg.io,
+    # images.scrydex.com...), quindi qualunque https. connect-src DEVE contenere l'indirizzo di VITE_API_URL:
+    # se il backend cambia indirizzo va cambiato anche qui, altrimenti il sito non parla più con le API
+    headers:
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://scintilla-be.onrender.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
     routes:
       # react-router: ogni percorso restituisce index.html
       - type: rewrite
