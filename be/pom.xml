@@ -151,6 +151,10 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- solo per spring-boot:run (sviluppo): il jar parte senza profili, vedi application.properties -->
+                    <profiles>
+                        <profile>local</profile>
+                    </profiles>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

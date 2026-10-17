@@ -26,8 +26,11 @@ Avviabile in locale e pronto per il deploy su Render.
    Serve un JDK 21 o superiore in `JAVA_HOME`.
 3. http://localhost:5173 - admin di sviluppo: `admin@ecommerce.local` / `admin1234`.
 
-Non serve impostare variabili: senza `SPRING_PROFILES_ACTIVE` parte il profilo
-`local` (`application-local.properties`) con secret JWT e password admin di sviluppo.
+Non serve impostare variabili: `spring-boot:run` attiva il profilo `local`
+(`application-local.properties`) con secret JWT e password admin di sviluppo. Il jar
+(`java -jar`, Docker, Render) invece parte senza profili: senza `JWT_SECRET` e `ADMIN_PASSWORD`
+non si avvia, così un deploy dimenticato non usa mai i valori di sviluppo. Avviando la classe
+`EcommerceApplication` da un IDE va impostato il profilo `local` nella configurazione di avvio.
 
 ### Schema del database (Flyway)
 
@@ -193,7 +196,7 @@ be/
     controllers, services, repositories, entities, payloads, exceptions, runners
   src/main/resources/
     application.properties        configurazione comune (variabili d'ambiente)
-    application-local.properties  valori di sviluppo, profilo di default
+    application-local.properties  valori di sviluppo, solo con spring-boot:run
     db/migration/                 migrazioni Flyway dello schema (V1, V2, ...)
 fe/
   src/app/api.ts            base delle chiamate, da VITE_API_URL
