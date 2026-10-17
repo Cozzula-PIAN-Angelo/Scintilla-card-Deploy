@@ -69,7 +69,11 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
 - **Limite sui tentativi di login**: in 15 minuti al massimo `LOGIN_LIMITE_UTENZA` (default 10)
   tentativi falliti sulla stessa email o username, anche da IP diversi, e `LOGIN_LIMITE_IP`
   (default 30) dallo stesso indirizzo; oltre, `429` finché la finestra non scade. Il messaggio è
-  lo stesso che l'account esista o no, e un login riuscito azzera i tentativi dell'utenza.
+  lo stesso che l'account esista o no, e un login riuscito azzera i tentativi dell'utenza. Anche
+  la durata della risposta è la stessa: per un'utenza inesistente BCrypt gira su un hash finto.
+- **Limite sulle registrazioni rifiutate**: la registrazione dice se username o email sono già
+  usati; per non permettere di controllare in fila molte email, dopo `REGISTRAZIONE_LIMITE_IP`
+  (default 10) rifiuti di questo tipo dallo stesso IP in 15 minuti si risponde `429`.
 - **Primo avvio**: se il catalogo è vuoto si importano i set di `SEED_SET` (default `base1`),
   così l'hero ha subito delle carte.
 - Le carte senza prezzo Cardmarket (tipico dei set appena usciti) entrano a 1,00 €.

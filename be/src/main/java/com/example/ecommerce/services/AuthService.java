@@ -20,6 +20,10 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class AuthService {
 
+    // hash BCrypt (costo 10, come PasswordConfig) di una stringa casuale buttata via: non corrisponde
+    // a nessuna password, serve solo a far durare il login di un'utenza inesistente quanto gli altri
+    private static final String HASH_FINTO = "$2a$10$SlQDl6I8sQ6Ad1bwX3MqbexLWI8bOGSnMo6QVVwB/DywgVPH3XSji";
+
     private final UtenteRepository utenteRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTTools jwtTools;
@@ -35,9 +39,12 @@ public class AuthService {
         // non si rivela quali email o username sono registrati
         Optional<Utente> utente = cercaUtente(identificativo)
                 // un account cancellato non accede più (la password è comunque casuale: è una seconda difesa)
-                .filter(trovato -> !trovato.isAnonimizzato())
-                .filter(trovato -> passwordEncoder.matches(body.password(), trovato.getPassword()));
-        if (utente.isEmpty()) {
+                .filter(trovato -> !trovato.isAnonimizzato());
+        // BCrypt gira sempre, anche senza utente: altrimenti la risposta più veloce rivelerebbe
+        // che l'account non esiste
+        boolean passwordGiusta = passwordEncoder.matches(body.password(),
+                utente.map(Utente::getPassword).orElse(HASH_FINTO));
+        if (utente.isEmpty() || !passwordGiusta) {
             limitatoreLogin.fallito(ip, identificativo);
             throw new UnauthorizedException("Credenziali non valide");
         }

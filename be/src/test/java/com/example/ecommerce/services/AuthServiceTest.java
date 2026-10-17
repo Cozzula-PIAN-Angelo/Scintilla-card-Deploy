@@ -20,6 +20,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.times;
@@ -113,5 +114,17 @@ class AuthServiceTest {
         assertThatThrownBy(() -> service.login(new LoginDTO("mario", "sbagliata"), IP)).isInstanceOf(UnauthorizedException.class);
 
         assertThat(service.login(new LoginDTO("mario", "giusta123"), IP).token()).isEqualTo("token");
+    }
+
+    // utenza inesistente: BCrypt gira lo stesso, su un hash finto, così il tempo di risposta
+    // non rivela se l'account esiste (senza, la risposta arriverebbe in pochi millisecondi)
+    @Test
+    void conUnUtenzaInesistenteLaPasswordSiControllaComunque() {
+        when(utenteRepository.findByUsernameIgnoreCase("nessuno")).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.login(new LoginDTO("nessuno", "password123"), IP))
+                .isInstanceOf(UnauthorizedException.class);
+        // un hash BCrypt vero, con lo stesso costo di quelli salvati: un hash non valido si scarterebbe subito
+        verify(passwordEncoder).matches(eq("password123"), argThat(hash -> hash != null && hash.matches("\\$2a\\$10\\$.{53}")));
     }
 }
