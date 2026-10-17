@@ -6,6 +6,7 @@ import com.example.ecommerce.payloads.RegistrazioneDTO;
 import com.example.ecommerce.payloads.UtenteResponseDTO;
 import com.example.ecommerce.services.AuthService;
 import com.example.ecommerce.services.UtenteService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -31,9 +32,10 @@ public class AuthController {
         return utenteService.registra(body);
     }
 
+    // l'IP serve al limite sui tentativi falliti (vedi LimitatoreLogin)
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody @Valid LoginDTO body) {
-        return authService.login(body);
+    public LoginResponseDTO login(@RequestBody @Valid LoginDTO body, HttpServletRequest request) {
+        return authService.login(body, request.getRemoteAddr());
     }
 
     // endpoint autenticato: il JWTFilter ha già verificato che l'header sia "Bearer <token>" valido

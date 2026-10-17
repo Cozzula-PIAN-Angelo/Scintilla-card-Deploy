@@ -66,6 +66,10 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
   quindi sono limitate a `IMPORT_LIMITE_CLIENT` (default 30) all'ora per indirizzo IP e a
   `IMPORT_LIMITE_GIORNALIERO` (default 400) al giorno per tutto il sito; oltre, `429`. Quello che è
   già nel catalogo si consulta senza limiti, e gli import dell'admin non contano.
+- **Limite sui tentativi di login**: in 15 minuti al massimo `LOGIN_LIMITE_UTENZA` (default 10)
+  tentativi falliti sulla stessa email o username, anche da IP diversi, e `LOGIN_LIMITE_IP`
+  (default 30) dallo stesso indirizzo; oltre, `429` finché la finestra non scade. Il messaggio è
+  lo stesso che l'account esista o no, e un login riuscito azzera i tentativi dell'utenza.
 - **Primo avvio**: se il catalogo è vuoto si importano i set di `SEED_SET` (default `base1`),
   così l'hero ha subito delle carte.
 - Le carte senza prezzo Cardmarket (tipico dei set appena usciti) entrano a 1,00 €.
