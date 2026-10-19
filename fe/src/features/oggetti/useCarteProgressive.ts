@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import type { CarteProgressive, RichiestaCarte } from '../../types/api'
-import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, type ModalitaCarte } from './carteProgressive'
+import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, paginaDaPrecaricare, type ModalitaCarte } from './carteProgressive'
 
 interface RisultatoQuery {
   currentData?: CarteProgressive
@@ -43,6 +43,9 @@ export function useCarteProgressive<K extends string | number>(usaQuery: UsaQuer
   // completa: si usano solo risposte complete (una vecchia a pezzi in cache non è la lista intera)
   const carte = aPezzi || dati?.completo ? dati?.carte : undefined
   const totaleServer = aPezzi ? dati?.totale : undefined
+  // la pagina successiva, chiesta in anticipo (una richiesta sola, senza polling); skip quando non serve
+  const daPrecaricare = paginaDaPrecaricare(modalita, paginaUrl, totaleServer, fallito)
+  usaQuery(argomentoCarte(chiave, 'a-pezzi', daPrecaricare ?? 0), { skip: opzioni.skip || daPrecaricare === undefined })
 
   return {
     carte,

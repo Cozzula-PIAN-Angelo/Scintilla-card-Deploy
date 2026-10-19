@@ -44,3 +44,16 @@ export function inAttesa(stato: {
   if (stato.carte === undefined) return !stato.isError
   return stato.aPezzi && stato.carte.length === 0 && !stato.totaleServer && !stato.fallito
 }
+
+// pagina da chiedere in anticipo mentre si guarda paginaUrl: solo a pezzi, la successiva se esiste. Il backend la
+// tiene in memoria qualche minuto, il frontend nella sua cache: cliccando «avanti» è già pronta
+export function paginaDaPrecaricare(
+  modalita: ModalitaCarte,
+  paginaUrl: number,
+  totale: number | undefined,
+  fallito: boolean,
+): number | undefined {
+  if (modalita !== 'a-pezzi' || fallito || totale === undefined) return undefined
+  const successiva = paginaUrl + 1
+  return successiva < pagineTotali(0, totale) ? successiva : undefined
+}

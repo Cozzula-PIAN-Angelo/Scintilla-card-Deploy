@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CarteProgressive } from '../../types/api'
-import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, pagineTotali } from './carteProgressive'
+import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, paginaDaPrecaricare, pagineTotali } from './carteProgressive'
 
 const risposta = (completo: boolean): CarteProgressive => ({ completo, totale: 0, carte: [], fallito: false })
 
@@ -73,5 +73,19 @@ describe('inAttesa', () => {
 
   it('a pezzi con un totale ma la pagina vuota (oltre la fine): non si aspetta per sempre', () => {
     expect(inAttesa({ ...base, totaleServer: 120 })).toBe(false)
+  })
+})
+
+// la pagina successiva si chiede in anticipo: cliccando «avanti» è già pronta
+describe('paginaDaPrecaricare', () => {
+  it('a pezzi: la successiva, se c’è', () => {
+    expect(paginaDaPrecaricare('a-pezzi', 0, 252, false)).toBe(1)
+    expect(paginaDaPrecaricare('a-pezzi', 10, 252, false)).toBeUndefined()
+  })
+
+  it('completa, sconosciuta o fallita: nessuna', () => {
+    expect(paginaDaPrecaricare('completa', 0, 252, false)).toBeUndefined()
+    expect(paginaDaPrecaricare('sconosciuta', 0, undefined, false)).toBeUndefined()
+    expect(paginaDaPrecaricare('a-pezzi', 0, 252, true)).toBeUndefined()
   })
 })
