@@ -2,6 +2,7 @@ package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.payloads.CriterioOrdine;
 
 import java.text.Collator;
@@ -17,6 +18,20 @@ import java.util.stream.IntStream;
 
 // ordine delle carte nelle pagine del Pokédex e degli artisti, e criteri del riordino di un binder
 final class OrdineCarte {
+
+    // ordine di pokemontcg.io per le pagine al volo di Pokémon e artisti: per data, il numero lo sistema DALLA_PIU_RECENTE
+    static final String PIU_RECENTI_API = "-set.releaseDate,number";
+
+    // pagina di una vista chiesta dal frontend (da 0; null = la prima)
+    static int pagina(Integer pagina) {
+        if (pagina == null) {
+            return 0;
+        }
+        if (pagina < 0) {
+            throw new BadRequestException("La pagina non può essere negativa");
+        }
+        return pagina;
+    }
 
     // dal set più recente (senza data in fondo), poi per set e numero
     static final Comparator<Oggetto> DALLA_PIU_RECENTE =

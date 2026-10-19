@@ -1,9 +1,11 @@
 package com.example.ecommerce.services;
 
+import com.example.ecommerce.entities.ArtistaImportato;
 import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.ArtistaResponseDTO;
+import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.repositories.ArtistaImportatoRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
@@ -14,12 +16,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -36,61 +44,77 @@ class ArtistiServiceTest {
     private ArtistaImportatoRepository artistaImportatoRepository;
     @Mock
     private PokemonTcgService pokemonTcgService;
-    @Mock
-    private LimitatoreImport limitatoreImport;
 
     private ArtistiService service;
 
     @BeforeEach
     void prepara() {
-        service = new ArtistiService(oggettoRepository, artistaImportatoRepository, pokemonTcgService, limitatoreImport,
+        // esecutore sincrono: l'import in background è già finito quando carte risponde
+        ImportInBackground background = new ImportInBackground(Runnable::run, new LimitatoreImport(10, 1000), Clock.systemUTC());
+        service = new ArtistiService(oggettoRepository, artistaImportatoRepository, pokemonTcgService, background,
                 ElencoArtisti.get());
     }
 
     @Test
     void slugInesistenteE404SenzaChiamate() {
-        assertThatThrownBy(() -> service.carte("nessuno", CLIENT)).isInstanceOf(NotFoundException.class);
-        verifyNoInteractions(pokemonTcgService, limitatoreImport);
+        assertThatThrownBy(() -> service.carte("nessuno", 0, CLIENT)).isInstanceOf(NotFoundException.class);
+        verifyNoInteractions(pokemonTcgService);
     }
 
     // gli slug sono minuscoli: un URL scritto diversamente non è un artista
     @Test
     void slugConMaiuscoleE404() {
-        assertThatThrownBy(() -> service.carte("Mitsuhiro-Arita", CLIENT)).isInstanceOf(NotFoundException.class);
-        verifyNoInteractions(pokemonTcgService, limitatoreImport);
+        assertThatThrownBy(() -> service.carte("Mitsuhiro-Arita", 0, CLIENT)).isInstanceOf(NotFoundException.class);
+        verifyNoInteractions(pokemonTcgService);
     }
 
+    // prima apertura: la pagina al volo con la query del json, e l'import completo accodato
     @Test
-    void primaAperturaImportaConLaQueryDelJson() {
+    void primaAperturaPaginaAlVoloConLaQueryDelJson() {
         when(artistaImportatoRepository.findById("shinji-higuchi")).thenReturn(Optional.empty());
-        List<String> grafie = List.of("Kent Kanetsuna/Direc. Shinji Higuchi", "Shinji Higuchi + Sachiko Eba");
-        when(oggettoRepository.findByArtistaIn(grafie)).thenReturn(List.of(carta("Carta in coppia", null)));
+        when(pokemonTcgService.paginaCarte("artist:\"Shinji Higuchi\"", 0, "-set.releaseDate,number"))
+                .thenReturn(new PokemonTcgService.PaginaCarte(List.of(carta("Carta in coppia", null)), 5));
 
-        List<OggettoResponseDTO> carte = service.carte("shinji-higuchi", CLIENT);
+        CarteDTO carte = service.carte("shinji-higuchi", 0, CLIENT);
 
         verify(pokemonTcgService).importaArtista("artist:\"Shinji Higuchi\"");
-        assertThat(carte).extracting(OggettoResponseDTO::nome).containsExactly("Carta in coppia");
+        assertThat(carte.completo()).isFalse();
+        assertThat(carte.totale()).isEqualTo(5);
+        assertThat(carte.carte()).extracting(OggettoResponseDTO::nome).containsExactly("Carta in coppia");
+    }
+
+    // lo sconosciuto non ha una query di pagina: alla prima apertura si aspetta lo scaricamento completo
+    @Test
+    void sconosciutoNonCompletoSenzaPaginaAlVolo() {
+        when(artistaImportatoRepository.findById("sconosciuto")).thenReturn(Optional.empty());
+
+        CarteDTO carte = service.carte("sconosciuto", 0, CLIENT);
+
+        verify(pokemonTcgService).importaSenzaArtista();
+        verify(pokemonTcgService, never()).paginaCarte(any(), anyInt(), any());
+        assertThat(carte.completo()).isFalse();
+        assertThat(carte.carte()).isEmpty();
     }
 
     @Test
-    void sconosciutoImportaSenzaArtistaELeggeIVuoti() {
-        when(artistaImportatoRepository.findById("sconosciuto")).thenReturn(Optional.empty());
+    void sconosciutoCompletoLeggeIVuoti() {
+        when(artistaImportatoRepository.findById("sconosciuto")).thenReturn(Optional.of(importatoDaPoco("sconosciuto")));
         when(oggettoRepository.findSenzaArtista()).thenReturn(List.of(carta("Energia", null)));
 
-        List<OggettoResponseDTO> carte = service.carte("sconosciuto", CLIENT);
+        CarteDTO carte = service.carte("sconosciuto", 0, CLIENT);
 
-        verify(pokemonTcgService).importaSenzaArtista();
-        assertThat(carte).extracting(OggettoResponseDTO::nome).containsExactly("Energia");
+        assertThat(carte.completo()).isTrue();
+        assertThat(carte.carte()).extracting(OggettoResponseDTO::nome).containsExactly("Energia");
     }
 
     @Test
     void carteDallaPiuRecente() {
-        when(artistaImportatoRepository.findById("mitsuhiro-arita")).thenReturn(Optional.empty());
+        when(artistaImportatoRepository.findById("mitsuhiro-arita")).thenReturn(Optional.of(importatoDaPoco("mitsuhiro-arita")));
         when(oggettoRepository.findByArtistaIn(List.of("Mitsuhiro Arita"))).thenReturn(List.of(
                 carta("Charizard (Base 4/102)", LocalDate.of(1999, 1, 9)),
                 carta("Pikachu (Scarlet 1/198)", LocalDate.of(2023, 3, 31))));
 
-        List<OggettoResponseDTO> carte = service.carte("mitsuhiro-arita", CLIENT);
+        List<OggettoResponseDTO> carte = service.carte("mitsuhiro-arita", 0, CLIENT).carte();
 
         assertThat(carte).extracting(OggettoResponseDTO::nome)
                 .containsExactly("Pikachu (Scarlet 1/198)", "Charizard (Base 4/102)");
@@ -103,6 +127,10 @@ class ArtistiServiceTest {
         assertThat(elenco).extracting(ArtistaResponseDTO::slug)
                 .containsExactly("mitsuhiro-arita", "sachiko-eba", "shinji-higuchi", "sconosciuto");
         assertThat(elenco.getLast()).isEqualTo(new ArtistaResponseDTO("sconosciuto", "Artista sconosciuto", 12, null));
+    }
+
+    private static ArtistaImportato importatoDaPoco(String slug) {
+        return new ArtistaImportato(slug, Instant.now().minus(Duration.ofDays(1)));
     }
 
     private static Oggetto carta(String nome, LocalDate uscita) {
