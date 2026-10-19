@@ -1,4 +1,4 @@
-import type { CarteProgressive, RichiestaCarte, StatoCarte } from '../../types/api'
+import type { CarteProgressive, Oggetto, RichiestaCarte, StatoCarte } from '../../types/api'
 
 // carte per pagina della griglia: la stessa pagina che il backend prende al volo da pokemontcg.io
 export const PER_PAGINA = 24
@@ -58,4 +58,17 @@ export function paginaDaPrecaricare(
   if (modalita !== 'a-pezzi' || fallito || totale === undefined) return undefined
   const successiva = paginaUrl + 1
   return successiva < pagineTotali(0, totale) ? successiva : undefined
+}
+
+// cosa mostra la griglia. A pezzi la pagina col totale del server; completa la lista intera. Nel passaggio (lista
+// intera non ancora arrivata) resta l'ultima pagina a pezzi, così la griglia non torna allo scheletro e non salta
+export function vistaCarte(
+  modalita: ModalitaCarte,
+  dati: CarteProgressive | undefined,
+  ultimaAPezzi: CarteProgressive | undefined,
+): { carte: Oggetto[] | undefined; totaleServer: number | undefined; aPezzi: boolean } {
+  if (modalita === 'completa' && dati?.completo) return { carte: dati.carte, totaleServer: undefined, aPezzi: false }
+  const aPezzi = modalita === 'a-pezzi' ? dati : ultimaAPezzi
+  if (aPezzi && !aPezzi.completo) return { carte: aPezzi.carte, totaleServer: aPezzi.totale, aPezzi: true }
+  return { carte: undefined, totaleServer: undefined, aPezzi: modalita === 'a-pezzi' }
 }

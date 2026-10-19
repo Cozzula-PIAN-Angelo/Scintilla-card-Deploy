@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CarteProgressive } from '../../types/api'
-import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, paginaDaPrecaricare, pagineTotali } from './carteProgressive'
+import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, paginaDaPrecaricare, pagineTotali, vistaCarte } from './carteProgressive'
 
 const risposta = (completo: boolean): CarteProgressive => ({ completo, totale: 0, carte: [], fallito: false })
 
@@ -93,5 +93,27 @@ describe('paginaDaPrecaricare', () => {
     expect(paginaDaPrecaricare('completa', 0, 252, false)).toBeUndefined()
     expect(paginaDaPrecaricare('sconosciuta', 0, undefined, false)).toBeUndefined()
     expect(paginaDaPrecaricare('a-pezzi', 0, 252, true)).toBeUndefined()
+  })
+})
+
+// a scaricamento finito arriva la lista intera: intanto resta la pagina che si stava guardando, niente scheletro
+describe('vistaCarte', () => {
+  const pagina = { completo: false, totale: 252, carte: [{ id: 'a' }], fallito: false } as CarteProgressive
+  const intera = { completo: true, totale: 2, carte: [{ id: 'a' }, { id: 'b' }], fallito: false } as CarteProgressive
+
+  it('a pezzi: la pagina col totale del server', () => {
+    expect(vistaCarte('a-pezzi', pagina, undefined)).toEqual({ carte: pagina.carte, totaleServer: 252, aPezzi: true })
+  })
+
+  it('completa con la lista arrivata: tutte le carte', () => {
+    expect(vistaCarte('completa', intera, pagina)).toEqual({ carte: intera.carte, totaleServer: undefined, aPezzi: false })
+  })
+
+  it('completa ma la lista non è ancora arrivata: resta la pagina a pezzi', () => {
+    expect(vistaCarte('completa', undefined, pagina)).toEqual({ carte: pagina.carte, totaleServer: 252, aPezzi: true })
+  })
+
+  it('completa senza niente prima: in attesa', () => {
+    expect(vistaCarte('completa', undefined, undefined)).toEqual({ carte: undefined, totaleServer: undefined, aPezzi: false })
   })
 })
