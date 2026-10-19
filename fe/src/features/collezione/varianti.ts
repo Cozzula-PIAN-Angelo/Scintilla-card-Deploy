@@ -31,6 +31,15 @@ export function varianteRapida(oggetto: Oggetto): Variante {
   return piuPregiata(suggerite) ?? 'NORMALE'
 }
 
+// ristampe ed energie senza reverse: la regola della rarità sbaglierebbe (come ESCLUSI in VariantiMaster)
+const SET_ESCLUSI = new Set(['me55c', 'cel25c', 'sve'])
+
+// set con almeno una carta e nessuna variante letta: nel master decide la rarità. Si ricava dalle carte del set
+// mostrate (tutte, la pagina del set le importa), così vale anche alla prima apertura. Come VariantiMaster.setSenzaDati
+export function senzaDatiDelSet(id: string, carte: Array<Pick<Oggetto, 'varianti'>>): boolean {
+  return carte.length > 0 && !SET_ESCLUSI.has(id) && carte.every((c) => !c.varianti?.length)
+}
+
 // le sole rarità che nei set con dati hanno la reverse
 const RARITA_CON_REVERSE = new Set(['Common', 'Uncommon', 'Rare', 'Rare Holo'])
 

@@ -107,15 +107,14 @@ public class BinderService {
         return BinderResponseDTO.from(binder, voci.size());
     }
 
-    // per ogni carta la Normale e, se la carta ce l'ha, subito dopo la Reverse holo
+    // una tasca per ogni voce del master set, nell'ordine dell'enum: la Normale e subito dopo la Reverse holo.
+    // Stesse voci del conteggio (VariantiMaster.effettive): una carta letta solo Reverse ha una tasca sola
     private List<TascaBinder> vociMaster(List<Oggetto> carte, String espansioneId) {
         boolean senzaDati = variantiMaster.setSenzaDati().contains(espansioneId);
         List<TascaBinder> voci = new ArrayList<>();
         for (Oggetto carta : carte) {
-            voci.add(new TascaBinder(carta, Variante.NORMALE));
-            if (VariantiMaster.effettive(carta.getVarianti(), carta.getRarita(), senzaDati).contains(Variante.REVERSE_HOLO)) {
-                voci.add(new TascaBinder(carta, Variante.REVERSE_HOLO));
-            }
+            VariantiMaster.effettive(carta.getVarianti(), carta.getRarita(), senzaDati)
+                    .forEach(variante -> voci.add(new TascaBinder(carta, variante)));
         }
         return voci;
     }

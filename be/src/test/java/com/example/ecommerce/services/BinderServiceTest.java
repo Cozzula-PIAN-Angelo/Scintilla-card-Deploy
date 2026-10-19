@@ -406,6 +406,16 @@ class BinderServiceTest {
                 "3:" + tre + ":NORMALE", "4:" + tre + ":REVERSE_HOLO");
     }
 
+    // carta letta solo Reverse: una tasca sola, come nel conteggio del master
+    @Test
+    void masterSoloReverseUnaTasca() {
+        setSv8();
+        UUID uno = carta("Pichu", "sv8", "1", "Common", "REVERSE_HOLO");
+        binder = service.crea(utente, master(9, "sv8", null)).id();
+
+        assertThat(disposizioneConVariante()).containsExactly("0:" + uno + ":REVERSE_HOLO");
+    }
+
     @Test
     void masterSenzaSetDa400() {
         assertThatThrownBy(() -> service.crea(utente, master(9, null, 25)))

@@ -17,7 +17,9 @@ import type { Statistiche } from '../types/api'
 // I totali sono la frase della testata; sotto, set e Pokédex a sinistra e il valore in una colonna fissa
 export function CollezionePage() {
   useTitolo('La mia collezione')
-  const { data, isLoading, isError, error, refetch } = useGetStatisticheQuery()
+  // si rilegge a ogni apertura: aprire un set per la prima volta lo importa (e ne rende noto il master)
+  // senza toccare la cache delle statistiche
+  const { data, isLoading, isError, error, refetch } = useGetStatisticheQuery(undefined, { refetchOnMountOrArgChange: true })
 
   return (
     <PaginaAnimata>

@@ -11,11 +11,9 @@ public record EspansioneResponseDTO(String id,
                                     Integer totaleCarte,
                                     String logoUrl,
                                     String simboloUrl,
-                                    boolean importata,
-                                    // nessuna carta con varianti lette: nel master set decide la rarità (VariantiMaster)
-                                    boolean senzaDati) {
+                                    boolean importata) {
 
-    public static EspansioneResponseDTO from(Espansione espansione, boolean senzaDati) {
+    public static EspansioneResponseDTO from(Espansione espansione) {
         return new EspansioneResponseDTO(
                 espansione.getId(),
                 espansione.getNome(),
@@ -24,8 +22,7 @@ public record EspansioneResponseDTO(String id,
                 espansione.getTotaleCarte(),
                 espansione.getLogoUrl(),
                 espansione.getSimboloUrl(),
-                espansione.isImportata(),
-                senzaDati
+                espansione.isImportata()
         );
     }
 }

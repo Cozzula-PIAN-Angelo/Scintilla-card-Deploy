@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { variantiMaster } from './varianti'
+import { senzaDatiDelSet, variantiMaster } from './varianti'
 
 // stessi casi di VariantiMasterTest nel backend
 describe('variantiMaster', () => {
@@ -33,5 +33,24 @@ describe('variantiMaster', () => {
 
   it('mai lette', () => {
     expect(variantiMaster({ varianti: null, rarita: 'Common' }, true)).toEqual(['NORMALE', 'REVERSE_HOLO'])
+  })
+})
+
+// stessi casi di VariantiMasterTest.setSenzaDati nel backend
+describe('senzaDatiDelSet', () => {
+  it('nessuna carta con varianti lette', () => {
+    expect(senzaDatiDelSet('me3', [{ varianti: [] }, { varianti: null }])).toBe(true)
+  })
+
+  it('basta una carta letta', () => {
+    expect(senzaDatiDelSet('sv8', [{ varianti: [] }, { varianti: ['NORMALE', 'REVERSE_HOLO'] }])).toBe(false)
+  })
+
+  it('set esclusi', () => {
+    expect(senzaDatiDelSet('me55c', [{ varianti: [] }])).toBe(false)
+  })
+
+  it('set senza carte', () => {
+    expect(senzaDatiDelSet('me4', [])).toBe(false)
   })
 })
