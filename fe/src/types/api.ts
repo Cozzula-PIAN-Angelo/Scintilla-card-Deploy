@@ -182,6 +182,9 @@ export interface AvanzamentoSet {
   // carte diverse del set con almeno una copia
   possedute: number
   totale: number
+  // voci del master set (carta, variante) possedute e totali; null per i set non importati
+  posseduteMaster: number | null
+  totaleMaster: number | null
 }
 
 export interface CartaPreziosa {

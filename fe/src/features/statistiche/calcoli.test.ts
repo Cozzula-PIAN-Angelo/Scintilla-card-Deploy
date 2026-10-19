@@ -10,6 +10,8 @@ const set = (id: string, possedute: number, totale: number, dataUscita: string |
   dataUscita,
   possedute,
   totale,
+  posseduteMaster: null,
+  totaleMaster: null,
 })
 
 describe('avanzamentoPokedex', () => {
@@ -51,6 +53,22 @@ describe('raggruppaPerSerie', () => {
       ['Altro', ['b']],
       ['Base', ['c']],
     ])
+  })
+})
+
+describe('ordinaSet con il master', () => {
+  it('ordina per le voci del master, i set senza master in fondo', () => {
+    const x = { ...set('x', 9, 10, '2024-01-01'), posseduteMaster: 9, totaleMaster: 20 }
+    const y = { ...set('y', 5, 10, '2023-01-01'), posseduteMaster: 15, totaleMaster: 16 }
+    const z = set('z', 9, 10, '2025-01-01')
+    expect(ordinaSet([z, x, y], 'completamento', true).map((s) => s.id)).toEqual(['y', 'x', 'z'])
+  })
+
+  // p ha tutte le carte ma non tutte le varianti: col master non va in fondo tra i completati
+  it('completato per il master solo con tutte le voci', () => {
+    const pieno = { ...set('p', 10, 10, '2024-01-01'), posseduteMaster: 12, totaleMaster: 20 }
+    const meno = { ...set('r', 8, 10, '2024-01-01'), posseduteMaster: 10, totaleMaster: 20 }
+    expect(ordinaSet([meno, pieno], 'completamento', true).map((s) => s.id)).toEqual(['p', 'r'])
   })
 })
 
