@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Copia, Oggetto, Variante } from '../../types/api'
-import { conteggioMaster, creaMappa, filtra, possiede } from './conteggi'
+import { conteggioMaster, creaMappa, filtra, possiede, varianteMostrata } from './conteggi'
 
 const carta = (id: string, varianti: Variante[]) => ({ id, varianti, rarita: 'Common' }) as Oggetto
 const copia = (oggettoId: string, variante: Variante): Copia => ({ oggettoId, variante, quantita: 1 })
@@ -51,5 +51,18 @@ describe('possiede', () => {
   it('con la variante serve una copia di quella', () => {
     expect(possiede(mappa, 'A', 'REVERSE_HOLO')).toBe(true)
     expect(possiede(mappa, 'A', 'NORMALE')).toBe(false)
+  })
+})
+
+// variante che una tasca (e il dettaglio aperto da lì) mostra per il riflesso
+describe('varianteMostrata', () => {
+  it('la variante della tasca vince', () => {
+    expect(varianteMostrata('NORMALE', true)).toBe('NORMALE')
+    expect(varianteMostrata('REVERSE_HOLO', false)).toBe('REVERSE_HOLO')
+  })
+
+  it('tasca senza variante: la reverse se la possiedi, come nelle griglie', () => {
+    expect(varianteMostrata(null, true)).toBe('REVERSE_HOLO')
+    expect(varianteMostrata(null, false)).toBeUndefined()
   })
 })

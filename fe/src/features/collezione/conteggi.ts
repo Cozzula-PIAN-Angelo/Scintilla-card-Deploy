@@ -67,6 +67,12 @@ export function vuotoFiltro(filtro: Filtro): { titolo: string; testo: string } |
   return undefined
 }
 
+// variante che una tasca del binder (e il dettaglio aperto da lì) mostra per il riflesso: quella della tasca
+// (master set); senza, la Reverse se se ne possiede una copia, come nelle griglie
+export function varianteMostrata(variante: Variante | null, possiedeReverse: boolean): Variante | undefined {
+  return variante ?? (possiedeReverse ? 'REVERSE_HOLO' : undefined)
+}
+
 // rarità "di base": su queste l'effetto lo decide la copia posseduta. Ogni altra rarità (Rare Holo, Double Rare,
 // Illustration Rare, Ultra Rare, ...) è "più rara" e ha sempre l'arcobaleno. Rarità null o '' (anche le carte
 // create a mano) contano come di base

@@ -28,7 +28,7 @@ import { proporzionePagina } from './aspetto'
 import { useGetBinderDettaglioQuery } from './binderApi'
 import { Contesto, stessaPosizione } from './contesto'
 import { statisticheBinder } from './statisticheBinder'
-import { creaMappa, possiede } from '../collezione/conteggi'
+import { creaMappa, possiede, varianteMostrata } from '../collezione/conteggi'
 
 interface Props {
   id: string
@@ -63,10 +63,11 @@ export function BinderAperto({ id, onChiuso, onImpostazioni }: Props) {
 function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: BinderDettaglio } & Omit<Props, 'id'>) {
   const { binder, slot } = dettaglio
   // dalla collezione del dettaglio: si aggiorna con le tasche e con "Ce l'ho"
-  const statistiche = useMemo(() => {
-    const mappa = creaMappa(dettaglio.collezione)
-    return statisticheBinder(slot, binder.pagine * binder.tasche, (id, variante) => possiede(mappa, id, variante))
-  }, [dettaglio.collezione, slot, binder.pagine, binder.tasche])
+  const mappa = useMemo(() => creaMappa(dettaglio.collezione), [dettaglio.collezione])
+  const statistiche = useMemo(
+    () => statisticheBinder(slot, binder.pagine * binder.tasche, (id, variante) => possiede(mappa, id, variante)),
+    [mappa, slot, binder.pagine, binder.tasche],
+  )
   const doppia = useMediaQuery('(min-width: 1024px)')
   const preferiti = usePreferiti()
   const [faiSpazio, setFaiSpazio] = useFaiSpazio()
@@ -201,6 +202,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
             onTogglePreferito={preferiti.toggle}
             onChiudi={chiudiCarta}
             sfoglio={sfoglioDettaglio}
+            variante={guardata ? varianteMostrata(guardata.variante ?? null, possiede(mappa, guardata.oggetto.id, 'REVERSE_HOLO')) : undefined}
           />
           <ModaleOrdina aperto={ordinaAperto} dettaglio={dettaglio} onChiudi={() => setOrdinaAperto(false)} />
         </>,

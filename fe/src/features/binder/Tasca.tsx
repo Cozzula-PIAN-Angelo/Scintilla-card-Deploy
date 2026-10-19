@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Eye, Move, Plus, Trash2 } from 'lucide-react'
-import { useState, type DragEvent, type ReactNode } from 'react'
+import { useState, type DragEvent, type PointerEvent, type ReactNode } from 'react'
 import type { Oggetto, Variante } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { stessaPosizione, TIPO_TRASCINAMENTO, useContestoBinder } from './contesto'
+import { effettoCarta, varianteMostrata } from '../collezione/conteggi'
 import { useCollezioneBinder } from './contestoCollezione'
 
 interface Props {
@@ -28,6 +29,11 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
   const inAttesa = inMano !== null && !eOrigine
   // carta non posseduta: in grigio se il binder lo prevede ('Ce l'ho' la porta a colori)
   const mancante = oggetto !== null && !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id, variante)
+  // riflesso come nelle griglie (arcobaleno sulle rare, specchio sulle reverse); niente sulle mancanti in grigio
+  const effetto =
+    oggetto && !mancante
+      ? effettoCarta(oggetto, undefined, varianteMostrata(variante, !!collezione?.possiede(oggetto.id, 'REVERSE_HOLO')))
+      : null
 
   function tocca() {
     if (inAttesa) {
@@ -64,6 +70,13 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
     binder.iniziaTrascinamento({ tipo: 'tasca', oggetto, pagina, posizione })
   }
 
+  // il riflesso segue il puntatore: solo variabili CSS sull'elemento, niente render
+  function muoviRiflesso(evento: PointerEvent<HTMLButtonElement>) {
+    const riquadro = evento.currentTarget.getBoundingClientRect()
+    evento.currentTarget.style.setProperty('--mx', `${((evento.clientX - riquadro.left) / riquadro.width) * 100}%`)
+    evento.currentTarget.style.setProperty('--my', `${((evento.clientY - riquadro.top) / riquadro.height) * 100}%`)
+  }
+
   const etichetta = oggetto
     ? `Tasca ${posizione + 1}: ${oggetto.nome}${variante === 'REVERSE_HOLO' ? ' (Reverse holo)' : ''}${inAttesa ? `. Sostituisci con ${inMano.oggetto.nome}` : ''}`
     : `Tasca ${posizione + 1}, vuota${inAttesa ? `. Inserisci ${inMano.oggetto.nome}` : ''}`
@@ -76,10 +89,11 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
         draggable={oggetto !== null}
         onDragStart={iniziaTrascinamento}
         onDragEnd={binder.fineTrascinamento}
+        onPointerMove={effetto ? muoviRiflesso : undefined}
         aria-label={etichetta}
         aria-expanded={oggetto ? menuAperto : undefined}
         className={cn(
-          'group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[6%/4.3%] transition',
+          'tasca-holo group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[6%/4.3%] transition',
           // busta di plastica trasparente sulla tela scura: appena più chiara, bordo sottile e riflesso
           'bg-white/[0.04] ring-1 ring-white/12',
           oggetto ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
@@ -96,7 +110,11 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
             loading="lazy"
             className={cn('h-full w-full object-cover transition', mancante && 'grayscale')}
           />
-        ) : (
+        ) : null}
+        {effetto && (
+          <span aria-hidden className={cn('pointer-events-none absolute inset-0', effetto === 'specchio' ? 'holo-reverse' : 'holo-riflesso')} />
+        )}
+        {oggetto ? null : (
           <span
             aria-hidden
             className={cn(
@@ -131,7 +149,7 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
             transition={{ duration: 0.15 }}
             className="absolute inset-0 z-10 m-auto flex aspect-[63/88] h-full max-w-full flex-col items-center justify-center gap-[6%] rounded-[6%/4.3%] bg-ombra/60 backdrop-blur-[2px]"
           >
-            <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda({ oggetto, pagina, posizione })}>
+            <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda({ oggetto, variante, pagina, posizione })}>
               <Eye className="size-full" />
             </AzioneTasca>
             <AzioneTasca
