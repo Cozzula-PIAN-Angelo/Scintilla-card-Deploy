@@ -128,6 +128,27 @@ class PokemonTcgServiceTest {
         pokemontcg.verify();
     }
 
+    // pagina della vista: 24 carte nell'ordine chiesto, salvate nel catalogo come un import
+    @Test
+    void paginaAlVoloChiedeVentiquattroCarteESalva() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("orderBy=number"),
+                        containsString("page=3"), containsString("pageSize=24"), containsString("set.id"))))
+                .andRespond(withSuccess(RISPOSTA_PIKACHU.replace("\"totalCount\": 3", "\"totalCount\": 102"),
+                        MediaType.APPLICATION_JSON));
+        Oggetto salvato = new Oggetto();
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(salvato));
+
+        PokemonTcgService.PaginaCarte pagina = service.paginaCarte("set.id:base1", 2, "number");
+
+        verify(oggettoRepository).saveAll(any());
+        // la prima ricerca è quella di salvaCarte (carte già presenti), l'ultima rilegge le carte della pagina
+        verify(oggettoRepository, times(2)).findByIdEsternoIn(idEsterni.capture());
+        assertThat(idEsterni.getAllValues().getLast()).containsExactlyInAnyOrder("base1-58", "jungle-60", "jungle-60b");
+        assertThat(pagina.carte()).containsExactly(salvato);
+        assertThat(pagina.totale()).isEqualTo(102);
+        pokemontcg.verify();
+    }
+
     // il dettaglio dell'errore viaggia nell'eccezione e lo scrive nel log una volta sola chi la gestisce
     // (GlobalExceptionHandler): il service non scrive più un ERROR a ogni tentativo
     @Test

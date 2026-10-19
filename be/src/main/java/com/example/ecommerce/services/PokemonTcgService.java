@@ -65,6 +65,8 @@ public class PokemonTcgService {
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
     // pagine più piccole del massimo (250): la risposta resta sotto il timeout di lettura
     private static final int PAGINA_SET = 100;
+    // pagina della vista (la griglia ne mostra 24): pokemontcg.io la restituisce in circa un secondo
+    static final int PAGINA_VISTA = 24;
     // pokemontcg.io risponde spesso 500/502 a caso: l'import in blocco ritenta con attese crescenti
     private static final int TENTATIVI_SET = 6;
     private static final long ATTESA_BASE_MS = 1000;
@@ -198,6 +200,23 @@ public class PokemonTcgService {
         EsitoImport esito = salvaCarte(carte);
         log.info("Import Pokémon #{}: {}", numeroPokedex, esito);
         return esito;
+    }
+
+    // carte della pagina di una vista (da 0), nell'ordine chiesto, salvate nel catalogo come un import: così il "+",
+    // i preferiti e il binder funzionano subito. totale = totalCount di pokemontcg.io. Con orderBy=number le pagine
+    // di pokemontcg.io possono ripetere o saltare carte: va bene per una vista temporanea, l'import completo è per id
+    public PaginaCarte paginaCarte(String query, int pagina, String orderBy) {
+        RispostaRicerca risposta = conTentativi(() -> cercaCarte(query, pagina + 1, PAGINA_VISTA, orderBy,
+                "Carte non trovate su pokemontcg.io (" + query + ")"), query + " pagina " + (pagina + 1));
+        int totale = (int) risposta.totalCount();
+        if (risposta.data() == null || risposta.data().isEmpty()) {
+            return new PaginaCarte(List.of(), totale);
+        }
+        salvaCarte(risposta.data());
+        return new PaginaCarte(oggettoRepository.findByIdEsternoIn(risposta.data().stream().map(Carta::id).toList()), totale);
+    }
+
+    public record PaginaCarte(List<Oggetto> carte, int totale) {
     }
 
     // saltate: già nel catalogo (o senza espansione nella risposta); scartate: prezzo oltre il massimo;
