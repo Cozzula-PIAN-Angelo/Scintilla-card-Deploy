@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,6 +29,7 @@ public class EspansioneService {
     private final OggettoRepository oggettoRepository;
     private final PokemonTcgService pokemonTcgService;
     private final LimitatoreImport limitatoreImport;
+    private final VariantiMaster variantiMaster;
 
     // set trovati senza carte: dopo quanto si richiedono a pokemontcg.io
     private static final Duration ATTESA_SET_VUOTO = Duration.ofHours(6);
@@ -62,8 +64,9 @@ public class EspansioneService {
         if (espansioneRepository.count() == 0) {
             sincronizzaDaVisita();
         }
+        Set<String> senzaDati = variantiMaster.setSenzaDati();
         return espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc().stream()
-                .map(EspansioneResponseDTO::from)
+                .map(e -> EspansioneResponseDTO.from(e, senzaDati.contains(e.getId())))
                 .toList();
     }
 

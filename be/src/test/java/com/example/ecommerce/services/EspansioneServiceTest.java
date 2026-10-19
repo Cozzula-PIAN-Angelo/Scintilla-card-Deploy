@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,6 +31,8 @@ class EspansioneServiceTest {
     private PokemonTcgService pokemonTcgService;
     @Mock
     private LimitatoreImport limitatoreImport;
+    @Mock
+    private VariantiMaster variantiMaster;
 
     @InjectMocks
     private EspansioneService service;
@@ -60,6 +63,20 @@ class EspansioneServiceTest {
 
         assertThat(espansioni).extracting(EspansioneResponseDTO::id).containsExactly("base1");
         verify(pokemonTcgService, times(1)).sincronizzaEspansioni();
+    }
+
+    // senzaDati: il set non ha nessuna variante letta, nel master decide la rarità
+    @Test
+    void segnaISetSenzaDati() {
+        when(espansioneRepository.count()).thenReturn(2L);
+        Espansione nuovo = new Espansione("me3");
+        nuovo.setNome("Perfect Order");
+        Espansione vecchio = new Espansione("sv8");
+        vecchio.setNome("Surging Sparks");
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(List.of(nuovo, vecchio));
+        when(variantiMaster.setSenzaDati()).thenReturn(Set.of("me3"));
+
+        assertThat(service.findAll()).extracting(EspansioneResponseDTO::senzaDati).containsExactly(true, false);
     }
 
     // vetrina già popolata: nessuna chiamata esterna
