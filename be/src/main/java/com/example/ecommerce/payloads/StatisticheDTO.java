@@ -23,8 +23,9 @@ public record StatisticheDTO(Totali totali, Valore valore, List<AvanzamentoSetDT
     public record CartaPreziosaDTO(OggettoResponseDTO oggetto, String nomeSet, int copie, BigDecimal valore) {
     }
 
-    // possedute = carte diverse del set con almeno una copia
+    // possedute = carte diverse del set con almeno una copia. Master: voci (carta, variante) di VariantiMaster con
+    // almeno una copia di quella variante; null per i set non importati, di cui il catalogo ha solo qualche carta
     public record AvanzamentoSetDTO(String id, String nome, String serie, String simboloUrl, LocalDate dataUscita,
-                                    int possedute, int totale) {
+                                    int possedute, int totale, Integer posseduteMaster, Integer totaleMaster) {
     }
 }
