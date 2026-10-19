@@ -85,10 +85,12 @@ export interface CarteProgressive {
   fallito: boolean
 }
 
-// pagina da 0; senza, la lista intera (o la prima pagina, se a pezzi)
+// pagina da 0; senza, la lista intera (o la prima pagina, se a pezzi). intera: non va al backend, separa nella
+// cache la lista intera dalla prima risposta (vedi argomentoCarte)
 export interface RichiestaCarte<K> {
   chiave: K
   pagina?: number
+  intera?: boolean
 }
 
 export interface Preferito {

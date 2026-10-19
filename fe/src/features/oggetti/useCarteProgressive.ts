@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
 import type { CarteProgressive, RichiestaCarte } from '../../types/api'
-import { aPezziDopo, inAttesa, intervalloPolling, paginaDaChiedere } from './carteProgressive'
+import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, type ModalitaCarte } from './carteProgressive'
 
 interface RisultatoQuery {
   currentData?: CarteProgressive
@@ -20,32 +20,38 @@ type UsaQuery<K> = (arg: RichiestaCarte<K>, opzioni: { skip?: boolean; pollingIn
 export function useCarteProgressive<K extends string | number>(usaQuery: UsaQuery<K>, chiave: K, opzioni: { skip?: boolean } = {}) {
   const [params] = useSearchParams()
   const paginaUrl = Math.max(0, Number.parseInt(params.get('page') ?? '0', 10) || 0)
-  // chiave per cui l'ultima risposta era a pezzi: cambiando set o Pokémon si riparte dalla lista intera
-  const [aPezziPer, setAPezziPer] = useState<K | null>(null)
-  const aPezzi = aPezziPer === chiave
-  // fallito: niente richieste ripetute (vedi intervalloPolling). Resta finché si cambia pagina o si ricarica
-  const [fallitoPer, setFallitoPer] = useState<K | null>(null)
+  // modalità per chiave: cambiando set o Pokémon si riparte da "sconosciuta"
+  const [stato, setStato] = useState<{ chiave: K; modalita: ModalitaCarte; fallito: boolean }>({
+    chiave,
+    modalita: 'sconosciuta',
+    fallito: false,
+  })
+  const corrente = stato.chiave === chiave ? stato : { chiave, modalita: 'sconosciuta' as const, fallito: false }
 
-  const query = usaQuery(
-    { chiave, pagina: paginaDaChiedere(aPezzi, paginaUrl) },
-    { skip: opzioni.skip, pollingInterval: intervalloPolling(aPezzi, fallitoPer === chiave) },
-  )
+  const query = usaQuery(argomentoCarte(chiave, corrente.modalita, paginaUrl), {
+    skip: opzioni.skip,
+    pollingInterval: intervalloPolling(corrente.modalita === 'a-pezzi', corrente.fallito),
+  })
   const dati = query.currentData
-  const dopo = aPezziDopo(dati, aPezzi)
-  const fallito = dati?.fallito ?? false
-  // aggiornamenti durante il render (come in ModaleCarta): al prossimo render la richiesta segue la modalità
-  if (dopo !== aPezzi) setAPezziPer(dopo ? chiave : null)
-  if (dati && fallito !== (fallitoPer === chiave)) setFallitoPer(fallito ? chiave : null)
-  const totaleServer = dopo ? dati?.totale : undefined
+  const modalita = modalitaDopo(corrente.modalita, dati)
+  const fallito = modalita === 'a-pezzi' && (dati?.fallito ?? false)
+  // aggiornamento durante il render (come in ModaleCarta): la modalità va solo avanti, quindi al più due volte per chiave
+  if (stato.chiave !== chiave || modalita !== corrente.modalita || fallito !== corrente.fallito) {
+    setStato({ chiave, modalita, fallito })
+  }
+  const aPezzi = modalita === 'a-pezzi'
+  // completa: si usano solo risposte complete (una vecchia a pezzi in cache non è la lista intera)
+  const carte = aPezzi || dati?.completo ? dati?.carte : undefined
+  const totaleServer = aPezzi ? dati?.totale : undefined
 
   return {
-    carte: dati?.carte,
+    carte,
     // solo a pezzi: il totale delle carte, per le pagine della griglia
     totaleServer,
-    aPezzi: dopo,
+    aPezzi,
     fallito,
     // scheletro della griglia (vedi inAttesa)
-    isLoading: inAttesa({ carte: dati?.carte, isError: query.isError, aPezzi: dopo, totaleServer, fallito }),
+    isLoading: inAttesa({ carte, isError: query.isError, aPezzi, totaleServer, fallito }),
     isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,
