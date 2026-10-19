@@ -8,7 +8,9 @@ import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
 import { ModaleBinder } from '../features/binder/ModaleBinder'
 import { BarraCollezione } from '../features/collezione/BarraCollezione'
+import { AvvisoCarteInArrivo } from '../features/collezione/AvvisoCarteInArrivo'
 import { useCollezionePagina } from '../features/collezione/useCollezionePagina'
+import { useCarteProgressive } from '../features/oggetti/useCarteProgressive'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon } from '../features/pokedex/pokedex'
 import { useGetCartePokemonQuery } from '../features/pokedex/pokedexApi'
@@ -23,12 +25,16 @@ export function PokemonPage() {
   const pokemon = Number.isInteger(numero) ? trovaPokemon(numero) : undefined
   // currentData, non data: la pagina resta montata passando da un Pokémon all'altro, e data
   // conterrebbe ancora le carte del Pokémon precedente finché arrivano le nuove
-  const { currentData: data, isFetching, isError, error, refetch } = useGetCartePokemonQuery(numero, { skip: !pokemon })
-  const isLoading = data === undefined && !isError
+  const risposta = useCarteProgressive(useGetCartePokemonQuery, numero, { skip: !pokemon })
+  const { isFetching, isError, error, refetch } = risposta
+  // lista intera solo quando tutte le carte sono scaricate: barra, filtri e binder ne hanno bisogno
+  const data = risposta.aPezzi ? undefined : risposta.carte
+  const isLoading = (risposta.carte === undefined && !isError) || (risposta.aPezzi && risposta.carte?.length === 0 && !risposta.fallito)
   const { isPreferito, toggle } = usePreferiti()
   const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
   const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data)
-  const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione, carte)
+  const carteGriglia = risposta.aPezzi ? risposta.carte : carte
+  const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle }, collezione, carteGriglia)
   const location = useLocation()
   const navigate = useNavigate()
   const [checklistAperta, setChecklistAperta] = useState(false)
@@ -64,6 +70,8 @@ export function PokemonPage() {
     )
   }
 
+  // a pezzi il totale lo dice pokemontcg.io
+  const numeroCarte = data?.length ?? risposta.totaleServer
   const generazione = generazioneDi(pokemon.numero)
   const precedente = trovaPokemon(pokemon.numero - 1)
   const successivo = trovaPokemon(pokemon.numero + 1)
@@ -96,16 +104,24 @@ export function PokemonPage() {
           </p>
           <h1 className="text-4xl font-bold text-testo">{pokemon.nome}</h1>
           <p className="mt-1 text-testo/70">
-            {[pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`, data && (data.length === 1 ? '1 carta' : `${data.length} carte`)]
+            {[pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`, numeroCarte !== undefined && (numeroCarte === 1 ? '1 carta' : `${numeroCarte} carte`)]
               .filter(Boolean)
               .join(' · ')}
           </p>
         </div>
-        {/* barra presente = utente loggato */}
-        {barra && data && data.length > 0 && (
-          <Button variante="chiaro" dimensione="sm" onClick={() => setChecklistAperta(true)} className="sm:ml-auto">
+        {/* collezione presente = utente loggato. A pezzi il bottone si vede ma aspetta tutte le carte */}
+        {collezione && (risposta.aPezzi ? (risposta.totaleServer ?? 0) > 0 : data && data.length > 0) && (
+          <Button
+            variante="chiaro"
+            dimensione="sm"
+            onClick={() => setChecklistAperta(true)}
+            className="sm:ml-auto"
+            disabled={risposta.aPezzi}
+            title={risposta.aPezzi ? 'Disponibile quando tutte le carte sono pronte' : undefined}
+          >
             <BookPlus aria-hidden className="size-4" />
             Crea binder checklist
+            {risposta.aPezzi && <span className="sr-only">: disponibile quando tutte le carte sono pronte</span>}
           </Button>
         )}
       </header>
@@ -120,17 +136,17 @@ export function PokemonPage() {
         />
       )}
 
-      {barra && <BarraCollezione {...barra} />}
+      {risposta.aPezzi ? <AvvisoCarteInArrivo fallito={risposta.fallito} /> : barra && <BarraCollezione {...barra} />}
 
       <GrigliaCartePaginata
         chiave={`pokemon-${pokemon.numero}`}
-        carte={carte}
+        carte={carteGriglia}
+        totaleServer={risposta.totaleServer}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}
         error={error}
         refetch={refetch}
-        avvisoCaricamento={`Stiamo raccogliendo le carte di ${pokemon.nome}: la prima volta può volerci qualche secondo…`}
         erroreGenerico={`Non è stato possibile caricare le carte di ${pokemon.nome}.`}
         vuoto={{
           icona: <img src={spriteUrl(pokemon.numero)} alt="" className="sprite-pixel size-24" />,

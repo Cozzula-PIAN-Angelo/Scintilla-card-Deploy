@@ -10,7 +10,9 @@ import { ModaleBinder } from '../binder/ModaleBinder'
 import { BarraCollezione } from '../collezione/BarraCollezione'
 import { conteggioMaster } from '../collezione/conteggi'
 import { senzaDatiDelSet } from '../collezione/varianti'
+import { AvvisoCarteInArrivo } from '../collezione/AvvisoCarteInArrivo'
 import { useCollezionePagina } from '../collezione/useCollezionePagina'
+import { useCarteProgressive } from '../oggetti/useCarteProgressive'
 import type { Espansione, Oggetto } from '../../types/api'
 import { useGetCarteEspansioneQuery } from './espansioniApi'
 
@@ -22,14 +24,19 @@ interface Props {
 
 // intestazione e carte di un solo set, con il dettaglio carta che sfoglia le carte mostrate
 export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: Props) {
-  const { data, isLoading, isFetching, isError, error, refetch } = useGetCarteEspansioneQuery(espansione.id)
+  const risposta = useCarteProgressive(useGetCarteEspansioneQuery, espansione.id)
+  const { isFetching, isError, error, refetch } = risposta
+  // lista intera solo a set completo: barra, filtri, master set e binder hanno bisogno di tutte le carte
+  const data = risposta.aPezzi ? undefined : risposta.carte
+  const isLoading = (risposta.carte === undefined && !isError) || (risposta.aPezzi && risposta.carte?.length === 0 && !risposta.fallito)
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
   const senzaDati = useMemo(() => senzaDatiDelSet(espansione.id, data ?? []), [espansione.id, data])
   const masterSet = useMemo(() => ({ senzaDati }), [senzaDati])
   const { collezione, carte, barra, vuotoFiltro, master } = useCollezionePagina(filtroPagina, data, masterSet)
-  const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle: onTogglePreferito }, collezione, carte)
+  const carteGriglia = risposta.aPezzi ? risposta.carte : carte
+  const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle: onTogglePreferito }, collezione, carteGriglia)
   const anno = espansione.dataUscita?.slice(0, 4)
-  const totale = data?.length ?? espansione.totaleCarte
+  const totale = data?.length ?? risposta.totaleServer ?? espansione.totaleCarte
   const navigate = useNavigate()
   const [checklistAperta, setChecklistAperta] = useState(false)
 
@@ -56,11 +63,19 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
             {[anno, totale != null && (totale === 1 ? '1 carta' : `${totale} carte`)].filter(Boolean).join(' · ')}
           </p>
         </div>
-        {/* barra presente = utente loggato */}
-        {barra && data && data.length > 0 && (
-          <Button variante="chiaro" dimensione="sm" onClick={() => setChecklistAperta(true)} className="sm:ml-auto">
+        {/* collezione presente = utente loggato. A pezzi il bottone si vede ma aspetta tutte le carte */}
+        {collezione && (risposta.aPezzi ? (risposta.totaleServer ?? 0) > 0 : data && data.length > 0) && (
+          <Button
+            variante="chiaro"
+            dimensione="sm"
+            onClick={() => setChecklistAperta(true)}
+            className="sm:ml-auto"
+            disabled={risposta.aPezzi}
+            title={risposta.aPezzi ? 'Disponibile quando tutte le carte sono pronte' : undefined}
+          >
             <BookPlus aria-hidden className="size-4" />
             {master ? 'Crea binder master set' : 'Crea binder checklist'}
+            {risposta.aPezzi && <span className="sr-only">: disponibile quando tutte le carte sono pronte</span>}
           </Button>
         )}
       </header>
@@ -84,17 +99,17 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
         />
       )}
 
-      {barra && <BarraCollezione {...barra} />}
+      {risposta.aPezzi ? <AvvisoCarteInArrivo fallito={risposta.fallito} /> : barra && <BarraCollezione {...barra} />}
 
       <GrigliaCartePaginata
         chiave={espansione.id}
-        carte={carte}
+        carte={carteGriglia}
+        totaleServer={risposta.totaleServer}
         isLoading={isLoading}
         isFetching={isFetching}
         isError={isError}
         error={error}
         refetch={refetch}
-        avvisoCaricamento={espansione.importata ? undefined : 'Prima apertura: stiamo preparando le carte, può volerci qualche secondo…'}
         erroreGenerico="Non è stato possibile caricare le carte di questa espansione."
         vuoto={{
           icona: <Layers aria-hidden className="size-16" />,

@@ -1,5 +1,5 @@
 import { api } from '../../app/api'
-import type { Espansione, Oggetto } from '../../types/api'
+import type { CarteProgressive, Espansione, RichiestaCarte } from '../../types/api'
 
 export const espansioniApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -8,11 +8,14 @@ export const espansioniApi = api.injectEndpoints({
       providesTags: ['Espansioni'],
       extraOptions: { maxRetries: 2 },
     }),
-    // alla prima apertura il backend importa il set da pokemontcg.io: la risposta può richiedere
-    // qualche secondo. Niente maxRetries: il backend ritenta già da solo, e ogni nuova richiesta
-    // consumerebbe un altro posto nel limite sugli import. Su un 502 resta il pulsante Riprova
-    getCarteEspansione: build.query<Oggetto[], string>({
-      query: (id) => `/espansioni/${encodeURIComponent(id)}/carte`,
+    // alla prima apertura il backend risponde a pezzi (la pagina chiesta, presa al volo da pokemontcg.io) e scarica
+    // il resto in background (vedi useCarteProgressive). Niente maxRetries: il backend ritenta già da solo.
+    // Su un 502 resta il pulsante Riprova
+    getCarteEspansione: build.query<CarteProgressive, RichiestaCarte<string>>({
+      query: ({ chiave, pagina }) => ({
+        url: `/espansioni/${encodeURIComponent(chiave)}/carte`,
+        params: pagina === undefined ? undefined : { pagina },
+      }),
       providesTags: ['Oggetti'],
     }),
   }),
