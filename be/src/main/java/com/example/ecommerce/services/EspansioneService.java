@@ -4,8 +4,10 @@ import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
+import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.EspansioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +18,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 @Service
@@ -27,13 +27,10 @@ public class EspansioneService {
     private final EspansioneRepository espansioneRepository;
     private final OggettoRepository oggettoRepository;
     private final PokemonTcgService pokemonTcgService;
-    private final LimitatoreImport limitatoreImport;
+    private final ImportInBackground importInBackground;
 
     // set trovati senza carte: dopo quanto si richiedono a pokemontcg.io
     private static final Duration ATTESA_SET_VUOTO = Duration.ofHours(6);
-
-    // un lock per set: due visitatori che aprono insieme un set nuovo non lo importano due volte
-    private final ConcurrentMap<String, Object> lockPerSet = new ConcurrentHashMap<>();
 
     // set annunciati ma ancora senza carte: per qualche ora non si richiedono. Dopo un riavvio si riprova
     // subito, ed è al più una chiamata per set
@@ -90,34 +87,44 @@ public class EspansioneService {
         }
     }
 
-    // carte del set, ordinate per numero; alla prima apertura le importa da pokemontcg.io.
-    // client: IP del visitatore, per il limite sugli import
-    public List<OggettoResponseDTO> carte(String id, String client) {
+    // carte del set, ordinate per numero. Alla prima apertura solo la pagina chiesta (da 0), presa al volo da
+    // pokemontcg.io, mentre il set intero si scarica in background. client: IP del visitatore, per il limite sugli import
+    public CarteDTO carte(String id, Integer pagina, String client) {
         Espansione espansione = espansioneRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Espansione " + id + " non trovata"));
+        int numeroPagina = OrdineCarte.pagina(pagina);
 
-        if (!espansione.isImportata()) {
-            synchronized (lockPerSet.computeIfAbsent(id, chiave -> new Object())) {
-                // ricontrollo: nel frattempo un'altra richiesta potrebbe averlo già importato
-                boolean giaImportata = espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false);
-                if (!giaImportata && !setVuoti.isRecente(id)) {
-                    // dopo il ricontrollo: chi trova il set già importato da un altro non consuma il limite
-                    limitatoreImport.registra(client);
-                    try {
-                        pokemonTcgService.importaSet(id);
-                        setVuoti.dimentica(id);
-                    } catch (NotFoundException ex) {
-                        // set annunciato ma ancora senza carte su pokemontcg.io: non è un errore, la vetrina
-                        // lo mostra vuoto. Non si segna come importato (le carte arriveranno), ma per qualche
-                        // ora non si richiede di nuovo, invece di una chiamata esterna a ogni visita
-                        log.info("Set {} ancora senza carte su pokemontcg.io: si riprova tra {} ore", id, ATTESA_SET_VUOTO.toHours());
-                        setVuoti.annota(id);
-                    }
-                }
-            }
+        if (espansione.isImportata()) {
+            return CarteDTO.completo(perNumero(oggettoRepository.findByEspansioneId(id)));
         }
+        // set annunciato ma ancora senza carte su pokemontcg.io: per qualche ora non si richiede
+        if (setVuoti.isRecente(id)) {
+            return CarteDTO.completo(List.of());
+        }
+        PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte("set.id:" + id, numeroPagina, "number");
+        if (numeroPagina == 0 && alVolo.totale() == 0) {
+            log.info("Set {} ancora senza carte su pokemontcg.io: si riprova tra {} ore", id, ATTESA_SET_VUOTO.toHours());
+            setVuoti.annota(id);
+            return CarteDTO.completo(List.of());
+        }
+        // dopo la pagina al volo: un set annunciato ma ancora vuoto non si scarica (fallirebbe e consumerebbe il limite)
+        String chiave = "set:" + id;
+        importInBackground.avvia(chiave, client,
+                () -> !espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false),
+                () -> pokemonTcgService.importaSet(id));
+        return new CarteDTO(false, alVolo.totale(), perNumero(alVolo.carte()), importInBackground.fallitoDaPoco(chiave));
+    }
 
-        return oggettoRepository.findByEspansioneId(id).stream()
+    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
+    public StatoCarteDTO stato(String id) {
+        Espansione espansione = espansioneRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Espansione " + id + " non trovata"));
+        boolean completo = espansione.isImportata() || setVuoti.isRecente(id);
+        return new StatoCarteDTO(completo, !completo && importInBackground.fallitoDaPoco("set:" + id));
+    }
+
+    private static List<OggettoResponseDTO> perNumero(List<Oggetto> carte) {
+        return carte.stream()
                 .sorted(Comparator.comparing(Oggetto::getNumero, NumeriCarta::confronta))
                 .map(OggettoResponseDTO::from)
                 .toList();

@@ -1,22 +1,36 @@
 package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.Espansione;
+import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
+import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
+import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.EspansioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,11 +42,16 @@ class EspansioneServiceTest {
     private OggettoRepository oggettoRepository;
     @Mock
     private PokemonTcgService pokemonTcgService;
-    @Mock
-    private LimitatoreImport limitatoreImport;
 
-    @InjectMocks
+    // l'import in background finisce in una coda che i test non eseguono
+    private final List<Runnable> coda = new ArrayList<>();
     private EspansioneService service;
+
+    @BeforeEach
+    void prepara() {
+        ImportInBackground background = new ImportInBackground(coda::add, new LimitatoreImport(10, 1000), Clock.systemUTC());
+        service = new EspansioneService(espansioneRepository, oggettoRepository, pokemonTcgService, background);
+    }
 
     // vetrina vuota e pokemontcg.io giù: dopo un fallimento le visite successive rispondono subito con
     // l'errore, invece di rifare ognuna tutti i tentativi verso un'API ancora giù
@@ -70,5 +89,100 @@ class EspansioneServiceTest {
         service.findAll();
 
         verify(pokemonTcgService, times(0)).sincronizzaEspansioni();
+    }
+
+    @Test
+    void setCompletoNonChiamaPokemontcg() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", true)));
+        when(oggettoRepository.findByEspansioneId("sv8")).thenReturn(List.of(carta("10"), carta("2")));
+
+        CarteDTO carte = service.carte("sv8", 3, "1.2.3.4");
+
+        assertThat(carte.completo()).isTrue();
+        assertThat(carte.carte()).extracting(OggettoResponseDTO::nome).containsExactly("Carta 2", "Carta 10");
+        verify(pokemonTcgService, never()).paginaCarte(any(), anyInt(), any());
+        assertThat(coda).isEmpty();
+    }
+
+    @Test
+    void primaAperturaPaginaAlVoloEImportAccodato() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
+        when(pokemonTcgService.paginaCarte("set.id:sv8", 0, "number"))
+                .thenReturn(new PokemonTcgService.PaginaCarte(List.of(carta("2"), carta("1")), 252));
+
+        CarteDTO carte = service.carte("sv8", null, "1.2.3.4");
+
+        assertThat(carte.completo()).isFalse();
+        assertThat(carte.totale()).isEqualTo(252);
+        assertThat(carte.carte()).extracting(OggettoResponseDTO::nome).containsExactly("Carta 1", "Carta 2");
+        assertThat(coda).hasSize(1);
+    }
+
+    @Test
+    void dueAperturePerUnSoloImport() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
+        when(pokemonTcgService.paginaCarte(eq("set.id:sv8"), anyInt(), eq("number")))
+                .thenReturn(new PokemonTcgService.PaginaCarte(List.of(carta("1")), 252));
+
+        service.carte("sv8", 0, "1.2.3.4");
+        service.carte("sv8", 1, "5.6.7.8");
+
+        assertThat(coda).hasSize(1);
+    }
+
+    // set annunciato ma ancora senza carte: vuoto e completo, e per qualche ora niente più chiamate
+    @Test
+    void setAnnunciatoSenzaCarte() {
+        when(espansioneRepository.findById("me6")).thenReturn(Optional.of(set("me6", false)));
+        when(pokemonTcgService.paginaCarte("set.id:me6", 0, "number")).thenReturn(new PokemonTcgService.PaginaCarte(List.of(), 0));
+
+        CarteDTO prima = service.carte("me6", 0, "1.2.3.4");
+        CarteDTO dopo = service.carte("me6", 0, "1.2.3.4");
+
+        assertThat(prima.completo()).isTrue();
+        assertThat(prima.carte()).isEmpty();
+        assertThat(dopo.completo()).isTrue();
+        verify(pokemonTcgService, times(1)).paginaCarte(any(), anyInt(), any());
+        // niente scaricamento completo di un set vuoto (fallirebbe e consumerebbe il limite)
+        assertThat(coda).isEmpty();
+    }
+
+    @Test
+    void paginaNegativa400() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
+
+        assertThatThrownBy(() -> service.carte("sv8", -1, "1.2.3.4"))
+                .isInstanceOf(BadRequestException.class).hasMessage("La pagina non può essere negativa");
+    }
+
+    private static Espansione set(String id, boolean importata) {
+        Espansione set = new Espansione(id);
+        set.setNome(id);
+        set.setImportata(importata);
+        return set;
+    }
+
+    private static Oggetto carta(String numero) {
+        Oggetto carta = new Oggetto("Carta " + numero, BigDecimal.ONE);
+        carta.setNumero(numero);
+        return carta;
+    }
+
+    // stato leggero per il controllo ogni 3 secondi del frontend: niente pagine, niente chiamate esterne
+    @Test
+    void statoDiUnSetImportatoECompleto() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", true)));
+
+        assertThat(service.stato("sv8")).isEqualTo(new StatoCarteDTO(true, false));
+        verifyNoInteractions(pokemonTcgService);
+    }
+
+    @Test
+    void statoDiUnSetInScaricamento() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
+
+        assertThat(service.stato("sv8")).isEqualTo(new StatoCarteDTO(false, false));
+        verifyNoInteractions(pokemonTcgService);
+        assertThat(coda).isEmpty();
     }
 }

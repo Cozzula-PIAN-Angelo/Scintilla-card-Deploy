@@ -128,6 +128,40 @@ class PokemonTcgServiceTest {
         pokemontcg.verify();
     }
 
+    // pagina della vista: 24 carte nell'ordine chiesto, salvate nel catalogo come un import
+    @Test
+    void paginaAlVoloChiedeVentiquattroCarteESalva() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("orderBy=number"),
+                        containsString("page=3"), containsString("pageSize=24"), containsString("set.id"))))
+                .andRespond(withSuccess(RISPOSTA_PIKACHU.replace("\"totalCount\": 3", "\"totalCount\": 102"),
+                        MediaType.APPLICATION_JSON));
+        Oggetto salvato = new Oggetto();
+        when(oggettoRepository.findConEspansioneByIdEsternoIn(any())).thenReturn(List.of(salvato));
+
+        PokemonTcgService.PaginaCarte pagina = service.paginaCarte("set.id:base1", 2, "number");
+
+        verify(oggettoRepository).saveAll(any());
+        verify(oggettoRepository).findConEspansioneByIdEsternoIn(idEsterni.capture());
+        assertThat(idEsterni.getValue()).containsExactlyInAnyOrder("base1-58", "jungle-60", "jungle-60b");
+        assertThat(pagina.carte()).containsExactly(salvato);
+        assertThat(pagina.totale()).isEqualTo(102);
+        pokemontcg.verify();
+    }
+
+    // il frontend richiede la pagina ogni 3 secondi finché il set non è completo: pokemontcg.io la vede una volta
+    @Test
+    void paginaAlVoloRichiestaDiNuovoArrivaDallaCache() {
+        pokemontcg.expect(requestTo(startsWith(BASE_URL + "/cards")))
+                .andRespond(withSuccess(RISPOSTA_PIKACHU, MediaType.APPLICATION_JSON));
+        when(oggettoRepository.findConEspansioneByIdEsternoIn(any())).thenReturn(List.of(new Oggetto()));
+
+        service.paginaCarte("set.id:base1", 0, "number");
+        PokemonTcgService.PaginaCarte seconda = service.paginaCarte("set.id:base1", 0, "number");
+
+        assertThat(seconda.totale()).isEqualTo(3);
+        pokemontcg.verify();
+    }
+
     // il dettaglio dell'errore viaggia nell'eccezione e lo scrive nel log una volta sola chi la gestisce
     // (GlobalExceptionHandler): il service non scrive più un ERROR a ogni tentativo
     @Test

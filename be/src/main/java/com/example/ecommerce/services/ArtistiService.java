@@ -4,7 +4,9 @@ import com.example.ecommerce.entities.ArtistaImportato;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.ArtistaResponseDTO;
+import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.ArtistaImportatoRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import org.springframework.stereotype.Service;
@@ -23,12 +25,12 @@ public class ArtistiService {
     private final ImportSettimanale<String> importSettimanale;
 
     public ArtistiService(OggettoRepository oggettoRepository, ArtistaImportatoRepository artistaImportatoRepository,
-                          PokemonTcgService pokemonTcgService, LimitatoreImport limitatoreImport,
+                          PokemonTcgService pokemonTcgService, ImportInBackground importInBackground,
                           ElencoArtisti elencoArtisti) {
         this.oggettoRepository = oggettoRepository;
         this.pokemonTcgService = pokemonTcgService;
         this.elencoArtisti = elencoArtisti;
-        this.importSettimanale = new ImportSettimanale<>(limitatoreImport,
+        this.importSettimanale = new ImportSettimanale<>(importInBackground,
                 slug -> artistaImportatoRepository.findById(slug).map(ArtistaImportato::getImportatoIl),
                 (slug, data) -> artistaImportatoRepository.save(new ArtistaImportato(slug, data)),
                 "artista");
@@ -44,19 +46,37 @@ public class ArtistiService {
         ).toList();
     }
 
-    // carte dell'artista, dalla più recente. Uno slug fuori dall'elenco non costa chiamate a pokemontcg.io.
-    // client: IP del visitatore, per il limite sugli import
-    public List<OggettoResponseDTO> carte(String slug, String client) {
-        List<Oggetto> carte;
+    // carte dell'artista, dalla più recente. Alla prima apertura solo la pagina chiesta (da 0), presa al volo da
+    // pokemontcg.io mentre le altre si scaricano in background; lo sconosciuto non ha una query di pagina e aspetta.
+    // Uno slug fuori dall'elenco non costa chiamate a pokemontcg.io. client: IP del visitatore, per il limite sugli import
+    public CarteDTO carte(String slug, Integer pagina, String client) {
+        int numeroPagina = OrdineCarte.pagina(pagina);
         if (ElencoArtisti.SLUG_SCONOSCIUTO.equals(slug)) {
-            importSettimanale.assicura(slug, client, pokemonTcgService::importaSenzaArtista);
-            carte = oggettoRepository.findSenzaArtista();
-        } else {
-            ElencoArtisti.Artista artista = elencoArtisti.perSlug(slug)
-                    .orElseThrow(() -> new NotFoundException("Artista non trovato: " + slug));
-            importSettimanale.assicura(slug, client, () -> pokemonTcgService.importaArtista(artista.query()));
-            carte = oggettoRepository.findByArtistaIn(artista.grafie());
+            ImportSettimanale.Stato stato = importSettimanale.assicura(slug, client, pokemonTcgService::importaSenzaArtista);
+            return stato.completo()
+                    ? CarteDTO.completo(ordinate(oggettoRepository.findSenzaArtista()))
+                    : new CarteDTO(false, 0, List.of(), stato.fallito());
         }
+        ElencoArtisti.Artista artista = elencoArtisti.perSlug(slug)
+                .orElseThrow(() -> new NotFoundException("Artista non trovato: " + slug));
+        ImportSettimanale.Stato stato = importSettimanale.assicura(slug, client, () -> pokemonTcgService.importaArtista(artista.query()));
+        if (stato.completo()) {
+            return CarteDTO.completo(ordinate(oggettoRepository.findByArtistaIn(artista.grafie())));
+        }
+        PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte(artista.query(), numeroPagina, OrdineCarte.PIU_RECENTI_API);
+        return new CarteDTO(false, alVolo.totale(), ordinate(alVolo.carte()), stato.fallito());
+    }
+
+    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
+    public StatoCarteDTO stato(String slug) {
+        if (!ElencoArtisti.SLUG_SCONOSCIUTO.equals(slug) && elencoArtisti.perSlug(slug).isEmpty()) {
+            throw new NotFoundException("Artista non trovato: " + slug);
+        }
+        ImportSettimanale.Stato stato = importSettimanale.stato(slug);
+        return new StatoCarteDTO(stato.completo(), stato.fallito());
+    }
+
+    private static List<OggettoResponseDTO> ordinate(List<Oggetto> carte) {
         return carte.stream()
                 .sorted(OrdineCarte.DALLA_PIU_RECENTE)
                 .map(OggettoResponseDTO::from)

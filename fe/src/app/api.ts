@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery, retry } from '@reduxjs/toolkit/query/react'
 import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { sessioneScaduta } from '../features/auth/authSlice'
+import { sessioneDaChiudere } from './sessione'
 
 export const API_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
@@ -22,9 +23,6 @@ const baseQueryConRetry = retry(baseQueryGrezza, {
   },
 })
 
-// un 401 su queste chiamate non significa "sessione scaduta": credenziali errate o logout già avvenuto
-const SENZA_SCADENZA = ['/auth/login', '/auth/logout']
-
 const baseQueryConSessione: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -34,8 +32,9 @@ const baseQueryConSessione: BaseQueryFn<
   const risultato = await baseQueryConRetry(args, apiBase, extraOptions ?? {})
   const url = typeof args === 'string' ? args : args.url
 
-  // qualsiasi 401: logout locale, cache svuotata; il SessionWatcher porta al login
-  if (risultato.error?.status === 401 && !SENZA_SCADENZA.includes(url)) {
+  // 401 con un token: logout locale, cache svuotata; il SessionWatcher porta al login (vedi sessioneDaChiudere)
+  const { token } = (apiBase.getState() as { auth: { token: string | null } }).auth
+  if (sessioneDaChiudere(risultato.error?.status, url, token)) {
     apiBase.dispatch(sessioneScaduta())
     apiBase.dispatch(api.util.resetApiState())
   }

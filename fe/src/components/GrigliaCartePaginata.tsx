@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { useLocation, useSearchParams } from 'react-router'
 import { messaggioErrore } from '../app/errori'
 import type { CollezioneGriglia } from '../features/collezione/useCollezione'
+import { PER_PAGINA, pagineTotali } from '../features/oggetti/carteProgressive'
 import { GrigliaOggetti } from '../features/oggetti/GrigliaOggetti'
 import type { Oggetto } from '../types/api'
 import { Paginazione } from './Paginazione'
@@ -9,7 +10,6 @@ import { GrigliaSkeleton } from './Skeleton'
 import { StatoErrore, StatoVuoto } from './StatiPagina'
 
 // un set o un Pokémon arrivano a 250+ carte: si mostrano a pagine
-const PER_PAGINA = 24
 
 interface Props {
   // cambia a ogni set/Pokémon: la griglia si rimonta e le carte rientrano a cascata
@@ -36,6 +36,8 @@ interface Props {
   // id della carta aperta nel dettaglio: sfogliando con le frecce la griglia passa alla sua pagina,
   // così chiudendo il dettaglio si ritrova lì
   cartaAperta?: string | null
+  // a pezzi (vedi useCarteProgressive): le carte sono già quelle della pagina e questo è il totale di tutte
+  totaleServer?: number
 }
 
 // griglia di carte con paginazione; la pagina sta nell'URL (?page=, numerata da 0 come nel resto
@@ -59,16 +61,17 @@ export function GrigliaCartePaginata({
   vuotoFiltro,
   notaPer,
   cartaAperta,
+  totaleServer,
 }: Props) {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const inizioGriglia = useRef<HTMLDivElement>(null)
 
-  const totalePagine = carte ? Math.ceil(carte.length / PER_PAGINA) : 0
+  const totalePagine = carte ? pagineTotali(carte.length, totaleServer) : 0
   const richiesta = Math.max(0, Number.parseInt(params.get('page') ?? '0', 10) || 0)
   const pagina = totalePagine > 0 ? Math.min(richiesta, totalePagine - 1) : 0
   const inizio = pagina * PER_PAGINA
-  const carteDellaPagina = carte?.slice(inizio, inizio + PER_PAGINA) ?? []
+  const carteDellaPagina = (totaleServer === undefined ? carte?.slice(inizio, inizio + PER_PAGINA) : carte) ?? []
 
   // replace: cambiare pagina non aggiunge passi alla cronologia, così i pulsanti "indietro" delle
   // pagine (che tornano indietro di un numero preciso di passi) riportano sempre all'elenco.
@@ -84,29 +87,32 @@ export function GrigliaCartePaginata({
       { replace: true, state: location.state },
     )
 
-  const indiceAperta = cartaAperta && carte ? carte.findIndex((c) => c.id === cartaAperta) : -1
+  // a pezzi lo sfoglio resta nella pagina mostrata: niente salti di pagina
+  const indiceAperta = cartaAperta && carte && totaleServer === undefined ? carte.findIndex((c) => c.id === cartaAperta) : -1
   const paginaAperta = indiceAperta >= 0 ? Math.floor(indiceAperta / PER_PAGINA) : null
   useEffect(() => {
     if (paginaAperta !== null && paginaAperta !== pagina) vaiAPagina(paginaAperta)
   }, [paginaAperta, pagina, vaiAPagina])
 
-  // cambiando pagina si riparte dall'inizio della griglia, non dal fondo di quella appena lasciata
-  const paginaPrecedente = useRef(pagina)
+  // cambiando pagina si riparte dall'inizio della griglia, non dal fondo di quella appena lasciata. Segue la pagina
+  // dell'URL, non quella mostrata: a pezzi le carte nuove arrivano dopo, e si sale subito, già sullo scheletro
+  const paginaPrecedente = useRef(richiesta)
   useEffect(() => {
-    if (paginaPrecedente.current !== pagina) inizioGriglia.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
-    paginaPrecedente.current = pagina
-  }, [pagina])
+    if (paginaPrecedente.current !== richiesta) inizioGriglia.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    paginaPrecedente.current = richiesta
+  }, [richiesta])
 
-  if (isLoading) {
+  // a pezzi, cambiando pagina, le carte nuove arrivano dopo: intanto lo scheletro, non «Nessuna carta»
+  if (isLoading || (!carte && isFetching)) {
     return (
-      <>
+      <div ref={inizioGriglia} className="scroll-mt-28">
         {avvisoCaricamento && (
           <p role="status" className="mb-4 text-sm font-medium text-testo/70">
             {avvisoCaricamento}
           </p>
         )}
         <GrigliaSkeleton stretta={stretta} />
-      </>
+      </div>
     )
   }
   if (isError) {
@@ -121,7 +127,7 @@ export function GrigliaCartePaginata({
     <div ref={inizioGriglia} className="scroll-mt-28">
       {totalePagine > 1 && (
         <p className="mb-4 text-sm font-medium text-testo/70">
-          Carte {inizio + 1}–{inizio + carteDellaPagina.length} di {carte.length}
+          Carte {inizio + 1}–{inizio + carteDellaPagina.length} di {totaleServer ?? carte.length}
         </p>
       )}
       <GrigliaOggetti

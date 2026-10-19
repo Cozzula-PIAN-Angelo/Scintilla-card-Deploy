@@ -74,6 +74,31 @@ export interface Espansione {
   importata: boolean
 }
 
+// carte di un set, di un Pokémon o di un artista (GET .../carte?pagina=). completo: tutte quelle del catalogo;
+// altrimenti solo la pagina chiesta, presa al volo da pokemontcg.io mentre il resto si scarica in background
+export interface CarteProgressive {
+  completo: boolean
+  // a pezzi: il totale delle carte su pokemontcg.io
+  totale: number
+  carte: Oggetto[]
+  // lo scaricamento in background è fallito da poco: si riprova più tardi
+  fallito: boolean
+}
+
+// a che punto è lo scaricamento (GET .../carte/stato): il frontend lo chiede ogni 3 secondi mentre è a pezzi
+export interface StatoCarte {
+  completo: boolean
+  fallito: boolean
+}
+
+// pagina da 0; senza, la lista intera (o la prima pagina, se a pezzi). intera: non va al backend, separa nella
+// cache la lista intera dalla prima risposta (vedi argomentoCarte)
+export interface RichiestaCarte<K> {
+  chiave: K
+  pagina?: number
+  intera?: boolean
+}
+
 export interface Preferito {
   oggetto: Oggetto
   aggiuntoIl: string

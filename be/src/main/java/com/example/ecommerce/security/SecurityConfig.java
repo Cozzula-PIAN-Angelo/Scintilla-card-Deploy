@@ -46,11 +46,14 @@ public class SecurityConfig {
             // vetrina per espansioni: la prima apertura di un set lo importa, ma è pubblica
             get("/espansioni"),
             get("/espansioni/*/carte"),
+            get("/espansioni/*/carte/stato"),
             // indice per Pokémon, anch'esso pubblico
             get("/pokedex/*/carte"),
+            get("/pokedex/*/carte/stato"),
             // sezione Artisti: elenco e carte di un artista, pubblici come il Pokédex
             get("/artisti"),
             get("/artisti/*/carte"),
+            get("/artisti/*/carte/stato"),
             // health check di Render
             get("/actuator/health"),
             get("/actuator/health/**"));

@@ -6,6 +6,7 @@ import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.TokenRevocatoRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -310,6 +311,20 @@ class MigrazioniTest {
     private void inserisciCartaDelSet(String nome, String idEsterno, String set, String varianti, String rarita, String artista) {
         jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id, varianti, rarita, artista) "
                 + "VALUES (?, ?, 1.00, now(), ?, ?, ?, ?, ?)", UUID.randomUUID(), nome, idEsterno, set, varianti, rarita, artista);
+    }
+
+    // pagina al volo di Pokémon e artisti: le carte si ordinano per data del set fuori da una sessione
+    // (open-in-view=false), quindi l'espansione deve arrivare già caricata
+    @Test
+    void carteDellaPaginaAlVoloConLEspansione(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata, data_uscita) VALUES ('sv8', 'Surging Sparks', false, '2024-11-08')");
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, espansione_id) VALUES (?, 'Pikachu', 1.00, now(), 'sv8-57', 'sv8')",
+                UUID.randomUUID());
+
+        List<Oggetto> carte = oggettoRepository.findConEspansioneByIdEsternoIn(List.of("sv8-57"));
+
+        assertThat(carte).hasSize(1);
+        assertThat(Hibernate.isInitialized(carte.getFirst().getEspansione())).isTrue();
     }
 
     private void inserisciCartaConArtista(String nome, String idEsterno, String artista) {
