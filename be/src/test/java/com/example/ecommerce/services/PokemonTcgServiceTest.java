@@ -136,16 +136,29 @@ class PokemonTcgServiceTest {
                 .andRespond(withSuccess(RISPOSTA_PIKACHU.replace("\"totalCount\": 3", "\"totalCount\": 102"),
                         MediaType.APPLICATION_JSON));
         Oggetto salvato = new Oggetto();
-        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(salvato));
+        when(oggettoRepository.findConEspansioneByIdEsternoIn(any())).thenReturn(List.of(salvato));
 
         PokemonTcgService.PaginaCarte pagina = service.paginaCarte("set.id:base1", 2, "number");
 
         verify(oggettoRepository).saveAll(any());
-        // la prima ricerca è quella di salvaCarte (carte già presenti), l'ultima rilegge le carte della pagina
-        verify(oggettoRepository, times(2)).findByIdEsternoIn(idEsterni.capture());
-        assertThat(idEsterni.getAllValues().getLast()).containsExactlyInAnyOrder("base1-58", "jungle-60", "jungle-60b");
+        verify(oggettoRepository).findConEspansioneByIdEsternoIn(idEsterni.capture());
+        assertThat(idEsterni.getValue()).containsExactlyInAnyOrder("base1-58", "jungle-60", "jungle-60b");
         assertThat(pagina.carte()).containsExactly(salvato);
         assertThat(pagina.totale()).isEqualTo(102);
+        pokemontcg.verify();
+    }
+
+    // il frontend richiede la pagina ogni 3 secondi finché il set non è completo: pokemontcg.io la vede una volta
+    @Test
+    void paginaAlVoloRichiestaDiNuovoArrivaDallaCache() {
+        pokemontcg.expect(requestTo(startsWith(BASE_URL + "/cards")))
+                .andRespond(withSuccess(RISPOSTA_PIKACHU, MediaType.APPLICATION_JSON));
+        when(oggettoRepository.findConEspansioneByIdEsternoIn(any())).thenReturn(List.of(new Oggetto()));
+
+        service.paginaCarte("set.id:base1", 0, "number");
+        PokemonTcgService.PaginaCarte seconda = service.paginaCarte("set.id:base1", 0, "number");
+
+        assertThat(seconda.totale()).isEqualTo(3);
         pokemontcg.verify();
     }
 

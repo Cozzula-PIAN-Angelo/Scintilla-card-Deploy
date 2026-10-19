@@ -29,10 +29,9 @@ export function ArtistaPage() {
   // currentData, non data: passando da un artista all'altro (link nel dettaglio carta) la pagina resta
   // montata, e data conterrebbe ancora le carte dell'artista precedente finché arrivano le nuove
   const risposta = useCarteProgressive(useGetCarteArtistaQuery, slug)
-  const { isFetching, isError, error, refetch } = risposta
+  const { isLoading, isFetching, isError, error, refetch } = risposta
   // lista intera solo quando tutte le carte sono scaricate: barra, filtri e binder ne hanno bisogno
   const data = risposta.aPezzi ? undefined : risposta.carte
-  const isLoading = (risposta.carte === undefined && !isError) || (risposta.aPezzi && risposta.carte?.length === 0 && !risposta.fallito)
   const { isPreferito, toggle } = usePreferiti()
   const filtroPagina = useMemo(() => (slug ? { artista: slug } : null), [slug])
   const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data)

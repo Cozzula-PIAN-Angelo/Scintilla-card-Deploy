@@ -26,10 +26,9 @@ export function PokemonPage() {
   // currentData, non data: la pagina resta montata passando da un Pokémon all'altro, e data
   // conterrebbe ancora le carte del Pokémon precedente finché arrivano le nuove
   const risposta = useCarteProgressive(useGetCartePokemonQuery, numero, { skip: !pokemon })
-  const { isFetching, isError, error, refetch } = risposta
+  const { isLoading, isFetching, isError, error, refetch } = risposta
   // lista intera solo quando tutte le carte sono scaricate: barra, filtri e binder ne hanno bisogno
   const data = risposta.aPezzi ? undefined : risposta.carte
-  const isLoading = (risposta.carte === undefined && !isError) || (risposta.aPezzi && risposta.carte?.length === 0 && !risposta.fallito)
   const { isPreferito, toggle } = usePreferiti()
   const filtroPagina = useMemo(() => (pokemon ? { pokemon: pokemon.numero } : null), [pokemon])
   const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data)

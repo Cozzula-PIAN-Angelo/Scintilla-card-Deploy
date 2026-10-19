@@ -25,10 +25,9 @@ interface Props {
 // intestazione e carte di un solo set, con il dettaglio carta che sfoglia le carte mostrate
 export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: Props) {
   const risposta = useCarteProgressive(useGetCarteEspansioneQuery, espansione.id)
-  const { isFetching, isError, error, refetch } = risposta
+  const { isLoading, isFetching, isError, error, refetch } = risposta
   // lista intera solo a set completo: barra, filtri, master set e binder hanno bisogno di tutte le carte
   const data = risposta.aPezzi ? undefined : risposta.carte
-  const isLoading = (risposta.carte === undefined && !isError) || (risposta.aPezzi && risposta.carte?.length === 0 && !risposta.fallito)
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
   const senzaDati = useMemo(() => senzaDatiDelSet(espansione.id, data ?? []), [espansione.id, data])
   const masterSet = useMemo(() => ({ senzaDati }), [senzaDati])

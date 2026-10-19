@@ -28,6 +28,10 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
 
     List<Oggetto> findByIdEsternoIn(Collection<String> idEsterni);
 
+    // carte della pagina al volo, con l'espansione già caricata: si ordinano per data d'uscita fuori dalla sessione
+    @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.idEsterno IN :idEsterni")
+    List<Oggetto> findConEspansioneByIdEsternoIn(@Param("idEsterni") Collection<String> idEsterni);
+
     // carte di un Pokémon, con l'espansione già caricata per ordinarle per data d'uscita
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione JOIN o.numeriPokedex n WHERE n = :numero")
     List<Oggetto> findByNumeroPokedex(@Param("numero") int numero);

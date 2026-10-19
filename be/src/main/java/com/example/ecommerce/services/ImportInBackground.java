@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.function.BooleanSupplier;
 
 // Scaricamenti completi da pokemontcg.io lanciati dalle pagine pubbliche (set, Pokémon, artisti) senza far aspettare
 // il visitatore, che intanto vede la pagina presa al volo. Le regole:
@@ -40,16 +41,26 @@ public class ImportInBackground {
         this.falliti = new PromemoriaTemporaneo<>(ATTESA_DOPO_ERRORE, orologio);
     }
 
-    // true se l'import è stato accodato adesso; false se è già in corso, fallito da poco o la coda è piena.
-    // client: IP del visitatore, per il limite sugli import
-    public boolean avvia(String chiave, String client, Runnable importa) {
+    // true se l'import è stato accodato adesso; false se è già in corso, fallito da poco, non serve più o la coda
+    // è piena. ancoraDaFare si ricontrolla dopo aver preso il posto: chi ha letto "da importare" mentre l'import
+    // finiva (lo stato si toglie solo dopo) non ne lancia un secondo. client: IP del visitatore, per il limite
+    public boolean avvia(String chiave, String client, BooleanSupplier ancoraDaFare, Runnable importa) {
         if (inCorso.contains(chiave) || falliti.isRecente(chiave)) {
             return false;
         }
-        limitatore.registra(client);
         // due visitatori insieme: passa solo il primo
         if (!inCorso.add(chiave)) {
             return false;
+        }
+        if (!ancoraDaFare.getAsBoolean()) {
+            inCorso.remove(chiave);
+            return false;
+        }
+        try {
+            limitatore.registra(client);
+        } catch (RuntimeException ex) {
+            inCorso.remove(chiave);
+            throw ex;
         }
         try {
             esecutore.execute(() -> esegui(chiave, importa));

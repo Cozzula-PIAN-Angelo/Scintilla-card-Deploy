@@ -51,7 +51,7 @@ final class ImportSettimanale<K> {
         String chiaveBackground = descrizione + ":" + chiave;
         if (daImportare(ultimo)) {
             try {
-                background.avvia(chiaveBackground, client, () -> {
+                background.avvia(chiaveBackground, client, () -> daImportare(ultimoImport.apply(chiave)), () -> {
                     importa.run();
                     registraImport.accept(chiave, orologio.instant());
                 });

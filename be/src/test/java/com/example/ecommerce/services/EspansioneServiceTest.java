@@ -141,6 +141,8 @@ class EspansioneServiceTest {
         assertThat(prima.carte()).isEmpty();
         assertThat(dopo.completo()).isTrue();
         verify(pokemonTcgService, times(1)).paginaCarte(any(), anyInt(), any());
+        // niente scaricamento completo di un set vuoto (fallirebbe e consumerebbe il limite)
+        assertThat(coda).isEmpty();
     }
 
     @Test

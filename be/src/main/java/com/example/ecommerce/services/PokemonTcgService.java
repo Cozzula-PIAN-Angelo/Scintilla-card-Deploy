@@ -31,6 +31,8 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -43,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -67,6 +70,12 @@ public class PokemonTcgService {
     private static final int PAGINA_SET = 100;
     // pagina della vista (la griglia ne mostra 24): pokemontcg.io la restituisce in circa un secondo
     static final int PAGINA_VISTA = 24;
+    // pagine al volo appena prese: il frontend le richiede ogni 3 secondi finché il set non è completo, e
+    // pokemontcg.io (senza chiave, con una quota) non deve vederle ogni volta
+    private static final Duration DURATA_PAGINA = Duration.ofMinutes(5);
+    private record PaginaInMemoria(PaginaCarte pagina, Instant presaIl) {
+    }
+    private final Map<String, PaginaInMemoria> pagineRecenti = new ConcurrentHashMap<>();
     // pokemontcg.io risponde spesso 500/502 a caso: l'import in blocco ritenta con attese crescenti
     private static final int TENTATIVI_SET = 6;
     private static final long ATTESA_BASE_MS = 1000;
@@ -206,6 +215,20 @@ public class PokemonTcgService {
     // i preferiti e il binder funzionano subito. totale = totalCount di pokemontcg.io. Con orderBy=number le pagine
     // di pokemontcg.io possono ripetere o saltare carte: va bene per una vista temporanea, l'import completo è per id
     public PaginaCarte paginaCarte(String query, int pagina, String orderBy) {
+        String chiave = query + "|" + pagina + "|" + orderBy;
+        Instant adesso = Instant.now();
+        PaginaInMemoria recente = pagineRecenti.get(chiave);
+        if (recente != null && recente.presaIl().isAfter(adesso.minus(DURATA_PAGINA))) {
+            return recente.pagina();
+        }
+        PaginaCarte presa = scaricaPagina(query, pagina, orderBy);
+        // via le scadute, così la mappa resta piccola (le pagine viste negli ultimi minuti)
+        pagineRecenti.values().removeIf(p -> p.presaIl().isBefore(adesso.minus(DURATA_PAGINA)));
+        pagineRecenti.put(chiave, new PaginaInMemoria(presa, adesso));
+        return presa;
+    }
+
+    private PaginaCarte scaricaPagina(String query, int pagina, String orderBy) {
         RispostaRicerca risposta = conTentativi(() -> cercaCarte(query, pagina + 1, PAGINA_VISTA, orderBy,
                 "Carte non trovate su pokemontcg.io (" + query + ")"), query + " pagina " + (pagina + 1));
         int totale = (int) risposta.totalCount();
@@ -213,7 +236,7 @@ public class PokemonTcgService {
             return new PaginaCarte(List.of(), totale);
         }
         salvaCarte(risposta.data());
-        return new PaginaCarte(oggettoRepository.findByIdEsternoIn(risposta.data().stream().map(Carta::id).toList()), totale);
+        return new PaginaCarte(oggettoRepository.findConEspansioneByIdEsternoIn(risposta.data().stream().map(Carta::id).toList()), totale);
     }
 
     public record PaginaCarte(List<Oggetto> carte, int totale) {

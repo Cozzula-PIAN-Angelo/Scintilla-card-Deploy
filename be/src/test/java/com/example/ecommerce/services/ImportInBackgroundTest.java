@@ -42,8 +42,8 @@ class ImportInBackgroundTest {
         // limite 1: un secondo posto consumato farebbe lanciare 429
         ImportInBackground background = conLimite(1);
 
-        assertThat(background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet)).isTrue();
-        assertThat(background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet)).isFalse();
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isTrue();
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isFalse();
 
         assertThat(coda).hasSize(1);
         assertThat(background.inCorso(CHIAVE)).isTrue();
@@ -52,19 +52,19 @@ class ImportInBackgroundTest {
     @Test
     void dopoIlCompletamentoSiPuoRiavviare() {
         ImportInBackground background = conLimite(10);
-        background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet);
+        background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet);
 
         eseguiCoda();
 
         assertThat(importazioni).hasValue(1);
         assertThat(background.inCorso(CHIAVE)).isFalse();
-        assertThat(background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet)).isTrue();
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isTrue();
     }
 
     @Test
     void fallitoPerTrentaMinuti() {
         ImportInBackground background = conLimite(10);
-        background.avvia(CHIAVE, CLIENT, () -> {
+        background.avvia(CHIAVE, CLIENT, () -> true, () -> {
             throw new ServizioEsternoException("pokemontcg.io ha risposto 502", null);
         });
 
@@ -72,12 +72,12 @@ class ImportInBackgroundTest {
 
         assertThat(background.fallitoDaPoco(CHIAVE)).isTrue();
         assertThat(background.inCorso(CHIAVE)).isFalse();
-        assertThat(background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet)).isFalse();
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isFalse();
 
         orologio.avanza(Duration.ofMinutes(31));
 
         assertThat(background.fallitoDaPoco(CHIAVE)).isFalse();
-        assertThat(background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet)).isTrue();
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isTrue();
     }
 
     @Test
@@ -86,7 +86,7 @@ class ImportInBackgroundTest {
             throw new RejectedExecutionException("coda piena");
         }, new LimitatoreImport(10, 1000, orologio), orologio);
 
-        assertThat(background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet)).isFalse();
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isFalse();
         assertThat(background.inCorso(CHIAVE)).isFalse();
     }
 
@@ -94,10 +94,23 @@ class ImportInBackgroundTest {
     void limiteRaggiuntoLanciaENonAccoda() {
         ImportInBackground background = conLimite(0);
 
-        assertThatThrownBy(() -> background.avvia(CHIAVE, CLIENT, importazioni::incrementAndGet))
+        assertThatThrownBy(() -> background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet))
                 .isInstanceOf(TroppeRichiesteException.class);
         assertThat(coda).isEmpty();
         assertThat(background.inCorso(CHIAVE)).isFalse();
+    }
+
+    // una richiesta ha letto "da importare" proprio mentre l'import finiva: il ricontrollo la ferma
+    @Test
+    void nonAvviaSeNelFrattempoEFatto() {
+        ImportInBackground background = conLimite(1);
+
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> false, importazioni::incrementAndGet)).isFalse();
+
+        assertThat(coda).isEmpty();
+        assertThat(background.inCorso(CHIAVE)).isFalse();
+        // il posto nel limite non è stato consumato
+        assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isTrue();
     }
 
     private static final class OrologioFinto extends Clock {

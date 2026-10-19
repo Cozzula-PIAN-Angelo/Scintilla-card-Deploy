@@ -100,15 +100,17 @@ public class EspansioneService {
         if (setVuoti.isRecente(id)) {
             return CarteDTO.completo(List.of());
         }
-        String chiave = "set:" + id;
-        // prima della pagina al volo: col limite degli import raggiunto si risponde 429 senza chiamate esterne
-        importInBackground.avvia(chiave, client, () -> pokemonTcgService.importaSet(id));
         PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte("set.id:" + id, numeroPagina, "number");
         if (numeroPagina == 0 && alVolo.totale() == 0) {
             log.info("Set {} ancora senza carte su pokemontcg.io: si riprova tra {} ore", id, ATTESA_SET_VUOTO.toHours());
             setVuoti.annota(id);
             return CarteDTO.completo(List.of());
         }
+        // dopo la pagina al volo: un set annunciato ma ancora vuoto non si scarica (fallirebbe e consumerebbe il limite)
+        String chiave = "set:" + id;
+        importInBackground.avvia(chiave, client,
+                () -> !espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false),
+                () -> pokemonTcgService.importaSet(id));
         return new CarteDTO(false, alVolo.totale(), perNumero(alVolo.carte()), importInBackground.fallitoDaPoco(chiave));
     }
 

@@ -18,3 +18,22 @@ export function aPezziDopo(risposta: CarteProgressive | undefined, prima: boolea
 export function pagineTotali(numeroCarte: number, totaleServer?: number, perPagina = PER_PAGINA): number {
   return Math.ceil((totaleServer ?? numeroCarte) / perPagina)
 }
+
+// ogni quanto si richiede la pagina mentre il resto si scarica: mai se completo, mai se lo scaricamento è fallito
+// (il backend non riprova per 30 minuti: richiederla non cambierebbe niente)
+export function intervalloPolling(aPezzi: boolean, fallito: boolean): number {
+  return aPezzi && !fallito ? 3000 : 0
+}
+
+// scheletro della griglia: carte non ancora arrivate, oppure a pezzi senza nemmeno un totale (artista sconosciuto,
+// che si scarica solo per intero). Con un totale e la pagina vuota (oltre la fine) non si aspetta
+export function inAttesa(stato: {
+  carte: unknown[] | undefined
+  isError: boolean
+  aPezzi: boolean
+  totaleServer: number | undefined
+  fallito: boolean
+}): boolean {
+  if (stato.carte === undefined) return !stato.isError
+  return stato.aPezzi && stato.carte.length === 0 && !stato.totaleServer && !stato.fallito
+}
