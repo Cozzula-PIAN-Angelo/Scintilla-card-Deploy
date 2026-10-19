@@ -2,6 +2,7 @@ package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.MotivoBinder;
 import com.example.ecommerce.entities.Utente;
+import com.example.ecommerce.entities.Variante;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
@@ -66,7 +67,8 @@ class BinderServiceTest {
     void prepara() {
         jdbc = new JdbcTemplate(dataSource);
         CollezioneService collezione = new CollezioneService(collezioneRepository, oggettoRepository, jdbc, ElencoArtisti.get());
-        service = new BinderService(binderRepository, slotRepository, immagineRepository, oggettoRepository, collezione, ElencoArtisti.get());
+        service = new BinderService(binderRepository, slotRepository, immagineRepository, oggettoRepository, collezione, ElencoArtisti.get(),
+                new VariantiMaster(jdbc));
         UUID idUtente = UUID.randomUUID();
         UUID idAltro = UUID.randomUUID();
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'mario', 'mario@esempio.it', 'hash')", idUtente);
@@ -123,8 +125,8 @@ class BinderServiceTest {
         metti(0, 1, b);
 
         List<SlotBinderResponseDTO> slot = service.ripristina(utente, binder, List.of(
-                new DisposizioneSlotDTO(0, 1, a),
-                new DisposizioneSlotDTO(1, 4, b)));
+                new DisposizioneSlotDTO(0, 1, a, null),
+                new DisposizioneSlotDTO(1, 4, b, null)));
 
         assertThat(slot).extracting(SlotBinderResponseDTO::pagina, SlotBinderResponseDTO::posizione)
                 .containsExactly(org.assertj.core.groups.Tuple.tuple(0, 1), org.assertj.core.groups.Tuple.tuple(1, 4));
@@ -135,8 +137,8 @@ class BinderServiceTest {
     void ripristinoTascaDoppia400() {
         UUID a = carta("Abra", "base1", "43");
         assertThatThrownBy(() -> service.ripristina(utente, binder, List.of(
-                new DisposizioneSlotDTO(0, 1, a),
-                new DisposizioneSlotDTO(0, 1, a))))
+                new DisposizioneSlotDTO(0, 1, a, null),
+                new DisposizioneSlotDTO(0, 1, a, null))))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Due carte nella stessa tasca");
     }
@@ -144,7 +146,7 @@ class BinderServiceTest {
     @Test
     void ripristinoFuoriBinder400() {
         UUID a = carta("Abra", "base1", "43");
-        assertThatThrownBy(() -> service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(2, 0, a))))
+        assertThatThrownBy(() -> service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(2, 0, a, null))))
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -152,17 +154,17 @@ class BinderServiceTest {
     void ripristinoCampiMancanti400() {
         // la validazione dei singoli elementi della lista nel controller non è garantita: il service si difende
         UUID a = carta("Abra", "base1", "43");
-        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(null, 0, a))))
+        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(null, 0, a, null))))
                 .isInstanceOf(BadRequestException.class);
-        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(0, 0, null))))
+        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(0, 0, null, null))))
                 .isInstanceOf(BadRequestException.class);
-        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(0, -1, a))))
+        assertThatThrownBy(() -> service.ripristina(utente, binder, java.util.Arrays.asList(new DisposizioneSlotDTO(0, -1, a, null))))
                 .isInstanceOf(BadRequestException.class);
     }
 
     @Test
     void ripristinoCartaInesistente404() {
-        assertThatThrownBy(() -> service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(0, 0, UUID.randomUUID()))))
+        assertThatThrownBy(() -> service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(0, 0, UUID.randomUUID(), null))))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -325,7 +327,7 @@ class BinderServiceTest {
     void checklistSetEPokemonInsieme400() {
         UUID carta = carta("Pikachu", "base1", "58");
         pokedex(carta, 25);
-        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, "base1", 25, null);
+        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, "base1", 25, null, null);
 
         assertThatThrownBy(() -> service.crea(utente, entrambi)).isInstanceOf(BadRequestException.class);
     }
@@ -371,7 +373,7 @@ class BinderServiceTest {
 
     @Test
     void checklistArtistaEPokemonInsieme400() {
-        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, 25, "shinji-higuchi");
+        BinderDTO entrambi = new BinderDTO("Prova", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, 25, "shinji-higuchi", null);
 
         assertThatThrownBy(() -> service.crea(utente, entrambi))
                 .isInstanceOf(BadRequestException.class)
@@ -385,6 +387,142 @@ class BinderServiceTest {
         service.modifica(utente, binder, dati(9, 2, "base1"));
 
         assertThat(service.getDettaglio(utente, binder).slot()).isEmpty();
+    }
+
+    // master set: per ogni carta la Normale e, se la carta ce l'ha, subito dopo la Reverse
+    @Test
+    void creaMasterAffiancaNormaleEReverse() {
+        setSv8();
+        UUID uno = carta("Pichu", "sv8", "1", "Common", "NORMALE,REVERSE_HOLO");
+        UUID due = carta("Pikachu ex", "sv8", "2", "Double Rare", "NORMALE");
+        UUID tre = carta("Raichu", "sv8", "3", "Common", "NORMALE,REVERSE_HOLO");
+
+        BinderResponseDTO creato = service.crea(utente, master(9, "sv8", null));
+        binder = creato.id();
+
+        assertThat(creato.pagine()).isEqualTo(2);
+        assertThat(disposizioneConVariante()).containsExactly(
+                "0:" + uno + ":NORMALE", "1:" + uno + ":REVERSE_HOLO", "2:" + due + ":NORMALE",
+                "3:" + tre + ":NORMALE", "4:" + tre + ":REVERSE_HOLO");
+    }
+
+    // carta letta solo Reverse: una tasca sola, come nel conteggio del master
+    @Test
+    void masterSoloReverseUnaTasca() {
+        setSv8();
+        UUID uno = carta("Pichu", "sv8", "1", "Common", "REVERSE_HOLO");
+        binder = service.crea(utente, master(9, "sv8", null)).id();
+
+        assertThat(disposizioneConVariante()).containsExactly("0:" + uno + ":REVERSE_HOLO");
+    }
+
+    @Test
+    void masterSenzaSetDa400() {
+        assertThatThrownBy(() -> service.crea(utente, master(9, null, 25)))
+                .isInstanceOf(BadRequestException.class).hasMessage("Il master set è di un set");
+    }
+
+    @Test
+    void masterTroppoGrandeDa400() {
+        setSv8();
+        // 301 carte con la reverse = 602 voci, oltre le 600 tasche di 150 pagine da 4
+        for (int i = 1; i <= 301; i++) {
+            carta("Comune", "sv8", String.valueOf(i), "Common", "NORMALE,REVERSE_HOLO");
+        }
+
+        assertThatThrownBy(() -> service.crea(utente, master(4, "sv8", null)))
+                .isInstanceOf(BadRequestException.class).hasMessage("Il set non ci sta: scegli più tasche");
+    }
+
+    @Test
+    void checklistNormaleHaVarianteNull() {
+        setSv8();
+        carta("Pichu", "sv8", "1", "Common", "NORMALE,REVERSE_HOLO");
+        binder = service.crea(utente, dati(9, 2, "sv8")).id();
+
+        assertThat(service.getDettaglio(utente, binder).slot()).extracting(SlotBinderResponseDTO::variante).containsExactly((Variante) null);
+    }
+
+    // copie doppie: le Normali e le Reverse della stessa carta restano vicine, prima le Normali
+    @Test
+    void riordinoTieneLeCoppie() {
+        UUID uno = carta("Bulbasaur", "base1", "1");
+        UUID due = carta("Ivysaur", "base1", "2");
+        service.ripristina(utente, binder, List.of(
+                new DisposizioneSlotDTO(0, 0, due, Variante.NORMALE),
+                new DisposizioneSlotDTO(0, 1, uno, Variante.REVERSE_HOLO),
+                new DisposizioneSlotDTO(0, 2, uno, Variante.NORMALE),
+                new DisposizioneSlotDTO(0, 3, uno, Variante.REVERSE_HOLO),
+                new DisposizioneSlotDTO(0, 4, uno, Variante.NORMALE)));
+
+        service.riordina(utente, binder, CriterioOrdine.SET_NUMERO);
+
+        assertThat(disposizioneConVariante()).containsExactly(
+                "0:" + uno + ":NORMALE", "1:" + uno + ":NORMALE", "2:" + uno + ":REVERSE_HOLO", "3:" + uno + ":REVERSE_HOLO",
+                "4:" + due + ":NORMALE");
+    }
+
+    @Test
+    void scambioPortaLaVariante() {
+        UUID a = carta("Abra", "base1", "43");
+        UUID b = carta("Kadabra", "base1", "32");
+        service.ripristina(utente, binder, List.of(
+                new DisposizioneSlotDTO(0, 0, a, Variante.REVERSE_HOLO),
+                new DisposizioneSlotDTO(0, 1, b, null)));
+
+        service.sposta(utente, binder, new SpostaCartaDTO(0, 0, 0, 1, false));
+
+        assertThat(disposizioneConVariante()).containsExactly("0:" + b + ":null", "1:" + a + ":REVERSE_HOLO");
+    }
+
+    @Test
+    void faiSpazioPortaLaVariante() {
+        UUID a = carta("Abra", "base1", "43");
+        UUID c = carta("Charmander", "base1", "46");
+        service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(0, 0, a, Variante.REVERSE_HOLO)));
+
+        service.inserisci(utente, binder, new InserisciCartaDTO(0, 0, c, true));
+
+        assertThat(disposizioneConVariante()).containsExactly("0:" + c + ":null", "1:" + a + ":REVERSE_HOLO");
+    }
+
+    @Test
+    void ripristinoConVariante() {
+        UUID a = carta("Abra", "base1", "43");
+
+        List<SlotBinderResponseDTO> slot = service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(0, 2, a, Variante.REVERSE_HOLO)));
+
+        assertThat(slot).extracting(SlotBinderResponseDTO::variante).containsExactly(Variante.REVERSE_HOLO);
+        assertThat(disposizioneConVariante()).containsExactly("2:" + a + ":REVERSE_HOLO");
+    }
+
+    @Test
+    void ripristinoConPrimaEdizioneDa400() {
+        UUID a = carta("Abra", "base1", "43");
+
+        assertThatThrownBy(() -> service.ripristina(utente, binder, List.of(new DisposizioneSlotDTO(0, 0, a, Variante.PRIMA_EDIZIONE))))
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    // tasche come "indice:idCarta:variante", in ordine
+    private List<String> disposizioneConVariante() {
+        return service.getDettaglio(utente, binder).slot().stream()
+                .map(s -> (s.pagina() * 9 + s.posizione()) + ":" + s.oggetto().id() + ":" + s.variante())
+                .toList();
+    }
+
+    private void setSv8() {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata, data_uscita) VALUES ('sv8', 'Surging Sparks', true, '2024-11-08')");
+    }
+
+    private UUID carta(String nome, String set, String numero, String rarita, String varianti) {
+        UUID id = carta(nome, set, numero);
+        jdbc.update("UPDATE oggetti SET rarita = ?, varianti = ? WHERE id = ?", rarita, varianti, id);
+        return id;
+    }
+
+    private static BinderDTO master(int tasche, String espansioneId, Integer numeroPokedex) {
+        return new BinderDTO("Master", tasche, 2, "#336699", MotivoBinder.STELLE, null, true, espansioneId, numeroPokedex, null, true);
     }
 
     // tasche come "indice:idCarta", in ordine
@@ -431,14 +569,14 @@ class BinderServiceTest {
     }
 
     private static BinderDTO dati(int tasche, int pagine, String espansioneId) {
-        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true, espansioneId, null, null);
+        return new BinderDTO("Prova", tasche, pagine, "#336699", MotivoBinder.STELLE, null, true, espansioneId, null, null, null);
     }
 
     private static BinderDTO checklistPokemon(int numero) {
-        return new BinderDTO("Pikachu", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, numero, null);
+        return new BinderDTO("Pikachu", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, numero, null, null);
     }
 
     private static BinderDTO checklistArtista(String slug) {
-        return new BinderDTO("Higuchi", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, null, slug);
+        return new BinderDTO("Higuchi", 9, 2, "#336699", MotivoBinder.STELLE, null, true, null, null, slug, null);
     }
 }

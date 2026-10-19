@@ -2,6 +2,8 @@ package com.example.ecommerce.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -54,10 +56,20 @@ public class SlotBinder {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Oggetto oggetto;
 
+    // solo nel binder del master set (NORMALE o REVERSE_HOLO, vincolo ck_binder_slot_variante); null = una qualsiasi
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private Variante variante;
+
     public SlotBinder(Binder binder, int pagina, int posizione, Oggetto oggetto) {
+        this(binder, pagina, posizione, oggetto, null);
+    }
+
+    public SlotBinder(Binder binder, int pagina, int posizione, Oggetto oggetto, Variante variante) {
         this.binder = binder;
         this.pagina = pagina;
         this.posizione = posizione;
         this.oggetto = oggetto;
+        this.variante = variante;
     }
 }

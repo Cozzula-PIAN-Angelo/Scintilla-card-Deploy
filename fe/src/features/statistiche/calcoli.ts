@@ -29,16 +29,29 @@ export function percentuale(valore: number, totale: number) {
 const rapporto = (s: AvanzamentoSet) => (s.totale > 0 ? s.possedute / s.totale : 0)
 const completato = (s: AvanzamentoSet) => s.possedute >= s.totale
 
+// stesso set con i numeri del master set al posto delle carte; null se il master non si conosce (set non importato)
+export function numeriMaster(s: AvanzamentoSet): AvanzamentoSet | null {
+  return s.posseduteMaster === null || s.totaleMaster === null ? null : { ...s, possedute: s.posseduteMaster, totale: s.totaleMaster }
+}
+
 // 'data' lascia l'ordine del backend (dal più recente). 'completamento': i più vicini alla fine prima,
-// a pari percentuale il più recente; i completati in fondo
-export function ordinaSet(set: AvanzamentoSet[], criterio: OrdineSet): AvanzamentoSet[] {
+// a pari percentuale il più recente; i completati in fondo. Col master contano le voci del master set e i set
+// senza master vanno in fondo a tutti, nell'ordine del backend
+export function ordinaSet(set: AvanzamentoSet[], criterio: OrdineSet, master = false): AvanzamentoSet[] {
   if (criterio === 'data') return set
-  return [...set].sort(
-    (a, b) =>
+  const numeri = (s: AvanzamentoSet) => (master ? numeriMaster(s) : s)
+  const conNumeri = set.filter((s) => numeri(s) !== null)
+  const senza = set.filter((s) => numeri(s) === null)
+  const ordinati = [...conNumeri].sort((x, y) => {
+    const a = numeri(x)!
+    const b = numeri(y)!
+    return (
       Number(completato(a)) - Number(completato(b)) ||
       rapporto(b) - rapporto(a) ||
-      (b.dataUscita ?? '').localeCompare(a.dataUscita ?? ''),
-  )
+      (b.dataUscita ?? '').localeCompare(a.dataUscita ?? '')
+    )
+  })
+  return [...ordinati, ...senza]
 }
 
 // gruppi per serie, nell'ordine in cui compare il primo set di ciascuna; senza serie in «Altro»
@@ -53,6 +66,10 @@ export function raggruppaPerSerie(set: AvanzamentoSet[]): Array<{ serie: string;
 
 // come si mostrano i set: per completamento un elenco unico (raggrupparli per serie mescolerebbe l'ordine),
 // per data raggruppati per serie
-export function gruppiSet(set: AvanzamentoSet[], criterio: OrdineSet): Array<{ serie: string | null; set: AvanzamentoSet[] }> {
-  return criterio === 'completamento' ? [{ serie: null, set: ordinaSet(set, criterio) }] : raggruppaPerSerie(set)
+export function gruppiSet(
+  set: AvanzamentoSet[],
+  criterio: OrdineSet,
+  master = false,
+): Array<{ serie: string | null; set: AvanzamentoSet[] }> {
+  return criterio === 'completamento' ? [{ serie: null, set: ordinaSet(set, criterio, master) }] : raggruppaPerSerie(set)
 }

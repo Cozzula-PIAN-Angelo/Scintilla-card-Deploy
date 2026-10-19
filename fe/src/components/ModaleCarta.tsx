@@ -30,13 +30,15 @@ interface Props {
   collezione?: CollezioneModale
   // frecce per passare alle carte vicine della lista; senza, il dettaglio mostra solo la carta
   sfoglio?: SfoglioCarte
+  // variante da mostrare finché non se ne sceglie una (la tasca del binder da cui si è aperta la carta)
+  variante?: Variante
 }
 
 // trascinamento col dito oltre cui si passa alla carta vicina (px), o velocità di un colpo rapido (px/s)
 const SOGLIA_SCORRIMENTO = 70
 const SOGLIA_VELOCITA = 500
 
-export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, collezione, sfoglio }: Props) {
+export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, collezione, sfoglio, variante }: Props) {
   // l'ultimo oggetto resta visibile durante l'animazione di chiusura
   const ultimo = useRef<Oggetto | null>(null)
   if (oggetto) ultimo.current = oggetto
@@ -54,7 +56,10 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
   }
   const perVariante = mostrato && collezione ? collezione.perVariante(mostrato.id) : undefined
   // la riga scelta comanda lo specchio sulle carte di base; sulle rare l'arcobaleno non dipende dalla scelta
-  const varianteScelta = mostrato && scelta?.id === mostrato.id ? scelta.variante : undefined
+  // senza scelta vale la variante passata da fuori; durante la chiusura resta l'ultima
+  const ultimaVariante = useRef<Variante | undefined>(undefined)
+  if (oggetto) ultimaVariante.current = variante
+  const varianteScelta = mostrato && scelta?.id === mostrato.id ? scelta.variante : ultimaVariante.current
   const effetto = mostrato ? effettoCarta(mostrato, perVariante, varianteScelta) : null
   // riga evidenziata: quella cliccata, se no la più pregiata posseduta
   const selezionata = varianteScelta ?? piuPregiata([...(perVariante?.keys() ?? [])].filter((v) => (perVariante?.get(v) ?? 0) > 0))

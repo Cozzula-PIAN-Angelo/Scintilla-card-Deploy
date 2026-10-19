@@ -1,20 +1,23 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Eye, Move, Plus, Trash2 } from 'lucide-react'
-import { useState, type DragEvent, type ReactNode } from 'react'
-import type { Oggetto } from '../../types/api'
+import { useState, type DragEvent, type PointerEvent, type ReactNode } from 'react'
+import type { Oggetto, Variante } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { stessaPosizione, TIPO_TRASCINAMENTO, useContestoBinder } from './contesto'
+import { effettoCarta, varianteMostrata } from '../collezione/conteggi'
 import { useCollezioneBinder } from './contestoCollezione'
 
 interface Props {
   pagina: number
   posizione: number
   oggetto: Oggetto | null
+  // REVERSE_HOLO nel binder del master set: segno «R» e grigio solo senza una copia reverse
+  variante: Variante | null
 }
 
 // Tasca trasparente di una pagina. Accetta carte trascinate (dal cassetto o da un'altra tasca)
 // oppure, con un tocco, la carta "in mano". Piena, un tocco apre il menu: guarda, sposta, togli
-export function Tasca({ pagina, posizione, oggetto }: Props) {
+export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
   const binder = useContestoBinder()
   const collezione = useCollezioneBinder()
   const [sopra, setSopra] = useState(false)
@@ -25,7 +28,12 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
   const eOrigine = inMano?.tipo === 'tasca' && stessaPosizione(inMano, qui)
   const inAttesa = inMano !== null && !eOrigine
   // carta non posseduta: in grigio se il binder lo prevede ('Ce l'ho' la porta a colori)
-  const mancante = oggetto !== null && !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id)
+  const mancante = oggetto !== null && !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id, variante)
+  // riflesso come nelle griglie (arcobaleno sulle rare, specchio sulle reverse); niente sulle mancanti in grigio
+  const effetto =
+    oggetto && !mancante
+      ? effettoCarta(oggetto, undefined, varianteMostrata(variante, !!collezione?.possiede(oggetto.id, 'REVERSE_HOLO')))
+      : null
 
   function tocca() {
     if (inAttesa) {
@@ -62,8 +70,15 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
     binder.iniziaTrascinamento({ tipo: 'tasca', oggetto, pagina, posizione })
   }
 
+  // il riflesso segue il puntatore: solo variabili CSS sull'elemento, niente render
+  function muoviRiflesso(evento: PointerEvent<HTMLButtonElement>) {
+    const riquadro = evento.currentTarget.getBoundingClientRect()
+    evento.currentTarget.style.setProperty('--mx', `${((evento.clientX - riquadro.left) / riquadro.width) * 100}%`)
+    evento.currentTarget.style.setProperty('--my', `${((evento.clientY - riquadro.top) / riquadro.height) * 100}%`)
+  }
+
   const etichetta = oggetto
-    ? `Tasca ${posizione + 1}: ${oggetto.nome}${inAttesa ? `. Sostituisci con ${inMano.oggetto.nome}` : ''}`
+    ? `Tasca ${posizione + 1}: ${oggetto.nome}${variante === 'REVERSE_HOLO' ? ' (Reverse holo)' : ''}${inAttesa ? `. Sostituisci con ${inMano.oggetto.nome}` : ''}`
     : `Tasca ${posizione + 1}, vuota${inAttesa ? `. Inserisci ${inMano.oggetto.nome}` : ''}`
 
   return (
@@ -74,10 +89,11 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
         draggable={oggetto !== null}
         onDragStart={iniziaTrascinamento}
         onDragEnd={binder.fineTrascinamento}
+        onPointerMove={effetto ? muoviRiflesso : undefined}
         aria-label={etichetta}
         aria-expanded={oggetto ? menuAperto : undefined}
         className={cn(
-          'group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[6%/4.3%] transition',
+          'tasca-holo group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[6%/4.3%] transition',
           // busta di plastica trasparente sulla tela scura: appena più chiara, bordo sottile e riflesso
           'bg-white/[0.04] ring-1 ring-white/12',
           oggetto ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
@@ -94,7 +110,11 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
             loading="lazy"
             className={cn('h-full w-full object-cover transition', mancante && 'grayscale')}
           />
-        ) : (
+        ) : null}
+        {effetto && (
+          <span aria-hidden className={cn('pointer-events-none absolute inset-0', effetto === 'specchio' ? 'holo-reverse' : 'holo-riflesso')} />
+        )}
+        {oggetto ? null : (
           <span
             aria-hidden
             className={cn(
@@ -110,6 +130,14 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[linear-gradient(125deg,rgb(255_255_255/0.35),transparent_32%,transparent_70%,rgb(255_255_255/0.12))]"
         />
+        {oggetto && variante === 'REVERSE_HOLO' && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute right-[6%] bottom-[5%] grid size-[22%] max-h-6 max-w-6 place-items-center rounded-full bg-blu-500 text-[10px] font-bold text-white shadow ring-1 ring-white/60"
+          >
+            R
+          </span>
+        )}
       </button>
 
       <AnimatePresence>
@@ -121,7 +149,7 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
             transition={{ duration: 0.15 }}
             className="absolute inset-0 z-10 m-auto flex aspect-[63/88] h-full max-w-full flex-col items-center justify-center gap-[6%] rounded-[6%/4.3%] bg-ombra/60 backdrop-blur-[2px]"
           >
-            <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda({ oggetto, pagina, posizione })}>
+            <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda({ oggetto, variante, pagina, posizione })}>
               <Eye className="size-full" />
             </AzioneTasca>
             <AzioneTasca
@@ -131,7 +159,7 @@ export function Tasca({ pagina, posizione, oggetto }: Props) {
               <Move className="size-full" />
             </AzioneTasca>
             {mancante && collezione && (
-              <AzioneTasca etichetta="Ce l'ho" onClick={() => collezione.ceLho(oggetto)}>
+              <AzioneTasca etichetta="Ce l'ho" onClick={() => collezione.ceLho(oggetto, variante)}>
                 <Check className="size-full" />
               </AzioneTasca>
             )}

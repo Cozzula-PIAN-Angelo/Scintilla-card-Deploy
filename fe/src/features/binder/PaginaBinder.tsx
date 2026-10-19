@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { Oggetto } from '../../types/api'
+import type { SlotBinder } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { angoliFoglio } from './aperto/costanti'
 import { griglia } from './aspetto'
@@ -8,8 +8,8 @@ import { Tasca } from './Tasca'
 interface Props {
   numero: number
   tasche: number
-  // carte della pagina per posizione
-  carte: Map<number, Oggetto>
+  // tasche occupate della pagina per posizione
+  carte: Map<number, SlotBinder>
   // lato del libro: la rilegatura sta verso il centro
   lato: 'sinistra' | 'destra'
   // durante il giro di pagina le facce sono solo da guardare
@@ -53,7 +53,13 @@ export function PaginaBinder({ numero, tasche, carte, lato, inerte = false }: Pr
       >
         <Cuciture colonne={colonne} righe={righe} />
         {Array.from({ length: tasche }, (_, posizione) => (
-          <Tasca key={posizione} pagina={numero} posizione={posizione} oggetto={carte.get(posizione) ?? null} />
+          <Tasca
+            key={posizione}
+            pagina={numero}
+            posizione={posizione}
+            oggetto={carte.get(posizione)?.oggetto ?? null}
+            variante={carte.get(posizione)?.variante ?? null}
+          />
         ))}
       </div>
       <p className={cn('px-[4cqw] pb-[1.6cqw] text-[2.6cqw] font-semibold text-white/35', lato === 'sinistra' ? 'text-left' : 'text-right')}>

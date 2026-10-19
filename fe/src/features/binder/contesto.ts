@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { Oggetto } from '../../types/api'
+import type { Oggetto, Variante } from '../../types/api'
 
 export interface Posizione {
   pagina: number
@@ -9,7 +9,8 @@ export interface Posizione {
 // una carta presa dal cassetto oppure da una tasca del binder
 export type Sorgente = { tipo: 'carta'; oggetto: Oggetto } | ({ tipo: 'tasca'; oggetto: Oggetto } & Posizione)
 
-export type CartaInTasca = { oggetto: Oggetto } & Posizione
+// variante della tasca (binder del master set): il dettaglio aperto da lì la mostra
+export type CartaInTasca = { oggetto: Oggetto; variante?: Variante | null } & Posizione
 
 export interface ContestoBinder {
   // carta scelta con un tocco, in attesa della tasca di destinazione (alternativa al trascinamento)

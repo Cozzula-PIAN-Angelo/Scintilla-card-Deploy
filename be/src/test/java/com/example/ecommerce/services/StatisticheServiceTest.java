@@ -42,7 +42,7 @@ class StatisticheServiceTest {
     @BeforeEach
     void prepara() {
         jdbc = new JdbcTemplate(dataSource);
-        service = new StatisticheService(jdbc, oggettoRepository);
+        service = new StatisticheService(jdbc, oggettoRepository, new VariantiMaster(jdbc));
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'mario', 'mario@esempio.it', 'hash')", idUtente);
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'luigi', 'luigi@esempio.it', 'hash')", idAltro);
         utente = new Utente();
@@ -206,6 +206,42 @@ class StatisticheServiceTest {
         assertThat(s.pokemon()).isEmpty();
     }
 
+    @Test
+    void masterDiUnSetImportato() {
+        set("sv8", "Surging Sparks", "Scarlet & Violet", "2024-11-08", true, 252);
+        UUID comune = carta("Pikachu", "sv8", "Common", "NORMALE,REVERSE_HOLO");
+        carta("Raichu", "sv8", "Rare", "NORMALE");
+        UUID doppia = carta("Pikachu ex", "sv8", "Double Rare", "NORMALE");
+        possiedi(utente, comune, Variante.NORMALE, 1);
+        possiedi(utente, comune, Variante.REVERSE_HOLO, 1);
+        // reverse di una carta che non ce l'ha: non conta
+        possiedi(utente, doppia, Variante.REVERSE_HOLO, 1);
+
+        assertThat(set(service.statistiche(utente), "sv8"))
+                .extracting(AvanzamentoSetDTO::posseduteMaster, AvanzamentoSetDTO::totaleMaster).containsExactly(2, 4);
+    }
+
+    @Test
+    void masterDiUnSetSenzaDati() {
+        set("me3", "Perfect Order", "Mega Evolution", "2026-03-27", true, 124);
+        UUID comune = carta("Abra", "me3", "Common", "");
+        carta("Mega Alakazam ex", "me3", "Double Rare", "");
+        possiedi(utente, comune, Variante.REVERSE_HOLO, 1);
+
+        assertThat(set(service.statistiche(utente), "me3"))
+                .extracting(AvanzamentoSetDTO::posseduteMaster, AvanzamentoSetDTO::totaleMaster).containsExactly(1, 3);
+    }
+
+    @Test
+    void masterNullPerSetNonImportato() {
+        set("sv9", "Journey Together", "Scarlet & Violet", "2025-03-28", false, 190);
+        possiedi(utente, carta("Abra", "sv9", "Common", "NORMALE,REVERSE_HOLO"), Variante.NORMALE, 1);
+
+        AvanzamentoSetDTO sv9 = set(service.statistiche(utente), "sv9");
+        assertThat(sv9.posseduteMaster()).isNull();
+        assertThat(sv9.totaleMaster()).isNull();
+    }
+
     private static AvanzamentoSetDTO set(StatisticheDTO s, String id) {
         return s.set().stream().filter(x -> x.id().equals(id)).findFirst().orElseThrow();
     }
@@ -219,6 +255,13 @@ class StatisticheServiceTest {
         UUID id = UUID.randomUUID();
         jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, espansione_id) VALUES (?, ?, ?, now(), ?)",
                 id, nome, new BigDecimal(prezzo), set);
+        return id;
+    }
+
+    private UUID carta(String nome, String set, String rarita, String varianti) {
+        UUID id = UUID.randomUUID();
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, espansione_id, rarita, varianti) VALUES (?, ?, 1, now(), ?, ?, ?)",
+                id, nome, set, rarita, varianti);
         return id;
     }
 

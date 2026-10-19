@@ -2,23 +2,30 @@ import { useMemo, type ComponentProps } from 'react'
 import type { Oggetto } from '../../types/api'
 import type { BarraCollezione } from './BarraCollezione'
 import type { FiltroPagina } from './collezioneApi'
-import { conteggio, filtra, vuotoFiltro } from './conteggi'
+import { conteggio, conteggioMaster, filtra, vuotoFiltro } from './conteggi'
 import { useCollezione } from './useCollezione'
 import { useFiltroCollezione } from './useFiltroCollezione'
 
 // Collezione per la pagina di un set, di un Pokémon o di un artista: filtro nell'URL, carte filtrate, props della barra
 // e messaggio del filtro vuoto. Finché la collezione non è pronta (ospite, caricamento, errore) la pagina
-// resta come per un ospite: carte non filtrate, niente barra, collezione undefined per griglia e dettaglio
-export function useCollezionePagina(filtroPagina: FiltroPagina | null, data: Oggetto[] | undefined) {
-  const { filtro, setFiltro } = useFiltroCollezione()
+// resta come per un ospite: carte non filtrate, niente barra, collezione undefined per griglia e dettaglio.
+// masterSet solo dalla pagina del set: aggiunge l'interruttore Master set (?master=1) alla barra
+export function useCollezionePagina(filtroPagina: FiltroPagina | null, data: Oggetto[] | undefined, masterSet?: { senzaDati: boolean }) {
+  const { filtro, setFiltro, master: masterUrl, setMaster } = useFiltroCollezione()
+  const master = masterSet !== undefined && masterUrl
+  const senzaDati = masterSet?.senzaDati ?? false
   const tutta = useCollezione(filtroPagina)
   const collezione = tutta.pronta ? tutta : undefined
-  const carte = useMemo(() => (data && tutta.pronta ? filtra(data, tutta.mappa, filtro) : data), [data, tutta.pronta, tutta.mappa, filtro])
+  const carte = useMemo(
+    () => (data && tutta.pronta ? filtra(data, tutta.mappa, filtro, master ? { senzaDati } : undefined) : data),
+    [data, tutta.pronta, tutta.mappa, filtro, master, senzaDati],
+  )
 
   const barra: ComponentProps<typeof BarraCollezione> | null =
     collezione && data
       ? {
-          ...conteggio(data, collezione.mappa),
+          ...(master ? conteggioMaster(data, collezione.mappa, senzaDati) : conteggio(data, collezione.mappa)),
+          master: masterSet && { attivo: master, onAlterna: () => setMaster(!master) },
           filtro,
           onFiltro: setFiltro,
           aColori: collezione.aColori,
@@ -30,6 +37,7 @@ export function useCollezionePagina(filtroPagina: FiltroPagina | null, data: Ogg
     collezione,
     carte,
     barra,
+    master,
     vuotoFiltro: collezione && data && data.length > 0 ? vuotoFiltro(filtro) : undefined,
   }
 }

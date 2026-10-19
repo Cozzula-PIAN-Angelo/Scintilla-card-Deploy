@@ -163,6 +163,28 @@
     @apply animate-shimmer;
   }
 
+  /* tasche del binder: riflesso acceso al passaggio del mouse (senza l'inclinazione di HoloCard, che darebbe
+     fastidio a trascinamento e menu); --mx e --my li aggiorna Tasca. Senza mouse un riflesso fisso e leggero */
+  .tasca-holo {
+    --mx: 30%;
+    --my: 20%;
+    --riflesso: 0;
+  }
+  .tasca-holo .holo-reverse,
+  .tasca-holo .holo-riflesso {
+    transition: opacity 0.3s ease-out;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tasca-holo:hover {
+      --riflesso: 1;
+    }
+  }
+  @media not ((hover: hover) and (pointer: fine)) {
+    .tasca-holo {
+      --riflesso: 0.45;
+    }
+  }
+
   /* riflesso della carta olografica: la posizione segue il cursore tramite --mx e --my */
   .holo-riflesso {
     opacity: var(--riflesso, 0);

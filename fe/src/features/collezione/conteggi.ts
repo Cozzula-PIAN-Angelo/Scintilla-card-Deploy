@@ -1,4 +1,5 @@
 import type { Copia, Oggetto, Variante } from '../../types/api'
+import { variantiMaster } from './varianti'
 
 // carta -> variante -> quantità (solo righe con almeno una copia)
 export type MappaCopie = Map<string, Map<Variante, number>>
@@ -22,6 +23,11 @@ export function copieTotali(mappa: MappaCopie, id: string): number {
   return totale
 }
 
+// senza variante (null) una copia qualsiasi; con la variante (tasca del master set) una copia di quella
+export function possiede(mappa: MappaCopie, id: string, variante?: Variante | null): boolean {
+  return variante ? (mappa.get(id)?.get(variante) ?? 0) > 0 : copieTotali(mappa, id) > 0
+}
+
 // carte con almeno una copia / carte
 export function conteggio(carte: Oggetto[], mappa: MappaCopie): { possedute: number; totale: number } {
   let possedute = 0
@@ -32,9 +38,26 @@ export function conteggio(carte: Oggetto[], mappa: MappaCopie): { possedute: num
   return { possedute, totale: carte.length }
 }
 
-export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro): Oggetto[] {
+// voci del master set (carta, variante) con almeno una copia di quella variante / voci. Le copie di una variante
+// che la carta non ha nel master (es. una reverse su una Double Rare) non contano
+export function conteggioMaster(carte: Oggetto[], mappa: MappaCopie, senzaDati: boolean): { possedute: number; totale: number } {
+  let possedute = 0
+  let totale = 0
+  for (const carta of carte) {
+    const voci = variantiMaster(carta, senzaDati)
+    totale += voci.length
+    possedute += voci.filter((v) => (mappa.get(carta.id)?.get(v) ?? 0) > 0).length
+  }
+  return { possedute, totale }
+}
+
+// col master una carta è posseduta solo con tutte le sue voci, mancante se ne manca almeno una
+export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro, master?: { senzaDati: boolean }): Oggetto[] {
   if (filtro === 'tutte') return carte
-  return carte.filter((c) => (copieTotali(mappa, c.id) > 0) === (filtro === 'possedute'))
+  const completa = master
+    ? (c: Oggetto) => variantiMaster(c, master.senzaDati).every((v) => (mappa.get(c.id)?.get(v) ?? 0) > 0)
+    : (c: Oggetto) => copieTotali(mappa, c.id) > 0
+  return carte.filter((c) => completa(c) === (filtro === 'possedute'))
 }
 
 // messaggio della griglia quando il filtro non lascia carte (undefined = nessun filtro attivo)
@@ -42,6 +65,12 @@ export function vuotoFiltro(filtro: Filtro): { titolo: string; testo: string } |
   if (filtro === 'mancanti') return { titolo: 'Nessuna carta mancante', testo: 'Hai tutte le carte di questa pagina.' }
   if (filtro === 'possedute') return { titolo: 'Nessuna carta posseduta', testo: 'Usa il + su una carta per aggiungerla alla collezione.' }
   return undefined
+}
+
+// variante che una tasca del binder (e il dettaglio aperto da lì) mostra per il riflesso: quella della tasca
+// (master set); senza, la Reverse se se ne possiede una copia, come nelle griglie
+export function varianteMostrata(variante: Variante | null, possiedeReverse: boolean): Variante | undefined {
+  return variante ?? (possiedeReverse ? 'REVERSE_HOLO' : undefined)
 }
 
 // rarità "di base": su queste l'effetto lo decide la copia posseduta. Ogni altra rarità (Rare Holo, Double Rare,

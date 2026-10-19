@@ -59,7 +59,7 @@ export const binderApi = api.injectEndpoints({
       query: ({ binderId, slot }) => ({
         url: `/me/binder/${binderId}/slot`,
         method: 'PATCH',
-        body: slot.map((s) => ({ pagina: s.pagina, posizione: s.posizione, oggettoId: s.oggetto.id })),
+        body: slot.map((s) => ({ pagina: s.pagina, posizione: s.posizione, oggettoId: s.oggetto.id, variante: s.variante })),
       }),
       // tra riordino e Annulla possono essere entrate o uscite carte: il conteggio nella lista cambia
       invalidatesTags: ['Statistiche', { type: 'Binder', id: 'LISTA' }],
@@ -89,8 +89,9 @@ export const binderApi = api.injectEndpoints({
               return
             }
             const esistente = dettaglio.slot.find((s) => s.pagina === pagina && s.posizione === posizione)
-            if (esistente) esistente.oggetto = oggetto
-            else dettaglio.slot.push({ pagina, posizione, oggetto })
+            // come nel backend: la carta inserita a mano sostituisce anche la variante della tasca
+            if (esistente) Object.assign(esistente, { oggetto, variante: null })
+            else dettaglio.slot.push({ pagina, posizione, oggetto, variante: null })
           }),
         )
         queryFulfilled.catch(patch.undo)
@@ -136,9 +137,10 @@ export const binderApi = api.injectEndpoints({
             if (!partenza) return
             const arrivo = dettaglio.slot.find((s) => s.pagina === a.pagina && s.posizione === a.posizione)
             if (arrivo) {
-              const carta = arrivo.oggetto
-              arrivo.oggetto = partenza.oggetto
-              partenza.oggetto = carta
+              // si scambiano le carte con la loro variante, come nel backend
+              const { oggetto, variante } = arrivo
+              Object.assign(arrivo, { oggetto: partenza.oggetto, variante: partenza.variante })
+              Object.assign(partenza, { oggetto, variante })
             } else {
               partenza.pagina = a.pagina
               partenza.posizione = a.posizione

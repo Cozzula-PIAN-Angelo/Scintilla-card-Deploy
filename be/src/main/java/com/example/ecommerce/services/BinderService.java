@@ -5,6 +5,7 @@ import com.example.ecommerce.entities.ImmagineBinder;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.SlotBinder;
 import com.example.ecommerce.entities.Utente;
+import com.example.ecommerce.entities.Variante;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +60,11 @@ public class BinderService {
     private final OggettoRepository oggettoRepository;
     private final CollezioneService collezioneService;
     private final ElencoArtisti elencoArtisti;
+    private final VariantiMaster variantiMaster;
+
+    // contenuto di una tasca: la carta e, nel binder del master set, la sua variante (null = una qualsiasi)
+    private record TascaBinder(Oggetto oggetto, Variante variante) {
+    }
 
     @Transactional(readOnly = true)
     public List<BinderResponseDTO> getBinder(Utente utente) {
@@ -82,15 +90,33 @@ public class BinderService {
     @Transactional
     public BinderResponseDTO crea(Utente utente, BinderDTO body) {
         controllaTasche(body.tasche());
+        boolean master = Boolean.TRUE.equals(body.master());
+        if (master && body.espansioneId() == null) {
+            throw new BadRequestException("Il master set è di un set");
+        }
         List<Oggetto> carte = carteChecklist(body);
-        int pagine = carte.isEmpty() ? body.pagine() : pagineChecklist(carte.size(), body.tasche(), troppe(body));
+        List<TascaBinder> voci = master ? vociMaster(carte, body.espansioneId())
+                : carte.stream().map(c -> new TascaBinder(c, null)).toList();
+        int pagine = voci.isEmpty() ? body.pagine() : pagineChecklist(voci.size(), body.tasche(), troppe(body));
         Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), pagine, body.colore().toLowerCase(), body.motivo());
         binder.setMostraMancanti(body.mostraMancanti());
         binder.setCartaCopertina(cartaCopertina(body.cartaCopertinaId()));
         // flush immediato: così createdAt è valorizzato nella risposta
         binderRepository.saveAndFlush(binder);
-        riscrivi(binder, new TreeMap<>(), compatte(carte));
-        return BinderResponseDTO.from(binder, carte.size());
+        riscrivi(binder, new TreeMap<>(), compatte(voci));
+        return BinderResponseDTO.from(binder, voci.size());
+    }
+
+    // una tasca per ogni voce del master set, nell'ordine dell'enum: la Normale e subito dopo la Reverse holo.
+    // Stesse voci del conteggio (VariantiMaster.effettive): una carta letta solo Reverse ha una tasca sola
+    private List<TascaBinder> vociMaster(List<Oggetto> carte, String espansioneId) {
+        boolean senzaDati = variantiMaster.setSenzaDati().contains(espansioneId);
+        List<TascaBinder> voci = new ArrayList<>();
+        for (Oggetto carta : carte) {
+            VariantiMaster.effettive(carta.getVarianti(), carta.getRarita(), senzaDati)
+                    .forEach(variante -> voci.add(new TascaBinder(carta, variante)));
+        }
+        return voci;
     }
 
     // carte del binder checklist (di un set, di un Pokémon o di un artista) dal set più vecchio, poi per numero;
@@ -171,13 +197,16 @@ public class BinderService {
                 .orElseThrow(() -> new NotFoundException("Carta con id " + body.oggettoId() + " non trovata"));
 
         if (Boolean.TRUE.equals(body.faiSpazio())) {
-            TreeMap<Integer, Oggetto> prima = tasche(binder);
-            riscrivi(binder, prima, Disposizione.inserisci(prima, totale(binder), indice(binder, body.pagina(), body.posizione()), oggetto));
-            return new SlotBinderResponseDTO(body.pagina(), body.posizione(), OggettoResponseDTO.from(oggetto));
+            TreeMap<Integer, TascaBinder> prima = tasche(binder);
+            riscrivi(binder, prima, Disposizione.inserisci(prima, totale(binder), indice(binder, body.pagina(), body.posizione()),
+                    new TascaBinder(oggetto, null)));
+            return new SlotBinderResponseDTO(body.pagina(), body.posizione(), OggettoResponseDTO.from(oggetto), null);
         }
         SlotBinder slot = slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.pagina(), body.posizione())
                 .orElseGet(() -> new SlotBinder(binder, body.pagina(), body.posizione(), oggetto));
+        // la carta inserita a mano sostituisce anche la variante della tasca
         slot.setOggetto(oggetto);
+        slot.setVariante(null);
         return SlotBinderResponseDTO.from(slotRepository.save(slot));
     }
 
@@ -187,7 +216,7 @@ public class BinderService {
         SlotBinder slot = slotRepository.findByBinderIdAndPaginaAndPosizione(id, pagina, posizione)
                 .orElseThrow(() -> new NotFoundException("La tasca " + (posizione + 1) + " di pagina " + (pagina + 1) + " è già vuota"));
         if (faiSpazio) {
-            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            TreeMap<Integer, TascaBinder> prima = tasche(binder);
             riscrivi(binder, prima, Disposizione.togli(prima, totale(binder), indice(binder, pagina, posizione)));
             return;
         }
@@ -206,19 +235,22 @@ public class BinderService {
         SlotBinder partenza = slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.daPagina(), body.daPosizione())
                 .orElseThrow(() -> new NotFoundException("Nella tasca di partenza non c'è nessuna carta"));
         if (Boolean.TRUE.equals(body.faiSpazio())) {
-            TreeMap<Integer, Oggetto> prima = tasche(binder);
+            TreeMap<Integer, TascaBinder> prima = tasche(binder);
             riscrivi(binder, prima, Disposizione.sposta(prima, totale(binder),
                     indice(binder, body.daPagina(), body.daPosizione()), indice(binder, body.aPagina(), body.aPosizione())));
             return;
         }
         slotRepository.findByBinderIdAndPaginaAndPosizione(id, body.aPagina(), body.aPosizione())
                 .ifPresentOrElse(
-                        // arrivo occupato: si scambiano le carte, le righe restano dove sono.
+                        // arrivo occupato: si scambiano le carte (con la loro variante), le righe restano dove sono.
                         // Così non si passa mai per due righe nella stessa posizione (vincolo UNIQUE)
                         arrivo -> {
                             Oggetto carta = arrivo.getOggetto();
+                            Variante variante = arrivo.getVariante();
                             arrivo.setOggetto(partenza.getOggetto());
+                            arrivo.setVariante(partenza.getVariante());
                             partenza.setOggetto(carta);
+                            partenza.setVariante(variante);
                         },
                         () -> {
                             partenza.setPagina(body.aPagina());
@@ -230,8 +262,11 @@ public class BinderService {
     @Transactional
     public List<SlotBinderResponseDTO> riordina(Utente utente, UUID id, CriterioOrdine criterio) {
         Binder binder = findBinder(utente, id);
-        TreeMap<Integer, Oggetto> prima = perIndice(binder, slotRepository.findConCarteComplete(id));
-        TreeMap<Integer, Oggetto> dopo = compatte(prima.values().stream().sorted(OrdineCarte.comparatore(criterio)).toList());
+        TreeMap<Integer, TascaBinder> prima = perIndice(binder, slotRepository.findConCarteComplete(id));
+        // a parità di carta prima la Normale (o nessuna variante), poi la Reverse: le coppie del master restano vicine
+        Comparator<TascaBinder> ordine = Comparator.comparing(TascaBinder::oggetto, OrdineCarte.comparatore(criterio))
+                .thenComparing(t -> t.variante() == Variante.REVERSE_HOLO);
+        TreeMap<Integer, TascaBinder> dopo = compatte(prima.values().stream().sorted(ordine).toList());
         riscrivi(binder, prima, dopo);
         return risposta(binder, dopo);
     }
@@ -242,20 +277,21 @@ public class BinderService {
         Binder binder = findBinder(utente, id);
         // il @Valid sugli elementi di una lista nel body non è garantito: senza questo controllo un null darebbe 500
         for (DisposizioneSlotDTO s : body) {
-            if (s == null || s.pagina() == null || s.posizione() == null || s.oggettoId() == null || s.pagina() < 0 || s.posizione() < 0) {
+            if (s == null || s.pagina() == null || s.posizione() == null || s.oggettoId() == null || s.pagina() < 0 || s.posizione() < 0
+                    || s.variante() == Variante.PRIMA_EDIZIONE) {
                 throw new BadRequestException("Ogni tasca deve avere pagina, posizione e carta valide");
             }
         }
         Map<UUID, Oggetto> trovate = oggettoRepository.findAllById(body.stream().map(DisposizioneSlotDTO::oggettoId).toList()).stream()
                 .collect(Collectors.toMap(Oggetto::getId, Function.identity()));
-        TreeMap<Integer, Oggetto> dopo = new TreeMap<>();
+        TreeMap<Integer, TascaBinder> dopo = new TreeMap<>();
         for (DisposizioneSlotDTO s : body) {
             controllaPosizione(binder, s.pagina(), s.posizione());
             Oggetto oggetto = trovate.get(s.oggettoId());
             if (oggetto == null) {
                 throw new NotFoundException("Carta con id " + s.oggettoId() + " non trovata");
             }
-            if (dopo.put(indice(binder, s.pagina(), s.posizione()), oggetto) != null) {
+            if (dopo.put(indice(binder, s.pagina(), s.posizione()), new TascaBinder(oggetto, s.variante())) != null) {
                 throw new BadRequestException("Due carte nella stessa tasca");
             }
         }
@@ -304,19 +340,19 @@ public class BinderService {
                 .orElseThrow(() -> new NotFoundException("Binder con id " + id + " non trovato"));
     }
 
-    // tasche occupate come mappa indice lineare (pagina * tasche + posizione) -> carta
-    private TreeMap<Integer, Oggetto> tasche(Binder binder) {
+    // tasche occupate come mappa indice lineare (pagina * tasche + posizione) -> contenuto
+    private TreeMap<Integer, TascaBinder> tasche(Binder binder) {
         return perIndice(binder, slotRepository.findByBinderIdOrderByPaginaAscPosizioneAsc(binder.getId()));
     }
 
-    private static TreeMap<Integer, Oggetto> perIndice(Binder binder, List<SlotBinder> slot) {
-        TreeMap<Integer, Oggetto> tasche = new TreeMap<>();
-        slot.forEach(s -> tasche.put(indice(binder, s.getPagina(), s.getPosizione()), s.getOggetto()));
+    private static TreeMap<Integer, TascaBinder> perIndice(Binder binder, List<SlotBinder> slot) {
+        TreeMap<Integer, TascaBinder> tasche = new TreeMap<>();
+        slot.forEach(s -> tasche.put(indice(binder, s.getPagina(), s.getPosizione()), new TascaBinder(s.getOggetto(), s.getVariante())));
         return tasche;
     }
 
-    private static TreeMap<Integer, Oggetto> compatte(List<Oggetto> carte) {
-        TreeMap<Integer, Oggetto> tasche = new TreeMap<>();
+    private static TreeMap<Integer, TascaBinder> compatte(List<TascaBinder> carte) {
+        TreeMap<Integer, TascaBinder> tasche = new TreeMap<>();
         for (int i = 0; i < carte.size(); i++) {
             tasche.put(i, carte.get(i));
         }
@@ -331,15 +367,17 @@ public class BinderService {
         return binder.getPagine() * binder.getTasche();
     }
 
-    // riscrive solo le tasche che cambiano. Prima una DELETE sola (va subito al DB), poi le nuove righe, che
+    // riscrive solo le tasche che cambiano (carta o variante). Prima una DELETE sola (va subito al DB), poi le nuove righe, che
     // Hibernate manda a blocchi al flush: con gli INSERT prima della DELETE si violerebbe il vincolo UNIQUE
-    private void riscrivi(Binder binder, SortedMap<Integer, Oggetto> prima, SortedMap<Integer, Oggetto> dopo) {
+    private void riscrivi(Binder binder, SortedMap<Integer, TascaBinder> prima, SortedMap<Integer, TascaBinder> dopo) {
         Set<Integer> cambiate = new HashSet<>();
-        prima.forEach((i, carta) -> {
-            Oggetto nuova = dopo.get(i);
-            if (nuova == null || !nuova.getId().equals(carta.getId())) cambiate.add(i);
+        prima.forEach((i, tasca) -> {
+            TascaBinder nuova = dopo.get(i);
+            if (nuova == null || !nuova.oggetto().getId().equals(tasca.oggetto().getId()) || nuova.variante() != tasca.variante()) {
+                cambiate.add(i);
+            }
         });
-        dopo.forEach((i, carta) -> {
+        dopo.forEach((i, tasca) -> {
             if (!prima.containsKey(i)) cambiate.add(i);
         });
         if (cambiate.isEmpty()) {
@@ -348,15 +386,15 @@ public class BinderService {
         slotRepository.svuotaIndici(binder.getId(), binder.getTasche(), cambiate);
         slotRepository.saveAll(cambiate.stream()
                 .filter(dopo::containsKey)
-                .map(i -> new SlotBinder(binder, i / binder.getTasche(), i % binder.getTasche(), dopo.get(i)))
+                .map(i -> new SlotBinder(binder, i / binder.getTasche(), i % binder.getTasche(), dopo.get(i).oggetto(), dopo.get(i).variante()))
                 .toList());
     }
 
     // risposta costruita dalla disposizione appena scritta, senza rileggere le tasche
-    private static List<SlotBinderResponseDTO> risposta(Binder binder, SortedMap<Integer, Oggetto> tasche) {
+    private static List<SlotBinderResponseDTO> risposta(Binder binder, SortedMap<Integer, TascaBinder> tasche) {
         return tasche.entrySet().stream()
                 .map(e -> new SlotBinderResponseDTO(e.getKey() / binder.getTasche(), e.getKey() % binder.getTasche(),
-                        OggettoResponseDTO.from(e.getValue())))
+                        OggettoResponseDTO.from(e.getValue().oggetto()), e.getValue().variante()))
                 .toList();
     }
 
