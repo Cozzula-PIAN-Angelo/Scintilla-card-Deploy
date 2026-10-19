@@ -13,7 +13,7 @@ import { useCollezionePagina } from '../features/collezione/useCollezionePagina'
 import { useCarteProgressive } from '../features/oggetti/useCarteProgressive'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon } from '../features/pokedex/pokedex'
-import { useGetCartePokemonQuery } from '../features/pokedex/pokedexApi'
+import { useGetCartePokemonQuery, useGetStatoCartePokemonQuery } from '../features/pokedex/pokedexApi'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useTitolo } from '../hooks/useTitolo'
@@ -25,7 +25,7 @@ export function PokemonPage() {
   const pokemon = Number.isInteger(numero) ? trovaPokemon(numero) : undefined
   // currentData, non data: la pagina resta montata passando da un Pokémon all'altro, e data
   // conterrebbe ancora le carte del Pokémon precedente finché arrivano le nuove
-  const risposta = useCarteProgressive(useGetCartePokemonQuery, numero, { skip: !pokemon })
+  const risposta = useCarteProgressive(useGetCartePokemonQuery, useGetStatoCartePokemonQuery, numero, { skip: !pokemon })
   const { isLoading, isFetching, isError, error, refetch } = risposta
   // lista intera solo quando tutte le carte sono scaricate: barra, filtri e binder ne hanno bisogno
   const data = risposta.aPezzi ? undefined : risposta.carte

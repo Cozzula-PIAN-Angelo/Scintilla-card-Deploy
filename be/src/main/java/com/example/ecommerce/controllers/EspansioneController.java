@@ -1,6 +1,7 @@
 package com.example.ecommerce.controllers;
 
 import com.example.ecommerce.payloads.CarteDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
 import com.example.ecommerce.services.EspansioneService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,5 +31,11 @@ public class EspansioneController {
     @GetMapping("/{id}/carte")
     public CarteDTO carte(@PathVariable String id, @RequestParam(required = false) Integer pagina, HttpServletRequest request) {
         return espansioneService.carte(id, pagina, request.getRemoteAddr());
+    }
+
+    // a che punto è lo scaricamento: il frontend lo chiede ogni 3 secondi mentre mostra le pagine al volo
+    @GetMapping("/{id}/carte/stato")
+    public StatoCarteDTO stato(@PathVariable String id) {
+        return espansioneService.stato(id);
     }
 }

@@ -7,6 +7,7 @@ import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.EspansioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import lombok.RequiredArgsConstructor;
@@ -112,6 +113,14 @@ public class EspansioneService {
                 () -> !espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false),
                 () -> pokemonTcgService.importaSet(id));
         return new CarteDTO(false, alVolo.totale(), perNumero(alVolo.carte()), importInBackground.fallitoDaPoco(chiave));
+    }
+
+    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
+    public StatoCarteDTO stato(String id) {
+        Espansione espansione = espansioneRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Espansione " + id + " non trovata"));
+        boolean completo = espansione.isImportata() || setVuoti.isRecente(id);
+        return new StatoCarteDTO(completo, !completo && importInBackground.fallitoDaPoco("set:" + id));
     }
 
     private static List<OggettoResponseDTO> perNumero(List<Oggetto> carte) {

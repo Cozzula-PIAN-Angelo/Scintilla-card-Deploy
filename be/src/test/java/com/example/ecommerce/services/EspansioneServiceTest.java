@@ -7,6 +7,7 @@ import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.EspansioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -164,5 +166,23 @@ class EspansioneServiceTest {
         Oggetto carta = new Oggetto("Carta " + numero, BigDecimal.ONE);
         carta.setNumero(numero);
         return carta;
+    }
+
+    // stato leggero per il controllo ogni 3 secondi del frontend: niente pagine, niente chiamate esterne
+    @Test
+    void statoDiUnSetImportatoECompleto() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", true)));
+
+        assertThat(service.stato("sv8")).isEqualTo(new StatoCarteDTO(true, false));
+        verifyNoInteractions(pokemonTcgService);
+    }
+
+    @Test
+    void statoDiUnSetInScaricamento() {
+        when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
+
+        assertThat(service.stato("sv8")).isEqualTo(new StatoCarteDTO(false, false));
+        verifyNoInteractions(pokemonTcgService);
+        assertThat(coda).isEmpty();
     }
 }

@@ -19,6 +19,12 @@ describe('modalitaDopo', () => {
   it('completa non torna mai a pezzi', () => {
     expect(modalitaDopo('completa', risposta(false))).toBe('completa')
   })
+
+  // il controllo leggero dice quando lo scaricamento è finito, anche se la pagina in cache è ancora a pezzi
+  it('lo stato completo chiude la modalità a pezzi', () => {
+    expect(modalitaDopo('a-pezzi', risposta(false), { completo: true, fallito: false })).toBe('completa')
+    expect(modalitaDopo('a-pezzi', risposta(false), { completo: false, fallito: false })).toBe('a-pezzi')
+  })
 })
 
 describe('argomentoCarte', () => {
@@ -26,9 +32,9 @@ describe('argomentoCarte', () => {
     expect(argomentoCarte('sv8', 'sconosciuta', 3)).toEqual({ chiave: 'sv8' })
   })
 
-  it("a pezzi: sempre la pagina dell'URL, anche la prima", () => {
+  it("a pezzi: la pagina dell'URL; la prima riusa la richiesta senza pagina (niente doppione)", () => {
     expect(argomentoCarte('sv8', 'a-pezzi', 3)).toEqual({ chiave: 'sv8', pagina: 3 })
-    expect(argomentoCarte('sv8', 'a-pezzi', 0)).toEqual({ chiave: 'sv8', pagina: 0 })
+    expect(argomentoCarte('sv8', 'a-pezzi', 0)).toEqual({ chiave: 'sv8' })
   })
 
   it('completa: una voce di cache diversa da quella della prima risposta', () => {

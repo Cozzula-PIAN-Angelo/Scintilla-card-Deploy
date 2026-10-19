@@ -1,6 +1,7 @@
 package com.example.ecommerce.controllers;
 
 import com.example.ecommerce.payloads.CarteDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.services.PokedexService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +25,11 @@ public class PokedexController {
     public CarteDTO carte(@PathVariable int numero, @RequestParam(required = false) Integer pagina,
                           HttpServletRequest request) {
         return pokedexService.carte(numero, pagina, request.getRemoteAddr());
+    }
+
+    // a che punto è lo scaricamento: il frontend lo chiede ogni 3 secondi mentre mostra le pagine al volo
+    @GetMapping("/{numero}/carte/stato")
+    public StatoCarteDTO stato(@PathVariable int numero) {
+        return pokedexService.stato(numero);
     }
 }

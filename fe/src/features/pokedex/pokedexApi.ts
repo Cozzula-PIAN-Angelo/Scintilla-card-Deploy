@@ -1,5 +1,5 @@
 import { api } from '../../app/api'
-import type { CarteProgressive, RichiestaCarte } from '../../types/api'
+import type { CarteProgressive, RichiestaCarte, StatoCarte } from '../../types/api'
 
 export const pokedexApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -13,7 +13,11 @@ export const pokedexApi = api.injectEndpoints({
       }),
       providesTags: ['Oggetti'],
     }),
+    // a che punto è lo scaricamento in background: niente pagine, niente pokemontcg.io (vedi useCarteProgressive)
+    getStatoCartePokemon: build.query<StatoCarte, number>({
+      query: (chiave) => `/pokedex/${chiave}/carte/stato`,
+    }),
   }),
 })
 
-export const { useGetCartePokemonQuery } = pokedexApi
+export const { useGetCartePokemonQuery, useGetStatoCartePokemonQuery } = pokedexApi

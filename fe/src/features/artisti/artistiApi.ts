@@ -1,5 +1,5 @@
 import { api } from '../../app/api'
-import type { Artista, CarteProgressive, RichiestaCarte } from '../../types/api'
+import type { Artista, CarteProgressive, RichiestaCarte, StatoCarte } from '../../types/api'
 
 export const artistiApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -17,7 +17,11 @@ export const artistiApi = api.injectEndpoints({
       }),
       providesTags: ['Oggetti'],
     }),
+    // a che punto è lo scaricamento in background: niente pagine, niente pokemontcg.io (vedi useCarteProgressive)
+    getStatoCarteArtista: build.query<StatoCarte, string>({
+      query: (chiave) => `/artisti/${encodeURIComponent(chiave)}/carte/stato`,
+    }),
   }),
 })
 
-export const { useGetArtistiQuery, useGetCarteArtistaQuery } = artistiApi
+export const { useGetArtistiQuery, useGetCarteArtistaQuery, useGetStatoCarteArtistaQuery } = artistiApi

@@ -7,6 +7,7 @@ import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.ArtistaResponseDTO;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.ArtistaImportatoRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,5 +143,18 @@ class ArtistiServiceTest {
         }
         carta.setNumero("1");
         return carta;
+    }
+
+    @Test
+    void statoDiUnArtistaGiaImportato() {
+        when(artistaImportatoRepository.findById("mitsuhiro-arita")).thenReturn(Optional.of(importatoDaPoco("mitsuhiro-arita")));
+
+        assertThat(service.stato("mitsuhiro-arita")).isEqualTo(new StatoCarteDTO(true, false));
+        verifyNoInteractions(pokemonTcgService);
+    }
+
+    @Test
+    void statoDiUnoSlugInesistenteE404() {
+        assertThatThrownBy(() -> service.stato("nessuno")).isInstanceOf(NotFoundException.class);
     }
 }

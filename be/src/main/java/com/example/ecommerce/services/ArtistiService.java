@@ -6,6 +6,7 @@ import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.ArtistaResponseDTO;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.ArtistaImportatoRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,15 @@ public class ArtistiService {
         }
         PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte(artista.query(), numeroPagina, OrdineCarte.PIU_RECENTI_API);
         return new CarteDTO(false, alVolo.totale(), ordinate(alVolo.carte()), stato.fallito());
+    }
+
+    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
+    public StatoCarteDTO stato(String slug) {
+        if (!ElencoArtisti.SLUG_SCONOSCIUTO.equals(slug) && elencoArtisti.perSlug(slug).isEmpty()) {
+            throw new NotFoundException("Artista non trovato: " + slug);
+        }
+        ImportSettimanale.Stato stato = importSettimanale.stato(slug);
+        return new StatoCarteDTO(stato.completo(), stato.fallito());
     }
 
     private static List<OggettoResponseDTO> ordinate(List<Oggetto> carte) {

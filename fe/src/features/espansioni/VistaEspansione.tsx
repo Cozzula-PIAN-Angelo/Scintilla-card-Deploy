@@ -14,7 +14,7 @@ import { AvvisoCarteInArrivo } from '../collezione/AvvisoCarteInArrivo'
 import { useCollezionePagina } from '../collezione/useCollezionePagina'
 import { useCarteProgressive } from '../oggetti/useCarteProgressive'
 import type { Espansione, Oggetto } from '../../types/api'
-import { useGetCarteEspansioneQuery } from './espansioniApi'
+import { useGetCarteEspansioneQuery, useGetStatoCarteEspansioneQuery } from './espansioniApi'
 
 interface Props {
   espansione: Espansione
@@ -24,7 +24,7 @@ interface Props {
 
 // intestazione e carte di un solo set, con il dettaglio carta che sfoglia le carte mostrate
 export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: Props) {
-  const risposta = useCarteProgressive(useGetCarteEspansioneQuery, espansione.id)
+  const risposta = useCarteProgressive(useGetCarteEspansioneQuery, useGetStatoCarteEspansioneQuery, espansione.id)
   const { isLoading, isFetching, isError, error, refetch } = risposta
   // lista intera solo a set completo: barra, filtri, master set e binder hanno bisogno di tutte le carte
   const data = risposta.aPezzi ? undefined : risposta.carte

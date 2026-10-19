@@ -65,6 +65,12 @@ final class ImportSettimanale<K> {
         return new Stato(ultimo.isPresent(), ultimo.isEmpty() && background.fallitoDaPoco(chiaveBackground));
     }
 
+    // solo lettura: niente import, niente limite. Per il controllo leggero del frontend
+    Stato stato(K chiave) {
+        boolean importata = ultimoImport.apply(chiave).isPresent();
+        return new Stato(importata, !importata && background.fallitoDaPoco(descrizione + ":" + chiave));
+    }
+
     // mai importata, oppure importata da più di una settimana
     private boolean daImportare(Optional<Instant> ultimo) {
         return ultimo.map(data -> data.isBefore(orologio.instant().minus(VALIDITA_IMPORT))).orElse(true);

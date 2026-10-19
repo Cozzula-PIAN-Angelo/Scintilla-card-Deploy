@@ -8,7 +8,7 @@ import { ModaleCarta } from '../components/ModaleCarta'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
 import { coautori, elencoNomi, SLUG_SCONOSCIUTO } from '../features/artisti/artisti'
-import { useGetArtistiQuery, useGetCarteArtistaQuery } from '../features/artisti/artistiApi'
+import { useGetArtistiQuery, useGetCarteArtistaQuery, useGetStatoCarteArtistaQuery } from '../features/artisti/artistiApi'
 import { AvatarArtista } from '../features/artisti/AvatarArtista'
 import { memoriaArtisti } from '../features/artisti/memoriaArtisti'
 import { ModaleBinder } from '../features/binder/ModaleBinder'
@@ -28,7 +28,7 @@ export function ArtistaPage() {
   const artista = elenco?.find((a) => a.slug === slug)
   // currentData, non data: passando da un artista all'altro (link nel dettaglio carta) la pagina resta
   // montata, e data conterrebbe ancora le carte dell'artista precedente finché arrivano le nuove
-  const risposta = useCarteProgressive(useGetCarteArtistaQuery, slug)
+  const risposta = useCarteProgressive(useGetCarteArtistaQuery, useGetStatoCarteArtistaQuery, slug)
   const { isLoading, isFetching, isError, error, refetch } = risposta
   // lista intera solo quando tutte le carte sono scaricate: barra, filtri e binder ne hanno bisogno
   const data = risposta.aPezzi ? undefined : risposta.carte

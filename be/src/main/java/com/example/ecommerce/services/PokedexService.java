@@ -5,6 +5,7 @@ import com.example.ecommerce.entities.PokemonImportato;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.PokemonImportatoRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,6 +51,12 @@ public class PokedexService {
         PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte("nationalPokedexNumbers:" + numero,
                 numeroPagina, OrdineCarte.PIU_RECENTI_API);
         return new CarteDTO(false, alVolo.totale(), ordinate(alVolo.carte()), stato.fallito());
+    }
+
+    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
+    public StatoCarteDTO stato(int numero) {
+        ImportSettimanale.Stato stato = importSettimanale.stato(numero);
+        return new StatoCarteDTO(stato.completo(), stato.fallito());
     }
 
     private static List<OggettoResponseDTO> ordinate(List<Oggetto> carte) {

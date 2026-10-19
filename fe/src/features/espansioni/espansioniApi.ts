@@ -1,5 +1,5 @@
 import { api } from '../../app/api'
-import type { CarteProgressive, Espansione, RichiestaCarte } from '../../types/api'
+import type { CarteProgressive, Espansione, RichiestaCarte, StatoCarte } from '../../types/api'
 
 export const espansioniApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -18,7 +18,11 @@ export const espansioniApi = api.injectEndpoints({
       }),
       providesTags: ['Oggetti'],
     }),
+    // a che punto è lo scaricamento in background: niente pagine, niente pokemontcg.io (vedi useCarteProgressive)
+    getStatoCarteEspansione: build.query<StatoCarte, string>({
+      query: (chiave) => `/espansioni/${encodeURIComponent(chiave)}/carte/stato`,
+    }),
   }),
 })
 
-export const { useGetEspansioniQuery, useGetCarteEspansioneQuery } = espansioniApi
+export const { useGetEspansioniQuery, useGetCarteEspansioneQuery, useGetStatoCarteEspansioneQuery } = espansioniApi

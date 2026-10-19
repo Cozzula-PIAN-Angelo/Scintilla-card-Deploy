@@ -85,6 +85,12 @@ export interface CarteProgressive {
   fallito: boolean
 }
 
+// a che punto è lo scaricamento (GET .../carte/stato): il frontend lo chiede ogni 3 secondi mentre è a pezzi
+export interface StatoCarte {
+  completo: boolean
+  fallito: boolean
+}
+
 // pagina da 0; senza, la lista intera (o la prima pagina, se a pezzi). intera: non va al backend, separa nella
 // cache la lista intera dalla prima risposta (vedi argomentoCarte)
 export interface RichiestaCarte<K> {

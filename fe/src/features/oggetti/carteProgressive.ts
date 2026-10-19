@@ -1,4 +1,4 @@
-import type { CarteProgressive, RichiestaCarte } from '../../types/api'
+import type { CarteProgressive, RichiestaCarte, StatoCarte } from '../../types/api'
 
 // carte per pagina della griglia: la stessa pagina che il backend prende al volo da pokemontcg.io
 export const PER_PAGINA = 24
@@ -7,16 +7,18 @@ export const PER_PAGINA = 24
 // ridare una risposta vecchia, e tornare indietro farebbe rimbalzare la richiesta tra due voci all'infinito
 export type ModalitaCarte = 'sconosciuta' | 'a-pezzi' | 'completa'
 
-export function modalitaDopo(prima: ModalitaCarte, risposta: CarteProgressive | undefined): ModalitaCarte {
-  if (!risposta || prima === 'completa') return prima
+// stato: il controllo leggero (vedi useCarteProgressive), che sa prima della pagina quando lo scaricamento è finito
+export function modalitaDopo(prima: ModalitaCarte, risposta: CarteProgressive | undefined, stato?: StatoCarte): ModalitaCarte {
+  if (prima === 'completa' || stato?.completo) return 'completa'
+  if (!risposta) return prima
   return risposta.completo ? 'completa' : 'a-pezzi'
 }
 
 // richiesta per la modalità: sconosciuta senza pagina (il backend dà tutto, o la prima pagina); a pezzi la pagina
-// dell'URL; completa la lista intera con `intera`, che il backend ignora ma dà una voce di cache nuova, diversa da
+// dell'URL, ma la prima riusa la richiesta senza pagina (stessa risposta, niente doppione); completa la lista intera con `intera`, che il backend ignora ma dà una voce di cache nuova, diversa da
 // quella della prima risposta (che può essere rimasta a pezzi)
 export function argomentoCarte<K>(chiave: K, modalita: ModalitaCarte, paginaUrl: number): RichiestaCarte<K> {
-  if (modalita === 'a-pezzi') return { chiave, pagina: paginaUrl }
+  if (modalita === 'a-pezzi') return paginaUrl > 0 ? { chiave, pagina: paginaUrl } : { chiave }
   if (modalita === 'completa') return { chiave, intera: true }
   return { chiave }
 }
@@ -26,7 +28,7 @@ export function pagineTotali(numeroCarte: number, totaleServer?: number, perPagi
   return Math.ceil((totaleServer ?? numeroCarte) / perPagina)
 }
 
-// ogni quanto si richiede la pagina mentre il resto si scarica: mai se completo, mai se lo scaricamento è fallito
+// ogni quanto si controlla lo stato mentre il resto si scarica: mai se completo, mai se lo scaricamento è fallito
 // (il backend non riprova per 30 minuti: richiederla non cambierebbe niente)
 export function intervalloPolling(aPezzi: boolean, fallito: boolean): number {
   return aPezzi && !fallito ? 3000 : 0

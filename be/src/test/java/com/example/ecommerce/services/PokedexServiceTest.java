@@ -5,6 +5,7 @@ import com.example.ecommerce.entities.PokemonImportato;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.StatoCarteDTO;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.PokemonImportatoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 // l'import in background finisce in una coda che i test non eseguono: si vede la pagina al volo
@@ -95,5 +97,22 @@ class PokedexServiceTest {
     @Test
     void numeroNonValido400() {
         assertThatThrownBy(() -> service.carte(0, 0, CLIENT)).isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    void statoNonImportaENonChiamaPokemontcg() {
+        when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.empty());
+
+        assertThat(service.stato(PIKACHU)).isEqualTo(new StatoCarteDTO(false, false));
+        verifyNoInteractions(pokemonTcgService);
+        assertThat(coda).isEmpty();
+    }
+
+    @Test
+    void statoCompletoDopoLImport() {
+        when(pokemonImportatoRepository.findById(PIKACHU))
+                .thenReturn(Optional.of(new PokemonImportato(PIKACHU, Instant.now().minus(Duration.ofDays(2)))));
+
+        assertThat(service.stato(PIKACHU)).isEqualTo(new StatoCarteDTO(true, false));
     }
 }
