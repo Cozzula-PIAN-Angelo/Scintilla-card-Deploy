@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useMemo, type ReactNode } from 'react'
-import type { Binder, BinderDettaglio, Oggetto } from '../../../types/api'
+import type { Binder, BinderDettaglio, SlotBinder } from '../../../types/api'
 import { cn } from '../../../utils/cn'
 import { useContestoBinder } from '../contesto'
 import { CopertinaBinder, FoderaBinder } from '../CopertinaBinder'
@@ -38,12 +38,12 @@ export function Album({ binder, slot, doppia, proporzione, rapporto, larghezzaLi
   const { trascinata } = useContestoBinder()
   const immagine = useImmagineBinder(binder)
 
-  // carte per pagina e posizione
+  // tasche occupate per pagina e posizione
   const cartePerPagina = useMemo(() => {
-    const mappa = new Map<number, Map<number, Oggetto>>()
+    const mappa = new Map<number, Map<number, SlotBinder>>()
     for (const s of slot) {
       if (!mappa.has(s.pagina)) mappa.set(s.pagina, new Map())
-      mappa.get(s.pagina)!.set(s.posizione, s.oggetto)
+      mappa.get(s.pagina)!.set(s.posizione, s)
     }
     return mappa
   }, [slot])

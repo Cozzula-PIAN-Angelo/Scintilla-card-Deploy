@@ -23,6 +23,11 @@ export function copieTotali(mappa: MappaCopie, id: string): number {
   return totale
 }
 
+// senza variante (null) una copia qualsiasi; con la variante (tasca del master set) una copia di quella
+export function possiede(mappa: MappaCopie, id: string, variante?: Variante | null): boolean {
+  return variante ? (mappa.get(id)?.get(variante) ?? 0) > 0 : copieTotali(mappa, id) > 0
+}
+
 // carte con almeno una copia / carte
 export function conteggio(carte: Oggetto[], mappa: MappaCopie): { possedute: number; totale: number } {
   let possedute = 0

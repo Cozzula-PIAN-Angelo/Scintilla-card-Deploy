@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Oggetto, SlotBinder } from '../../types/api'
+import type { Oggetto, SlotBinder, Variante } from '../../types/api'
 import { inserisci, sposta, togli } from './disposizione'
 
 // stessi casi di DisposizioneTest nel backend; 9 tasche per pagina, indice = pagina * 9 + posizione
@@ -7,7 +7,7 @@ const TASCHE = 9
 
 const carta = (id: string) => ({ id }) as Oggetto
 const slot = (carte: Record<number, string>): SlotBinder[] =>
-  Object.entries(carte).map(([i, id]) => ({ pagina: Math.floor(+i / TASCHE), posizione: +i % TASCHE, oggetto: carta(id) }))
+  Object.entries(carte).map(([i, id]) => ({ pagina: Math.floor(+i / TASCHE), posizione: +i % TASCHE, oggetto: carta(id), variante: null }))
 const mappa = (lista: SlotBinder[] | null) =>
   lista && Object.fromEntries(lista.map((s) => [s.pagina * TASCHE + s.posizione, s.oggetto.id]))
 const pos = (i: number) => ({ pagina: Math.floor(i / TASCHE), posizione: i % TASCHE })
@@ -81,4 +81,27 @@ describe('sposta', () => {
 it('copie della stessa carta restano', () => {
   expect(mappa(togli(slot({ 0: 'A', 1: 'A' }), TASCHE, 1, pos(0)))).toEqual({ 0: 'A' })
   expect(mappa(inserisci(slot({ 0: 'A' }), TASCHE, 1, pos(0), carta('A')))).toEqual({ 0: 'A', 1: 'A' })
+})
+
+// binder del master set: la variante viaggia con la carta
+describe('variante delle tasche', () => {
+  const conVariante = (carte: Record<number, [string, Variante | null]>): SlotBinder[] =>
+    Object.entries(carte).map(([i, [id, variante]]) => ({ ...pos(+i), oggetto: carta(id), variante }))
+  const varianti = (lista: SlotBinder[] | null) =>
+    lista && Object.fromEntries(lista.map((s) => [s.pagina * TASCHE + s.posizione, `${s.oggetto.id}:${s.variante}`]))
+
+  it('sposta con Fai spazio', () => {
+    const prima = conVariante({ 0: ['A', 'REVERSE_HOLO'], 1: ['B', 'NORMALE'] })
+    expect(varianti(sposta(prima, TASCHE, 1, pos(0), pos(3)))).toEqual({ 1: 'B:NORMALE', 3: 'A:REVERSE_HOLO' })
+  })
+
+  it('inserisci davanti a una reverse', () => {
+    const prima = conVariante({ 0: ['A', 'REVERSE_HOLO'] })
+    expect(varianti(inserisci(prima, TASCHE, 1, pos(0), carta('X')))).toEqual({ 0: 'X:null', 1: 'A:REVERSE_HOLO' })
+  })
+
+  it('togli: chi arretra tiene la variante', () => {
+    const prima = conVariante({ 0: ['A', 'NORMALE'], 1: ['A', 'REVERSE_HOLO'], 2: ['B', 'NORMALE'] })
+    expect(varianti(togli(prima, TASCHE, 1, pos(0)))).toEqual({ 0: 'A:REVERSE_HOLO', 1: 'B:NORMALE' })
+  })
 })

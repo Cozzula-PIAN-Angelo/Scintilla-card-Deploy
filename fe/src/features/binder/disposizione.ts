@@ -9,18 +9,20 @@ export interface Posizione {
 // immediato del binder aperto, la disposizione vera la decide il server. Si ragiona sull'indice
 // lineare pagina * tasche + posizione; le funzioni restituiscono una lista nuova
 
-type Tasche = Map<number, Oggetto>
+// contenuto di una tasca: la carta e la sua variante (binder del master set), che si spostano insieme
+type Contenuto = Pick<SlotBinder, 'oggetto' | 'variante'>
+type Tasche = Map<number, Contenuto>
 
 const indice = (p: Posizione, tasche: number) => p.pagina * tasche + p.posizione
 
 function inMappa(slot: SlotBinder[], tasche: number): Tasche {
-  return new Map(slot.map((s) => [indice(s, tasche), s.oggetto]))
+  return new Map(slot.map((s) => [indice(s, tasche), { oggetto: s.oggetto, variante: s.variante }]))
 }
 
 function inLista(mappa: Tasche, tasche: number): SlotBinder[] {
   return [...mappa.entries()]
     .sort(([a], [b]) => a - b)
-    .map(([i, oggetto]) => ({ pagina: Math.floor(i / tasche), posizione: i % tasche, oggetto }))
+    .map(([i, contenuto]) => ({ pagina: Math.floor(i / tasche), posizione: i % tasche, ...contenuto }))
 }
 
 // primo indice libero dopo `i`, oppure `totale` se non ce ne sono
@@ -30,14 +32,14 @@ function primoBuco(mappa: Tasche, i: number, totale: number) {
   return j
 }
 
-function inserisciInMappa(mappa: Tasche, totale: number, i: number, oggetto: Oggetto): Tasche | null {
+function inserisciInMappa(mappa: Tasche, totale: number, i: number, contenuto: Contenuto): Tasche | null {
   const nuova = new Map(mappa)
   if (nuova.has(i)) {
     const buco = primoBuco(nuova, i, totale)
     if (buco === totale) return null
     for (let k = buco - 1; k >= i; k--) nuova.set(k + 1, nuova.get(k)!)
   }
-  nuova.set(i, oggetto)
+  nuova.set(i, contenuto)
   return nuova
 }
 
@@ -50,9 +52,10 @@ function togliDaMappa(mappa: Tasche, totale: number, i: number): Tasche {
   return nuova
 }
 
-// tasca occupata: le carte avanzano fino al primo buco dopo. null = nessun buco dopo, binder pieno
+// tasca occupata: le carte avanzano fino al primo buco dopo. null = nessun buco dopo, binder pieno.
+// La carta inserita a mano non ha variante
 export function inserisci(slot: SlotBinder[], tasche: number, pagine: number, dove: Posizione, oggetto: Oggetto): SlotBinder[] | null {
-  const nuova = inserisciInMappa(inMappa(slot, tasche), pagine * tasche, indice(dove, tasche), oggetto)
+  const nuova = inserisciInMappa(inMappa(slot, tasche), pagine * tasche, indice(dove, tasche), { oggetto, variante: null })
   return nuova && inLista(nuova, tasche)
 }
 

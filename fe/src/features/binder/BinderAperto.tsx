@@ -28,7 +28,7 @@ import { proporzionePagina } from './aspetto'
 import { useGetBinderDettaglioQuery } from './binderApi'
 import { Contesto, stessaPosizione } from './contesto'
 import { statisticheBinder } from './statisticheBinder'
-import { copieTotali, creaMappa } from '../collezione/conteggi'
+import { creaMappa, possiede } from '../collezione/conteggi'
 
 interface Props {
   id: string
@@ -65,7 +65,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   // dalla collezione del dettaglio: si aggiorna con le tasche e con "Ce l'ho"
   const statistiche = useMemo(() => {
     const mappa = creaMappa(dettaglio.collezione)
-    return statisticheBinder(slot, binder.pagine * binder.tasche, (id) => copieTotali(mappa, id) > 0)
+    return statisticheBinder(slot, binder.pagine * binder.tasche, (id, variante) => possiede(mappa, id, variante))
   }, [dettaglio.collezione, slot, binder.pagine, binder.tasche])
   const doppia = useMediaQuery('(min-width: 1024px)')
   const preferiti = usePreferiti()

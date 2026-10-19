@@ -1,7 +1,7 @@
 import { useCallback, useMemo, type ReactNode } from 'react'
 import { messaggioErrore, statoErrore } from '../../app/errori'
-import type { Oggetto } from '../../types/api'
-import { copieTotali, creaMappa } from '../collezione/conteggi'
+import type { Oggetto, Variante } from '../../types/api'
+import { creaMappa, possiede } from '../collezione/conteggi'
 import { useModificaCollezioneMutation } from '../collezione/collezioneApi'
 import { ETICHETTE, varianteRapida } from '../collezione/varianti'
 import { useToast } from '../toast/useToast'
@@ -18,11 +18,11 @@ export function ProviderCollezioneBinder({ id, children }: { id: string; childre
   const toast = useToast()
 
   const mappa = useMemo(() => creaMappa(data?.collezione ?? []), [data?.collezione])
-  const possiede = useCallback((oggettoId: string) => copieTotali(mappa, oggettoId) > 0, [mappa])
+  const possiedeCarta = useCallback((oggettoId: string, variante?: Variante | null) => possiede(mappa, oggettoId, variante), [mappa])
 
   const ceLho = useCallback(
-    async (oggetto: Oggetto) => {
-      const variante = varianteRapida(oggetto)
+    async (oggetto: Oggetto, dellaTasca?: Variante | null) => {
+      const variante = dellaTasca ?? varianteRapida(oggetto)
       toast.successo(`Aggiunta alla collezione: ${ETICHETTE[variante]}`)
       try {
         await modificaCopia({ oggettoId: oggetto.id, variante, delta: 1, binderId: id }).unwrap()
@@ -36,8 +36,8 @@ export function ProviderCollezioneBinder({ id, children }: { id: string; childre
   )
 
   const valore = useMemo<ContestoCollezioneBinder>(
-    () => ({ possiede, mostraMancanti: data !== undefined && data.binder.mostraMancanti, ceLho: (o) => void ceLho(o) }),
-    [possiede, data, ceLho],
+    () => ({ possiede: possiedeCarta, mostraMancanti: data !== undefined && data.binder.mostraMancanti, ceLho: (o, v) => void ceLho(o, v) }),
+    [possiedeCarta, data, ceLho],
   )
 
   return <ContestoCollezione.Provider value={valore}>{children}</ContestoCollezione.Provider>

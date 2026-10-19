@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Copia, Oggetto, Variante } from '../../types/api'
-import { conteggioMaster, creaMappa, filtra } from './conteggi'
+import { conteggioMaster, creaMappa, filtra, possiede } from './conteggi'
 
 const carta = (id: string, varianti: Variante[]) => ({ id, varianti, rarita: 'Common' }) as Oggetto
 const copia = (oggettoId: string, variante: Variante): Copia => ({ oggettoId, variante, quantita: 1 })
@@ -36,5 +36,20 @@ describe('filtra con il master', () => {
   it('senza master resta una copia qualsiasi', () => {
     const mappa = creaMappa([copia('C', 'REVERSE_HOLO')])
     expect(ids(filtra(CARTE, mappa, 'possedute'))).toEqual(['C'])
+  })
+})
+
+describe('possiede', () => {
+  const mappa = creaMappa([copia('A', 'REVERSE_HOLO')])
+
+  it('senza variante basta una copia qualsiasi', () => {
+    expect(possiede(mappa, 'A')).toBe(true)
+    expect(possiede(mappa, 'A', null)).toBe(true)
+    expect(possiede(mappa, 'B')).toBe(false)
+  })
+
+  it('con la variante serve una copia di quella', () => {
+    expect(possiede(mappa, 'A', 'REVERSE_HOLO')).toBe(true)
+    expect(possiede(mappa, 'A', 'NORMALE')).toBe(false)
   })
 })

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import type { Oggetto, SlotBinder } from '../../types/api'
 import { statisticheBinder } from './statisticheBinder'
 
-const tasca = (posizione: number, id: string, prezzo: number): SlotBinder => ({ pagina: 0, posizione, oggetto: { id, prezzo } as Oggetto })
+const tasca = (posizione: number, id: string, prezzo: number): SlotBinder => ({ pagina: 0, posizione, oggetto: { id, prezzo } as Oggetto, variante: null })
 
 it('tasche piene, possedute e valore delle possedute', () => {
   const slot = [tasca(0, 'a', 2.5), tasca(1, 'b', 10), tasca(2, 'a', 2.5), tasca(3, 'c', 1)]

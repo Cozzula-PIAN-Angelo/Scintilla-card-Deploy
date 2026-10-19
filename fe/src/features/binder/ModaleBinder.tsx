@@ -42,7 +42,12 @@ interface Props {
   checklist?: Checklist
 }
 
-export type Checklist = { nome: string; carte: number } & ({ espansioneId: string } | { numeroPokedex: number } | { artista: string })
+// master: binder del master set di un set, carte = voci (Normale e Reverse affiancate)
+export type Checklist = { nome: string; carte: number } & (
+  | { espansioneId: string; master?: boolean }
+  | { numeroPokedex: number }
+  | { artista: string }
+)
 
 type StatoImmagine = { tipo: 'esistente' } | { tipo: 'nuova'; blob: Blob; url: string } | { tipo: 'nessuna' }
 
@@ -122,6 +127,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, checklist }: Om
       cartaCopertinaId: carta?.id ?? null,
       mostraMancanti,
       espansioneId: checklist && 'espansioneId' in checklist ? checklist.espansioneId : undefined,
+      master: checklist && 'espansioneId' in checklist ? checklist.master : undefined,
       numeroPokedex: checklist && 'numeroPokedex' in checklist ? checklist.numeroPokedex : undefined,
       artista: checklist && 'artista' in checklist ? checklist.artista : undefined,
     }
@@ -206,7 +212,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, checklist }: Om
                 : 'artista' in checklist
                   ? 'Le carte di questo artista non ci stanno: scegli più tasche'
                   : 'Le carte di questo Pokémon non ci stanno: scegli più tasche'
-              : `${pagineSet} pagine per le ${checklist.carte} carte ${delSet ? 'del set' : `di ${checklist.nome}`}`}
+              : `${pagineSet} pagine per le ${checklist.carte} ${'master' in checklist && checklist.master ? 'varianti' : 'carte'} ${delSet ? 'del set' : `di ${checklist.nome}`}`}
           </p>
         ) : (
         <div>

@@ -8,6 +8,7 @@ import { ModaleCarta } from '../../components/ModaleCarta'
 import { useCartaSelezionata } from '../../hooks/useCartaSelezionata'
 import { ModaleBinder } from '../binder/ModaleBinder'
 import { BarraCollezione } from '../collezione/BarraCollezione'
+import { conteggioMaster } from '../collezione/conteggi'
 import { useCollezionePagina } from '../collezione/useCollezionePagina'
 import type { Espansione, Oggetto } from '../../types/api'
 import { useGetCarteEspansioneQuery } from './espansioniApi'
@@ -23,7 +24,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
   const { data, isLoading, isFetching, isError, error, refetch } = useGetCarteEspansioneQuery(espansione.id)
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
   const masterSet = useMemo(() => ({ senzaDati: espansione.senzaDati }), [espansione.senzaDati])
-  const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data, masterSet)
+  const { collezione, carte, barra, vuotoFiltro, master } = useCollezionePagina(filtroPagina, data, masterSet)
   const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle: onTogglePreferito }, collezione, carte)
   const anno = espansione.dataUscita?.slice(0, 4)
   const totale = data?.length ?? espansione.totaleCarte
@@ -57,7 +58,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
         {barra && data && data.length > 0 && (
           <Button variante="chiaro" dimensione="sm" onClick={() => setChecklistAperta(true)} className="sm:ml-auto">
             <BookPlus aria-hidden className="size-4" />
-            Crea binder checklist
+            {master ? 'Crea binder master set' : 'Crea binder checklist'}
           </Button>
         )}
       </header>
@@ -66,7 +67,16 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
         <ModaleBinder
           aperta={checklistAperta}
           binder={null}
-          checklist={{ espansioneId: espansione.id, nome: espansione.nome, carte: data.length }}
+          checklist={
+            master && collezione
+              ? {
+                  espansioneId: espansione.id,
+                  nome: `${espansione.nome} · Master`,
+                  carte: conteggioMaster(data, collezione.mappa, espansione.senzaDati).totale,
+                  master: true,
+                }
+              : { espansioneId: espansione.id, nome: espansione.nome, carte: data.length }
+          }
           onChiudi={() => setChecklistAperta(false)}
           onCreato={(binder) => navigate(`/binder/${binder.id}`)}
         />

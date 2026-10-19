@@ -105,6 +105,8 @@ export interface SlotBinder {
   pagina: number
   posizione: number
   oggetto: Oggetto
+  // null = una variante qualsiasi; NORMALE o REVERSE_HOLO nel binder del master set
+  variante: Variante | null
 }
 
 export interface BinderDettaglio {
@@ -128,6 +130,8 @@ export interface DatiBinder {
   numeroPokedex?: number
   // slug dell'artista
   artista?: string
+  // con espansioneId: binder del master set, Normale e Reverse affiancate
+  master?: boolean
 }
 
 export type CriterioOrdine = 'SET_NUMERO' | 'POKEDEX' | 'NOME' | 'RARITA'
