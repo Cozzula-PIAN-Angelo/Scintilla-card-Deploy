@@ -94,24 +94,25 @@ export function GrigliaCartePaginata({
     if (paginaAperta !== null && paginaAperta !== pagina) vaiAPagina(paginaAperta)
   }, [paginaAperta, pagina, vaiAPagina])
 
-  // cambiando pagina si riparte dall'inizio della griglia, non dal fondo di quella appena lasciata
-  const paginaPrecedente = useRef(pagina)
+  // cambiando pagina si riparte dall'inizio della griglia, non dal fondo di quella appena lasciata. Segue la pagina
+  // dell'URL, non quella mostrata: a pezzi le carte nuove arrivano dopo, e si sale subito, già sullo scheletro
+  const paginaPrecedente = useRef(richiesta)
   useEffect(() => {
-    if (paginaPrecedente.current !== pagina) inizioGriglia.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
-    paginaPrecedente.current = pagina
-  }, [pagina])
+    if (paginaPrecedente.current !== richiesta) inizioGriglia.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    paginaPrecedente.current = richiesta
+  }, [richiesta])
 
   // a pezzi, cambiando pagina, le carte nuove arrivano dopo: intanto lo scheletro, non «Nessuna carta»
   if (isLoading || (!carte && isFetching)) {
     return (
-      <>
+      <div ref={inizioGriglia} className="scroll-mt-28">
         {avvisoCaricamento && (
           <p role="status" className="mb-4 text-sm font-medium text-testo/70">
             {avvisoCaricamento}
           </p>
         )}
         <GrigliaSkeleton stretta={stretta} />
-      </>
+      </div>
     )
   }
   if (isError) {
