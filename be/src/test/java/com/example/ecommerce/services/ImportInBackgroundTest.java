@@ -61,8 +61,9 @@ class ImportInBackgroundTest {
         assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isTrue();
     }
 
+    // pausa corta: pokemontcg.io senza chiave risponde spesso 500 a raffiche, poco dopo di solito torna
     @Test
-    void fallitoPerTrentaMinuti() {
+    void fallitoPerDueMinuti() {
         ImportInBackground background = conLimite(10);
         background.avvia(CHIAVE, CLIENT, () -> true, () -> {
             throw new ServizioEsternoException("pokemontcg.io ha risposto 502", null);
@@ -74,7 +75,10 @@ class ImportInBackgroundTest {
         assertThat(background.inCorso(CHIAVE)).isFalse();
         assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isFalse();
 
-        orologio.avanza(Duration.ofMinutes(31));
+        orologio.avanza(Duration.ofMinutes(1));
+        assertThat(background.fallitoDaPoco(CHIAVE)).isTrue();
+
+        orologio.avanza(Duration.ofMinutes(2));
 
         assertThat(background.fallitoDaPoco(CHIAVE)).isFalse();
         assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isTrue();

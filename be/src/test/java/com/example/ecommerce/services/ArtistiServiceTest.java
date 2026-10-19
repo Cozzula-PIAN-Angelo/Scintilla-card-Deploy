@@ -149,12 +149,12 @@ class ArtistiServiceTest {
     void statoDiUnArtistaGiaImportato() {
         when(artistaImportatoRepository.findById("mitsuhiro-arita")).thenReturn(Optional.of(importatoDaPoco("mitsuhiro-arita")));
 
-        assertThat(service.stato("mitsuhiro-arita")).isEqualTo(new StatoCarteDTO(true, false));
+        assertThat(service.stato("mitsuhiro-arita", CLIENT)).isEqualTo(new StatoCarteDTO(true, false));
         verifyNoInteractions(pokemonTcgService);
     }
 
     @Test
     void statoDiUnoSlugInesistenteE404() {
-        assertThatThrownBy(() -> service.stato("nessuno")).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.stato("nessuno", CLIENT)).isInstanceOf(NotFoundException.class);
     }
 }

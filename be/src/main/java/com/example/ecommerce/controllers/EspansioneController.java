@@ -33,9 +33,9 @@ public class EspansioneController {
         return espansioneService.carte(id, pagina, request.getRemoteAddr());
     }
 
-    // a che punto è lo scaricamento: il frontend lo chiede ogni 3 secondi mentre mostra le pagine al volo
+    // a che punto è lo scaricamento (e, se è fermo, lo rilancia): il frontend lo chiede mentre mostra le pagine al volo
     @GetMapping("/{id}/carte/stato")
-    public StatoCarteDTO stato(@PathVariable String id) {
-        return espansioneService.stato(id);
+    public StatoCarteDTO stato(@PathVariable String id, HttpServletRequest request) {
+        return espansioneService.stato(id, request.getRemoteAddr());
     }
 }

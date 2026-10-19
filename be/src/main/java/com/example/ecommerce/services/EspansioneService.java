@@ -4,6 +4,7 @@ import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
+import com.example.ecommerce.exceptions.TroppeRichiesteException;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
@@ -115,12 +116,23 @@ public class EspansioneService {
         return new CarteDTO(false, alVolo.totale(), perNumero(alVolo.carte()), importInBackground.fallitoDaPoco(chiave));
     }
 
-    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
-    public StatoCarteDTO stato(String id) {
+    // per il controllo periodico del frontend: niente chiamate esterne nella richiesta. Se lo scaricamento è fermo
+    // (pausa dopo un errore finita, server riavviato) lo rilancia in background; col limite raggiunto niente 429
+    public StatoCarteDTO stato(String id, String client) {
         Espansione espansione = espansioneRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Espansione " + id + " non trovata"));
         boolean completo = espansione.isImportata() || setVuoti.isRecente(id);
-        return new StatoCarteDTO(completo, !completo && importInBackground.fallitoDaPoco("set:" + id));
+        String chiave = "set:" + id;
+        if (!completo) {
+            try {
+                importInBackground.avvia(chiave, client,
+                        () -> !espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false),
+                        () -> pokemonTcgService.importaSet(id));
+            } catch (TroppeRichiesteException ex) {
+                // si riprova al controllo dopo
+            }
+        }
+        return new StatoCarteDTO(completo, !completo && importInBackground.fallitoDaPoco(chiave));
     }
 
     private static List<OggettoResponseDTO> perNumero(List<Oggetto> carte) {

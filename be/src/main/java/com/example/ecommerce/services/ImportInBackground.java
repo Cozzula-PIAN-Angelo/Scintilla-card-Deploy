@@ -17,12 +17,13 @@ import java.util.function.BooleanSupplier;
 // il visitatore, che intanto vede la pagina presa al volo. Le regole:
 // - uno solo per chiave (es. "set:sv8"): chi arriva mentre è in corso non ne lancia un altro e non consuma il limite;
 // - LimitatoreImport conta solo l'avvio (col limite raggiunto TroppeRichiesteException, cioè 429);
-// - fallito: per 30 minuti non si riprova, così le visite non tempestano un pokemontcg.io giù
+// - fallito: per 2 minuti non si riprova, così le visite non tempestano un pokemontcg.io giù
 @Slf4j
 @Component
 public class ImportInBackground {
 
-    private static final Duration ATTESA_DOPO_ERRORE = Duration.ofMinutes(30);
+    // corta: pokemontcg.io senza chiave risponde 500 a raffiche e poco dopo torna; il frontend intanto ricontrolla
+    private static final Duration ATTESA_DOPO_ERRORE = Duration.ofMinutes(2);
 
     private final Executor esecutore;
     private final LimitatoreImport limitatore;

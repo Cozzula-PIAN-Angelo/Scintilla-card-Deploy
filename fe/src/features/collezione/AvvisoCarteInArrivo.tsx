@@ -12,7 +12,7 @@ export function AvvisoCarteInArrivo({ fallito }: { fallito: boolean }) {
       {fallito ? (
         <>
           <TriangleAlert aria-hidden className="size-5 shrink-0 text-errore" />
-          Non è stato possibile preparare tutte le carte: riprova più tardi.
+          pokemontcg.io non risponde: riproviamo da soli tra poco… intanto le pagine si possono sfogliare.
         </>
       ) : (
         <>

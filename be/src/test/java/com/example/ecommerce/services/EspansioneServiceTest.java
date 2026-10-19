@@ -173,16 +173,20 @@ class EspansioneServiceTest {
     void statoDiUnSetImportatoECompleto() {
         when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", true)));
 
-        assertThat(service.stato("sv8")).isEqualTo(new StatoCarteDTO(true, false));
+        assertThat(service.stato("sv8", "1.2.3.4")).isEqualTo(new StatoCarteDTO(true, false));
         verifyNoInteractions(pokemonTcgService);
     }
 
+    // scaricamento fermo (pausa dopo un errore finita, o server riavviato): il controllo dello stato lo rilancia,
+    // una volta sola, senza chiamare pokemontcg.io nella richiesta
     @Test
-    void statoDiUnSetInScaricamento() {
+    void statoRilanciaLoScaricamentoFermo() {
         when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
 
-        assertThat(service.stato("sv8")).isEqualTo(new StatoCarteDTO(false, false));
+        assertThat(service.stato("sv8", "1.2.3.4")).isEqualTo(new StatoCarteDTO(false, false));
+        service.stato("sv8", "1.2.3.4");
+
         verifyNoInteractions(pokemonTcgService);
-        assertThat(coda).isEmpty();
+        assertThat(coda).hasSize(1);
     }
 }

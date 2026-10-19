@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import type { CarteProgressive, RichiestaCarte, StatoCarte } from '../../types/api'
-import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, paginaDaPrecaricare, type ModalitaCarte } from './carteProgressive'
+import { argomentoCarte, inAttesa, intervalloPolling, modalitaDopo, paginaDaPrecaricare, vistaCarte, type ModalitaCarte } from './carteProgressive'
 
 interface RisultatoQuery {
   currentData?: CarteProgressive
@@ -36,8 +36,8 @@ export function useCarteProgressive<K extends string | number>(
   const corrente = memoria.chiave === chiave ? memoria : { chiave, modalita: 'sconosciuta' as const, fallito: false }
 
   const query = usaQuery(argomentoCarte(chiave, corrente.modalita, paginaUrl), { skip: opzioni.skip })
-  // lo stato si chiede solo a pezzi; da fallito resta il dato (niente skip, che lo toglierebbe e farebbe rimbalzare
-  // fallito tra vero e falso), si ferma solo la ripetizione
+  // lo stato si chiede solo a pezzi; da fallito più di rado (niente skip, che toglierebbe il dato e farebbe
+  // rimbalzare fallito tra vero e falso)
   const stato = usaStato(chiave, {
     skip: opzioni.skip || corrente.modalita !== 'a-pezzi',
     pollingInterval: intervalloPolling(corrente.modalita === 'a-pezzi', corrente.fallito),
@@ -49,10 +49,10 @@ export function useCarteProgressive<K extends string | number>(
   if (memoria.chiave !== chiave || modalita !== corrente.modalita || fallito !== corrente.fallito) {
     setMemoria({ chiave, modalita, fallito })
   }
-  const aPezzi = modalita === 'a-pezzi'
-  // completa: si usano solo risposte complete (una vecchia a pezzi in cache non è la lista intera)
-  const carte = aPezzi || dati?.completo ? dati?.carte : undefined
-  const totaleServer = aPezzi ? dati?.totale : undefined
+  // l'ultima pagina a pezzi vista: resta in griglia finché la lista intera non arriva (vedi vistaCarte)
+  const ultima = useRef<{ chiave: K; dati: CarteProgressive } | null>(null)
+  if (dati && !dati.completo) ultima.current = { chiave, dati }
+  const { carte, totaleServer, aPezzi } = vistaCarte(modalita, dati, ultima.current?.chiave === chiave ? ultima.current.dati : undefined)
   // la pagina successiva, chiesta in anticipo (una richiesta sola, senza polling); skip quando non serve
   const daPrecaricare = paginaDaPrecaricare(modalita, paginaUrl, totaleServer, fallito)
   usaQuery(argomentoCarte(chiave, 'a-pezzi', daPrecaricare ?? 0), { skip: opzioni.skip || daPrecaricare === undefined })

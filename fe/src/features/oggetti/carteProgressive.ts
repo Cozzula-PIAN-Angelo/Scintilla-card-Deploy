@@ -1,4 +1,4 @@
-import type { CarteProgressive, RichiestaCarte, StatoCarte } from '../../types/api'
+import type { CarteProgressive, Oggetto, RichiestaCarte, StatoCarte } from '../../types/api'
 
 // carte per pagina della griglia: la stessa pagina che il backend prende al volo da pokemontcg.io
 export const PER_PAGINA = 24
@@ -28,10 +28,11 @@ export function pagineTotali(numeroCarte: number, totaleServer?: number, perPagi
   return Math.ceil((totaleServer ?? numeroCarte) / perPagina)
 }
 
-// ogni quanto si controlla lo stato mentre il resto si scarica: mai se completo, mai se lo scaricamento è fallito
-// (il backend non riprova per 30 minuti: richiederla non cambierebbe niente)
+// ogni quanto si controlla lo stato mentre il resto si scarica: ogni 3 secondi; da fallito ogni 15 (il backend
+// aspetta 2 minuti, poi il controllo stesso rilancia lo scaricamento); mai se completo
 export function intervalloPolling(aPezzi: boolean, fallito: boolean): number {
-  return aPezzi && !fallito ? 3000 : 0
+  if (!aPezzi) return 0
+  return fallito ? 15000 : 3000
 }
 
 // scheletro della griglia: carte non ancora arrivate, oppure a pezzi senza nemmeno un totale (artista sconosciuto,
@@ -58,4 +59,17 @@ export function paginaDaPrecaricare(
   if (modalita !== 'a-pezzi' || fallito || totale === undefined) return undefined
   const successiva = paginaUrl + 1
   return successiva < pagineTotali(0, totale) ? successiva : undefined
+}
+
+// cosa mostra la griglia. A pezzi la pagina col totale del server; completa la lista intera. Nel passaggio (lista
+// intera non ancora arrivata) resta l'ultima pagina a pezzi, così la griglia non torna allo scheletro e non salta
+export function vistaCarte(
+  modalita: ModalitaCarte,
+  dati: CarteProgressive | undefined,
+  ultimaAPezzi: CarteProgressive | undefined,
+): { carte: Oggetto[] | undefined; totaleServer: number | undefined; aPezzi: boolean } {
+  if (modalita === 'completa' && dati?.completo) return { carte: dati.carte, totaleServer: undefined, aPezzi: false }
+  const aPezzi = modalita === 'a-pezzi' ? dati : ultimaAPezzi
+  if (aPezzi && !aPezzi.completo) return { carte: aPezzi.carte, totaleServer: aPezzi.totale, aPezzi: true }
+  return { carte: undefined, totaleServer: undefined, aPezzi: modalita === 'a-pezzi' }
 }
