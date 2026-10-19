@@ -36,8 +36,8 @@ export function useCarteProgressive<K extends string | number>(
   const corrente = memoria.chiave === chiave ? memoria : { chiave, modalita: 'sconosciuta' as const, fallito: false }
 
   const query = usaQuery(argomentoCarte(chiave, corrente.modalita, paginaUrl), { skip: opzioni.skip })
-  // lo stato si chiede solo a pezzi; da fallito resta il dato (niente skip, che lo toglierebbe e farebbe rimbalzare
-  // fallito tra vero e falso), si ferma solo la ripetizione
+  // lo stato si chiede solo a pezzi; da fallito più di rado (niente skip, che toglierebbe il dato e farebbe
+  // rimbalzare fallito tra vero e falso)
   const stato = usaStato(chiave, {
     skip: opzioni.skip || corrente.modalita !== 'a-pezzi',
     pollingInterval: intervalloPolling(corrente.modalita === 'a-pezzi', corrente.fallito),

@@ -3,6 +3,7 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.entities.ArtistaImportato;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.NotFoundException;
+import com.example.ecommerce.exceptions.TroppeRichiesteException;
 import com.example.ecommerce.payloads.ArtistaResponseDTO;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
@@ -67,10 +68,21 @@ public class ArtistiService {
         return new CarteDTO(false, alVolo.totale(), ordinate(alVolo.carte()), stato.fallito());
     }
 
-    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
-    public StatoCarteDTO stato(String slug) {
-        if (!ElencoArtisti.SLUG_SCONOSCIUTO.equals(slug) && elencoArtisti.perSlug(slug).isEmpty()) {
-            throw new NotFoundException("Artista non trovato: " + slug);
+    // per il controllo periodico del frontend: niente chiamate esterne nella richiesta. Se lo scaricamento è fermo
+    // (pausa dopo un errore finita, server riavviato) lo rilancia in background; col limite raggiunto niente 429
+    public StatoCarteDTO stato(String slug, String client) {
+        Runnable importa;
+        if (ElencoArtisti.SLUG_SCONOSCIUTO.equals(slug)) {
+            importa = pokemonTcgService::importaSenzaArtista;
+        } else {
+            ElencoArtisti.Artista artista = elencoArtisti.perSlug(slug)
+                    .orElseThrow(() -> new NotFoundException("Artista non trovato: " + slug));
+            importa = () -> pokemonTcgService.importaArtista(artista.query());
+        }
+        try {
+            importSettimanale.assicura(slug, client, importa);
+        } catch (TroppeRichiesteException ex) {
+            // si riprova al controllo dopo
         }
         ImportSettimanale.Stato stato = importSettimanale.stato(slug);
         return new StatoCarteDTO(stato.completo(), stato.fallito());

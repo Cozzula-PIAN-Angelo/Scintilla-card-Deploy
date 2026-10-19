@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withBadRequest;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 @ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
@@ -159,6 +160,22 @@ class PokemonTcgServiceTest {
         PokemonTcgService.PaginaCarte seconda = service.paginaCarte("set.id:base1", 0, "number");
 
         assertThat(seconda.totale()).isEqualTo(3);
+        pokemontcg.verify();
+    }
+
+    // import in background interrotto a metà: le pagine già scaricate restano salvate, il tentativo dopo riparte
+    // da quelle (già presenti, si saltano) invece di buttarle
+    @Test
+    void importSetSalvaPaginaPerPagina() {
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("page=1"))))
+                .andRespond(withSuccess(RISPOSTA_PIKACHU.replace("\"totalCount\": 3", "\"totalCount\": 250"),
+                        MediaType.APPLICATION_JSON));
+        pokemontcg.expect(requestTo(allOf(startsWith(BASE_URL + "/cards"), containsString("page=2"))))
+                .andRespond(withBadRequest());
+
+        assertThatThrownBy(() -> service.importaSet("base1")).isInstanceOf(RuntimeException.class);
+
+        verify(oggettoRepository).saveAll(any());
         pokemontcg.verify();
     }
 

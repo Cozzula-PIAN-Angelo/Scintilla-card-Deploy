@@ -58,9 +58,13 @@ describe('intervalloPolling', () => {
     expect(intervalloPolling(true, false)).toBe(3000)
   })
 
-  it('completo o fallito: niente richieste ripetute', () => {
+  it('completo: niente richieste ripetute', () => {
     expect(intervalloPolling(false, false)).toBe(0)
-    expect(intervalloPolling(true, true)).toBe(0)
+  })
+
+  // fallito: si ricontrolla più di rado; il controllo rilancia lo scaricamento finita la pausa del backend
+  it('fallito: ogni 15 secondi', () => {
+    expect(intervalloPolling(true, true)).toBe(15000)
   })
 })
 

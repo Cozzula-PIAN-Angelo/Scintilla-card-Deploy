@@ -99,12 +99,25 @@ class PokedexServiceTest {
         assertThatThrownBy(() -> service.carte(0, 0, CLIENT)).isInstanceOf(BadRequestException.class);
     }
 
+    // scaricamento fermo: il controllo dello stato lo rilancia (in coda), senza chiamare pokemontcg.io nella richiesta
     @Test
-    void statoNonImportaENonChiamaPokemontcg() {
+    void statoRilanciaLoScaricamentoFermo() {
         when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.empty());
 
-        assertThat(service.stato(PIKACHU)).isEqualTo(new StatoCarteDTO(false, false));
+        assertThat(service.stato(PIKACHU, CLIENT)).isEqualTo(new StatoCarteDTO(false, false));
         verifyNoInteractions(pokemonTcgService);
+        assertThat(coda).hasSize(1);
+    }
+
+    // col limite degli import raggiunto il controllo dello stato non dà 429: lo stato resta quello
+    @Test
+    void statoColLimiteRaggiuntoNonLancia() {
+        ImportInBackground senzaPosti = new ImportInBackground(coda::add, new LimitatoreImport(0, 1000), Clock.systemUTC());
+        PokedexService conLimite = new PokedexService(oggettoRepository, pokemonImportatoRepository, pokemonTcgService, senzaPosti);
+        ReflectionTestUtils.setField(conLimite, "numeroMassimo", 1025);
+        when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.empty());
+
+        assertThat(conLimite.stato(PIKACHU, CLIENT)).isEqualTo(new StatoCarteDTO(false, false));
         assertThat(coda).isEmpty();
     }
 
@@ -113,6 +126,6 @@ class PokedexServiceTest {
         when(pokemonImportatoRepository.findById(PIKACHU))
                 .thenReturn(Optional.of(new PokemonImportato(PIKACHU, Instant.now().minus(Duration.ofDays(2)))));
 
-        assertThat(service.stato(PIKACHU)).isEqualTo(new StatoCarteDTO(true, false));
+        assertThat(service.stato(PIKACHU, CLIENT)).isEqualTo(new StatoCarteDTO(true, false));
     }
 }

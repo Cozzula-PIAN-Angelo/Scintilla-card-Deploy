@@ -28,10 +28,11 @@ export function pagineTotali(numeroCarte: number, totaleServer?: number, perPagi
   return Math.ceil((totaleServer ?? numeroCarte) / perPagina)
 }
 
-// ogni quanto si controlla lo stato mentre il resto si scarica: mai se completo, mai se lo scaricamento è fallito
-// (il backend non riprova per 30 minuti: richiederla non cambierebbe niente)
+// ogni quanto si controlla lo stato mentre il resto si scarica: ogni 3 secondi; da fallito ogni 15 (il backend
+// aspetta 2 minuti, poi il controllo stesso rilancia lo scaricamento); mai se completo
 export function intervalloPolling(aPezzi: boolean, fallito: boolean): number {
-  return aPezzi && !fallito ? 3000 : 0
+  if (!aPezzi) return 0
+  return fallito ? 15000 : 3000
 }
 
 // scheletro della griglia: carte non ancora arrivate, oppure a pezzi senza nemmeno un totale (artista sconosciuto,

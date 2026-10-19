@@ -40,9 +40,9 @@ public class ArtistiController {
         return artistiService.carte(slug, pagina, request.getRemoteAddr());
     }
 
-    // a che punto è lo scaricamento: il frontend lo chiede ogni 3 secondi mentre mostra le pagine al volo
+    // a che punto è lo scaricamento (e, se è fermo, lo rilancia): il frontend lo chiede mentre mostra le pagine al volo
     @GetMapping("/{slug}/carte/stato")
-    public StatoCarteDTO stato(@PathVariable String slug) {
-        return artistiService.stato(slug);
+    public StatoCarteDTO stato(@PathVariable String slug, HttpServletRequest request) {
+        return artistiService.stato(slug, request.getRemoteAddr());
     }
 }

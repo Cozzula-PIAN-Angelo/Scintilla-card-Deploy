@@ -148,23 +148,23 @@ public class PokemonTcgService {
         return OggettoResponseDTO.from(oggettoRepository.saveAndFlush(oggetto));
     }
 
-    // importa tutte le carte di un set (es. base1) saltando quelle già presenti nel catalogo
+    // importa tutte le carte di un set (es. base1) saltando quelle già presenti nel catalogo. Salva pagina per
+    // pagina: interrotto a metà (pokemontcg.io giù), le pagine scaricate restano e il tentativo dopo le salta
     public ImportaSetResponseDTO importaSet(String setId) {
         String id = setId == null ? "" : setId.trim().toLowerCase();
         if (!id.matches("[a-z0-9.-]{2,30}")) {
             throw new BadRequestException("Id del set non valido: usa l'id di pokemontcg.io, es. base1, sv1, swsh1");
         }
 
-        List<Carta> carte = scaricaCarte("set.id:" + id, "set " + id);
-        if (carte.isEmpty()) {
+        ImportAPagine importato = importaAPagine("set.id:" + id, "set " + id);
+        if (importato.download().carte().isEmpty()) {
             throw new NotFoundException("Nessuna carta trovata per il set " + id + " su pokemontcg.io");
         }
 
-        EsitoImport esito = salvaCarte(carte);
+        EsitoImport esito = importato.esito();
         // entity gestita: al commit si scrive solo "importata" (@DynamicUpdate)
         transazione.executeWithoutResult(stato ->
                 espansioneRepository.findById(id).ifPresent(espansione -> espansione.setImportata(true)));
-        log.info("Import set {}: {}", id, esito);
         return new ImportaSetResponseDTO(id, esito.trovate(), esito.importate(), esito.saltate(), esito.scartate(),
                 esito.rinominate());
     }
@@ -203,12 +203,9 @@ public class PokemonTcgService {
     }
 
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
-    // Nessuna carta non è un errore: alcuni Pokémon non ne hanno ancora
+    // Nessuna carta non è un errore: alcuni Pokémon non ne hanno ancora. Salva pagina per pagina, come i set
     public EsitoImport importaPokemon(int numeroPokedex) {
-        List<Carta> carte = scaricaCarte("nationalPokedexNumbers:" + numeroPokedex, "Pokémon #" + numeroPokedex);
-        EsitoImport esito = salvaCarte(carte);
-        log.info("Import Pokémon #{}: {}", numeroPokedex, esito);
-        return esito;
+        return importaAPagine("nationalPokedexNumbers:" + numeroPokedex, "Pokémon #" + numeroPokedex).esito();
     }
 
     // carte della pagina di una vista (da 0), nell'ordine chiesto, salvate nel catalogo come un import: così il "+",
@@ -437,10 +434,6 @@ public class PokemonTcgService {
     private List<Variante> varianti(Carta carta) {
         Map<String, Object> prezzi = carta.tcgplayer() == null ? null : carta.tcgplayer().prices();
         return Variante.daChiaviTcgplayer(prezzi == null ? null : prezzi.keySet());
-    }
-
-    private List<Carta> scaricaCarte(String query, String descrizione) {
-        return scarica(query, descrizione).carte();
     }
 
     // carte scaricate (senza doppioni) e totale dichiarato da pokemontcg.io (totalCount, 0 se nessuna

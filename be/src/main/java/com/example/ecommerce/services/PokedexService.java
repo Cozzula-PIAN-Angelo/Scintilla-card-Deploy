@@ -3,6 +3,7 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.PokemonImportato;
 import com.example.ecommerce.exceptions.BadRequestException;
+import com.example.ecommerce.exceptions.TroppeRichiesteException;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.StatoCarteDTO;
@@ -53,8 +54,17 @@ public class PokedexService {
         return new CarteDTO(false, alVolo.totale(), ordinate(alVolo.carte()), stato.fallito());
     }
 
-    // solo lettura, per il controllo ogni 3 secondi del frontend: niente import e niente chiamate esterne
-    public StatoCarteDTO stato(int numero) {
+    // per il controllo periodico del frontend: niente chiamate esterne nella richiesta. Se lo scaricamento è fermo
+    // (pausa dopo un errore finita, server riavviato) lo rilancia in background; col limite raggiunto niente 429
+    public StatoCarteDTO stato(int numero, String client) {
+        if (numero < 1 || numero > numeroMassimo) {
+            throw new BadRequestException("Numero di Pokédex non valido: deve essere tra 1 e " + numeroMassimo);
+        }
+        try {
+            importSettimanale.assicura(numero, client, () -> pokemonTcgService.importaPokemon(numero));
+        } catch (TroppeRichiesteException ex) {
+            // si riprova al controllo dopo
+        }
         ImportSettimanale.Stato stato = importSettimanale.stato(numero);
         return new StatoCarteDTO(stato.completo(), stato.fallito());
     }
