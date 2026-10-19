@@ -72,6 +72,8 @@ export interface Espansione {
   logoUrl: string | null
   simboloUrl: string | null
   importata: boolean
+  // nessuna carta con varianti lette: nel master set decide la rarità (variantiMaster)
+  senzaDati: boolean
 }
 
 export interface Preferito {

@@ -30,3 +30,17 @@ export function varianteRapida(oggetto: Oggetto): Variante {
   if (suggerite.includes('NORMALE')) return 'NORMALE'
   return piuPregiata(suggerite) ?? 'NORMALE'
 }
+
+// le sole rarità che nei set con dati hanno la reverse
+const RARITA_CON_REVERSE = new Set(['Common', 'Uncommon', 'Rare', 'Rare Holo'])
+
+// Varianti del master set: Normale più Reverse holo dove esiste, mai vuota. Copia di VariantiMaster.effettive nel
+// backend, vanno cambiate insieme. Nei set senza nessuna variante letta (dal 2026 pokemontcg.io non le dà) decide la rarità
+export function variantiMaster(carta: Pick<Oggetto, 'varianti' | 'rarita'>, senzaDati: boolean): Variante[] {
+  const lette = carta.varianti ?? []
+  if (lette.length > 0) {
+    const master = VARIANTI.filter((v) => v !== 'PRIMA_EDIZIONE' && lette.includes(v))
+    return master.length > 0 ? master : ['NORMALE']
+  }
+  return senzaDati && RARITA_CON_REVERSE.has(carta.rarita ?? '') ? ['NORMALE', 'REVERSE_HOLO'] : ['NORMALE']
+}

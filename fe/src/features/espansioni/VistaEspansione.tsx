@@ -22,7 +22,8 @@ interface Props {
 export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: Props) {
   const { data, isLoading, isFetching, isError, error, refetch } = useGetCarteEspansioneQuery(espansione.id)
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
-  const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data)
+  const masterSet = useMemo(() => ({ senzaDati: espansione.senzaDati }), [espansione.senzaDati])
+  const { collezione, carte, barra, vuotoFiltro } = useCollezionePagina(filtroPagina, data, masterSet)
   const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle: onTogglePreferito }, collezione, carte)
   const anno = espansione.dataUscita?.slice(0, 4)
   const totale = data?.length ?? espansione.totaleCarte

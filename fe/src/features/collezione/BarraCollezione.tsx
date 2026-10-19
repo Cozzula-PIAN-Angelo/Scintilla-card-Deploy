@@ -1,4 +1,4 @@
-import { Palette } from 'lucide-react'
+import { Layers, Palette } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { percentuale as calcolaPercentuale } from '../statistiche/calcoli'
 import type { Filtro } from './conteggi'
@@ -10,6 +10,8 @@ interface Props {
   onFiltro: (filtro: Filtro) => void
   aColori: boolean
   onAlternaColori: () => void
+  // solo nella pagina del set: attivo, i numeri sono le voci del master set (varianti)
+  master?: { attivo: boolean; onAlterna: () => void }
 }
 
 const FILTRI: Array<{ valore: Filtro; etichetta: string }> = [
@@ -19,14 +21,14 @@ const FILTRI: Array<{ valore: Filtro; etichetta: string }> = [
 ]
 
 // avanzamento della collezione di un set o di un Pokémon, con filtro e interruttore delle mancanti a colori
-export function BarraCollezione({ possedute, totale, filtro, onFiltro, aColori, onAlternaColori }: Props) {
+export function BarraCollezione({ possedute, totale, filtro, onFiltro, aColori, onAlternaColori, master }: Props) {
   const percentuale = calcolaPercentuale(possedute, totale)
 
   return (
     <section aria-label="La tua collezione" className="mb-8 rounded-3xl bg-superficie p-4 shadow-lg shadow-ombra/10 ring-1 ring-linea/5">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <p className="text-lg font-semibold text-testo">
-          {possedute} / {totale} carte <span className="text-testo/70">· {percentuale}%</span>
+          {possedute} / {totale} {master?.attivo ? 'varianti' : 'carte'} <span className="text-testo/70">· {percentuale}%</span>
         </p>
         <div className="flex flex-wrap items-center gap-4">
           <div role="group" aria-label="Filtra le carte" className="flex gap-1 rounded-full bg-tenue p-1">
@@ -57,6 +59,20 @@ export function BarraCollezione({ possedute, totale, filtro, onFiltro, aColori, 
             <Palette aria-hidden className="size-4" />
             Mancanti a colori
           </button>
+          {master && (
+            <button
+              type="button"
+              aria-pressed={master.attivo}
+              onClick={master.onAlterna}
+              className={cn(
+                'flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold transition-colors',
+                master.attivo ? 'bg-blu-500 text-white' : 'bg-tenue text-testo-2 hover:text-testo',
+              )}
+            >
+              <Layers aria-hidden className="size-4" />
+              Master set
+            </button>
+          )}
         </div>
       </div>
       <div

@@ -1,4 +1,5 @@
 import type { Copia, Oggetto, Variante } from '../../types/api'
+import { variantiMaster } from './varianti'
 
 // carta -> variante -> quantità (solo righe con almeno una copia)
 export type MappaCopie = Map<string, Map<Variante, number>>
@@ -32,9 +33,26 @@ export function conteggio(carte: Oggetto[], mappa: MappaCopie): { possedute: num
   return { possedute, totale: carte.length }
 }
 
-export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro): Oggetto[] {
+// voci del master set (carta, variante) con almeno una copia di quella variante / voci. Le copie di una variante
+// che la carta non ha nel master (es. una reverse su una Double Rare) non contano
+export function conteggioMaster(carte: Oggetto[], mappa: MappaCopie, senzaDati: boolean): { possedute: number; totale: number } {
+  let possedute = 0
+  let totale = 0
+  for (const carta of carte) {
+    const voci = variantiMaster(carta, senzaDati)
+    totale += voci.length
+    possedute += voci.filter((v) => (mappa.get(carta.id)?.get(v) ?? 0) > 0).length
+  }
+  return { possedute, totale }
+}
+
+// col master una carta è posseduta solo con tutte le sue voci, mancante se ne manca almeno una
+export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro, master?: { senzaDati: boolean }): Oggetto[] {
   if (filtro === 'tutte') return carte
-  return carte.filter((c) => (copieTotali(mappa, c.id) > 0) === (filtro === 'possedute'))
+  const completa = master
+    ? (c: Oggetto) => variantiMaster(c, master.senzaDati).every((v) => (mappa.get(c.id)?.get(v) ?? 0) > 0)
+    : (c: Oggetto) => copieTotali(mappa, c.id) > 0
+  return carte.filter((c) => completa(c) === (filtro === 'possedute'))
 }
 
 // messaggio della griglia quando il filtro non lascia carte (undefined = nessun filtro attivo)
