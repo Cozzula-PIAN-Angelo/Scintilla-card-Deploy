@@ -1,5 +1,6 @@
 package com.example.ecommerce.payloads;
 
+import com.example.ecommerce.entities.Variante;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -16,6 +17,9 @@ public record DisposizioneSlotDTO(
         Integer posizione,
 
         @NotNull(message = "La carta è obbligatoria")
-        UUID oggettoId
+        UUID oggettoId,
+
+        // facoltativa: null, NORMALE o REVERSE_HOLO (le altre le rifiuta il service)
+        Variante variante
 ) {
 }

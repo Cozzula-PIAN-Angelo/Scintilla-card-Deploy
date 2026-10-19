@@ -44,6 +44,9 @@ public record BinderDTO(
 
         Integer numeroPokedex,
 
-        String artista
+        String artista,
+
+        // solo in creazione e solo con espansioneId: binder del master set, Normale e Reverse affiancate
+        Boolean master
 ) {
 }

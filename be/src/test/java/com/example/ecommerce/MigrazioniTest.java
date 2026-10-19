@@ -73,7 +73,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7", "8");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -233,6 +233,17 @@ class MigrazioniTest {
         assertViolazione(() -> inserisciInCollezione("PRIMA_EDIZIONE_HOLO", 1));
         // la terna (utente, carta, variante) esiste già: REVERSE_HOLO è nella riga inserita dal setup
         assertViolazione(() -> inserisciInCollezione("REVERSE_HOLO", 1));
+    }
+
+    // V8: la variante di una tasca è facoltativa, e solo Normale o Reverse holo (il master set)
+    @Test
+    void varianteDelleTasche() {
+        inserisciUtenteCartaEBinder();
+
+        jdbc.update("INSERT INTO binder_slot (id, id_binder, pagina, posizione, id_oggetto, variante) VALUES (?, ?, 1, 0, ?, 'REVERSE_HOLO')",
+                UUID.randomUUID(), binder, carta);
+        assertViolazione(() -> jdbc.update("INSERT INTO binder_slot (id, id_binder, pagina, posizione, id_oggetto, variante) VALUES (?, ?, 1, 1, ?, 'PRIMA_EDIZIONE')",
+                UUID.randomUUID(), binder, carta));
     }
 
     // dopo un errore PostgreSQL annulla la transazione del test: un savepoint la tiene viva per il controllo successivo

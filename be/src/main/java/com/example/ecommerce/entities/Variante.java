@@ -6,6 +6,7 @@ import java.util.List;
 
 // versione di una carta che si può possedere. Salvata come testo: un valore nuovo (es. Shadowless)
 // richiede una migrazione che aggiorni il vincolo ck_collezione_variante, altrimenti PostgreSQL lo rifiuta.
+// Nelle tasche dei binder (V8, ck_binder_slot_variante) sono ammesse solo NORMALE e REVERSE_HOLO, quelle del master set.
 // L'ordine è quello di visualizzazione. Niente Holo: su una rara holo la stampa holo è quella normale (V6)
 public enum Variante {
     NORMALE,
