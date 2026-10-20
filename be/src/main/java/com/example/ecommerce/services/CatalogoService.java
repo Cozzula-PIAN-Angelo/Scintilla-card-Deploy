@@ -24,6 +24,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +57,13 @@ public class CatalogoService {
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
     // dettagli chiesti e salvati a blocchi: un errore a metà non butta via quelli già salvati
     static final int BLOCCO = 24;
+    // pagina della vista (la griglia ne mostra 24)
+    static final int PAGINA_VISTA = 24;
+    // elenchi e pagine al volo appena presi: il frontend richiede la pagina ogni 3 secondi finché lo scaricamento
+    // completo non è finito, e TCGdex non deve vederla ogni volta
+    private static final Duration DURATA_PAGINA = Duration.ofMinutes(5);
+    private final Map<String, InMemoria<List<CartaBreve>>> elenchiRecenti = new ConcurrentHashMap<>();
+    private final Map<String, InMemoria<PaginaCarte>> pagineRecenti = new ConcurrentHashMap<>();
 
     private final TcgdexClient tcgdex;
     private final OggettoRepository oggettoRepository;
@@ -197,7 +207,64 @@ public class CatalogoService {
         }
     }
 
+    // carte della pagina di una vista (da 0), salvate nel catalogo come un import: così il "+", i preferiti e il
+    // binder funzionano subito. piuRecenti: Pokémon e artisti, dal set più recente; altrimenti per numero (set).
+    // totale = carte del filtro su TCGdex. Un dettaglio che non arriva manca dalla pagina (lo prende lo
+    // scaricamento completo), e la pagina allora non si tiene in memoria
+    public PaginaCarte paginaCarte(FiltroCarte filtro, int pagina, boolean piuRecenti) {
+        String chiave = filtro.chiave() + "|" + pagina + "|" + piuRecenti;
+        PaginaCarte recente = recente(pagineRecenti, chiave);
+        if (recente != null) {
+            return recente;
+        }
+        List<CartaBreve> elenco = recente(elenchiRecenti, filtro.chiave());
+        if (elenco == null) {
+            elenco = tcgdex.elenco(filtro);
+            ricorda(elenchiRecenti, filtro.chiave(), elenco);
+        }
+        List<String> fetta = elenco.stream()
+                .sorted(piuRecenti ? OrdineCarte.breviDallaPiuRecente(dataPerSet()) : OrdineCarte.breviPerNumero())
+                .skip((long) pagina * PAGINA_VISTA)
+                .limit(PAGINA_VISTA)
+                .map(CartaBreve::id)
+                .toList();
+        if (fetta.isEmpty()) {
+            return new PaginaCarte(List.of(), elenco.size());
+        }
+        TcgdexClient.Dettagli dettagli = tcgdex.dettagli(fetta);
+        salvaCarte(dettagli.carte());
+        Map<String, Oggetto> salvate = oggettoRepository.findConEspansioneByIdEsternoIn(fetta).stream()
+                .collect(Collectors.toMap(Oggetto::getIdEsterno, Function.identity()));
+        PaginaCarte presa = new PaginaCarte(fetta.stream().map(salvate::get).filter(Objects::nonNull).toList(), elenco.size());
+        if (dettagli.falliti().isEmpty()) {
+            ricorda(pagineRecenti, chiave, presa);
+        }
+        return presa;
+    }
+
     public record PaginaCarte(List<Oggetto> carte, int totale) {
+    }
+
+    // id del set -> data d'uscita, per l'ordine delle pagine al volo (date anche null: il set è noto)
+    private Map<String, LocalDate> dataPerSet() {
+        Map<String, LocalDate> date = new HashMap<>();
+        espansioneRepository.findAll().forEach(espansione -> date.put(espansione.getId(), espansione.getDataUscita()));
+        return date;
+    }
+
+    private record InMemoria<T>(T valore, Instant presoIl) {
+    }
+
+    private static <T> T recente(Map<String, InMemoria<T>> memoria, String chiave) {
+        InMemoria<T> trovato = memoria.get(chiave);
+        return trovato != null && trovato.presoIl().isAfter(Instant.now().minus(DURATA_PAGINA)) ? trovato.valore() : null;
+    }
+
+    // via le scadute, così la mappa resta piccola (quello che si è visto negli ultimi minuti)
+    private static <T> void ricorda(Map<String, InMemoria<T>> memoria, String chiave, T valore) {
+        Instant adesso = Instant.now();
+        memoria.values().removeIf(vecchio -> vecchio.presoIl().isBefore(adesso.minus(DURATA_PAGINA)));
+        memoria.put(chiave, new InMemoria<>(valore, adesso));
     }
 
     // elenco: tutte le carte del filtro su TCGdex; esito: delle carte lette più quelle già complete (saltate)

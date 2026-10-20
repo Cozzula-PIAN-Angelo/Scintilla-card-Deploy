@@ -518,6 +518,104 @@ class CatalogoServiceTest {
         assertThat(salvata.getDataUscita()).isEqualTo(LocalDate.of(2023, 3, 31));
     }
 
+    // --- pagine al volo
+
+    // le carte salvate tornano dal database in un ordine qualunque: la pagina le rimette nell'ordine della fetta
+    private void salvateTornanoAlContrario() {
+        when(oggettoRepository.findConEspansioneByIdEsternoIn(any())).thenAnswer(invocazione -> {
+            List<Oggetto> trovate = new ArrayList<>();
+            for (String id : invocazione.<Collection<String>>getArgument(0)) {
+                trovate.addFirst(esistente("Carta " + id, id));
+            }
+            return trovate;
+        });
+    }
+
+    private static Espansione set(String id, int anno) {
+        Espansione espansione = new Espansione(id);
+        espansione.setDataUscita(LocalDate.of(anno, 1, 1));
+        return espansione;
+    }
+
+    @Test
+    void paginaDiUnSetInOrdineNaturale() {
+        risponde(FiltroCarte.diSet("sv1"), List.of(carta("sv1-10", "Dieci"), carta("sv1-TG01", "Galleria"),
+                carta("sv1-2", "Due"), carta("sv1-001", "Uno")));
+        salvateTornanoAlContrario();
+
+        CatalogoService.PaginaCarte pagina = service.paginaCarte(FiltroCarte.diSet("sv1"), 0, false);
+
+        assertThat(pagina.carte()).extracting(Oggetto::getIdEsterno).containsExactly("sv1-001", "sv1-2", "sv1-10", "sv1-TG01");
+        assertThat(pagina.totale()).isEqualTo(4);
+    }
+
+    @Test
+    void paginaDiUnPokemonDalSetPiuRecente() {
+        when(espansioneRepository.findAll()).thenReturn(List.of(set("base1", 1999), set("me05", 2026), set("sv03.5", 2023),
+                set("tk-ex-latia", 2004), set("tk", 2010)));
+        risponde(FiltroCarte.diPokemon(25), List.of(carta("base1-58", "Pikachu"), carta("tk-ex-latia-1", "Pikachu"),
+                carta("me05-030", "Pikachu"), carta("sv03.5-025", "Pikachu"), carta("ignoto-1", "Pikachu")));
+        salvateTornanoAlContrario();
+
+        CatalogoService.PaginaCarte pagina = service.paginaCarte(FiltroCarte.diPokemon(25), 0, true);
+
+        // tk-ex-latia-1 è del set tk-ex-latia (2004), non di tk (2010); senza set noto in fondo
+        assertThat(pagina.carte()).extracting(Oggetto::getIdEsterno)
+                .containsExactly("me05-030", "sv03.5-025", "tk-ex-latia-1", "base1-58", "ignoto-1");
+    }
+
+    @Test
+    void totaleELunghezzaDellElenco() {
+        risponde(FiltroCarte.diSet("sv1"), IntStream.rangeClosed(1, 30).mapToObj(i -> carta("sv1-" + i, "Carta " + i)).toList());
+        salvateTornanoAlContrario();
+
+        CatalogoService.PaginaCarte pagina = service.paginaCarte(FiltroCarte.diSet("sv1"), 1, false);
+
+        verify(client).dettagli(idChiesti.capture());
+        assertThat(idChiesti.getValue()).containsExactly("sv1-25", "sv1-26", "sv1-27", "sv1-28", "sv1-29", "sv1-30");
+        assertThat(pagina.carte()).hasSize(6);
+        assertThat(pagina.totale()).isEqualTo(30);
+    }
+
+    // Review Focus 3
+    @Test
+    void paginaOltreLUltimaEVuotaSenzaDettagli() {
+        risponde(FiltroCarte.diSet("sv1"), IntStream.rangeClosed(1, 30).mapToObj(i -> carta("sv1-" + i, "Carta " + i)).toList());
+
+        CatalogoService.PaginaCarte pagina = service.paginaCarte(FiltroCarte.diSet("sv1"), 99, false);
+
+        assertThat(pagina.carte()).isEmpty();
+        assertThat(pagina.totale()).isEqualTo(30);
+        verify(client, never()).dettagli(anyList());
+    }
+
+    // il frontend chiede la pagina ogni 3 secondi finché lo scaricamento non è finito: TCGdex vede l'elenco una
+    // volta, e la stessa pagina non si richiede
+    @Test
+    void elencoEPagineInCache() {
+        risponde(FiltroCarte.diSet("sv1"), IntStream.rangeClosed(1, 30).mapToObj(i -> carta("sv1-" + i, "Carta " + i)).toList());
+        salvateTornanoAlContrario();
+
+        service.paginaCarte(FiltroCarte.diSet("sv1"), 0, false);
+        service.paginaCarte(FiltroCarte.diSet("sv1"), 1, false);
+        service.paginaCarte(FiltroCarte.diSet("sv1"), 0, false);
+
+        verify(client, times(1)).elenco(FiltroCarte.diSet("sv1"));
+        verify(client, times(2)).dettagli(anyList());
+    }
+
+    @Test
+    void dettaglioFallitoEsceSenzaQuellaCarta() {
+        risponde(FiltroCarte.diSet("sv1"), List.of(carta("sv1-1", "Uno"), carta("sv1-2", "Due")), "sv1-2");
+        // nel catalogo c'è solo la carta arrivata
+        when(oggettoRepository.findConEspansioneByIdEsternoIn(any())).thenReturn(List.of(esistente("Uno", "sv1-1")));
+
+        CatalogoService.PaginaCarte pagina = service.paginaCarte(FiltroCarte.diSet("sv1"), 0, false);
+
+        assertThat(pagina.carte()).extracting(Oggetto::getIdEsterno).containsExactly("sv1-1");
+        assertThat(pagina.totale()).isEqualTo(2);
+    }
+
     // --- ricerca dell'admin
 
     @Test

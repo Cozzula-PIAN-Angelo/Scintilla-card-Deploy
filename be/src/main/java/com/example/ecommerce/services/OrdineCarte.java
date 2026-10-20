@@ -4,6 +4,7 @@ import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.payloads.CriterioOrdine;
+import com.example.ecommerce.payloads.TcgdexApi;
 
 import java.text.Collator;
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -21,6 +23,32 @@ final class OrdineCarte {
 
     // ordine di pokemontcg.io per le pagine al volo di Pokémon e artisti: per data, il numero lo sistema DALLA_PIU_RECENTE
     static final String PIU_RECENTI_API = "-set.releaseDate,number";
+
+    // carte brevi di TCGdex (pagine al volo di un set): per numero, nell'ordine "da album"
+    static Comparator<TcgdexApi.CartaBreve> breviPerNumero() {
+        return Comparator.comparing(carta -> CatalogoService.numeroDaLocalId(carta.localId()), NumeriCarta::confronta);
+    }
+
+    // carte brevi di TCGdex (pagine al volo di Pokémon e artisti): dal set più recente (senza data in fondo), poi per
+    // set e numero. dataPerSet: id del set -> data d'uscita (anche null) dal catalogo. La carta breve non dice il
+    // suo set: è il prefisso più lungo dell'id, prima di un trattino, che è un set noto (tk-ex-latia-1 -> tk-ex-latia)
+    static Comparator<TcgdexApi.CartaBreve> breviDallaPiuRecente(Map<String, LocalDate> dataPerSet) {
+        Function<TcgdexApi.CartaBreve, String> set = carta -> setDi(carta.id(), dataPerSet);
+        return Comparator.comparing((TcgdexApi.CartaBreve carta) -> dataPerSet.get(set.apply(carta)),
+                        Comparator.nullsLast(Comparator.<LocalDate>reverseOrder()))
+                .thenComparing(carta -> Objects.requireNonNullElse(set.apply(carta), ""))
+                .thenComparing(breviPerNumero());
+    }
+
+    private static String setDi(String idCarta, Map<String, LocalDate> dataPerSet) {
+        for (int trattino = idCarta.lastIndexOf('-'); trattino > 0; trattino = idCarta.lastIndexOf('-', trattino - 1)) {
+            String candidato = idCarta.substring(0, trattino);
+            if (dataPerSet.containsKey(candidato)) {
+                return candidato;
+            }
+        }
+        return null;
+    }
 
     // pagina di una vista chiesta dal frontend (da 0; null = la prima)
     static int pagina(Integer pagina) {
@@ -39,15 +67,17 @@ final class OrdineCarte {
                     .thenComparing(o -> o.getEspansione() == null ? "" : o.getEspansione().getId())
                     .thenComparing(Oggetto::getNumero, NumeriCarta::confronta);
 
-    // dalla più comune alla più rara; le rarità di pokemontcg.io sono testo libero, quelle fuori scala vanno in fondo
+    // dalla più comune alla più rara, senza badare alle maiuscole ("Double rare" di TCGdex = "Double Rare" di
+    // pokemontcg.io, ancora nelle carte non rilette); le rarità sono testo libero, quelle fuori scala vanno in fondo
     static final List<String> SCALA_RARITA = List.of(
-            "Common", "Uncommon", "Rare", "Rare Holo", "Promo", "Classic Collection",
+            "Common", "Uncommon", "Rare", "Rare Holo", "Holo Rare", "Promo", "Classic Collection",
             "Rare Holo LV.X", "Rare Holo EX", "Rare Prime", "LEGEND", "Rare BREAK", "Rare Holo GX", "Rare Prism Star",
             "Rare Holo V", "Holo Rare V", "Rare Holo VMAX", "Holo Rare VMAX", "Rare Holo VSTAR", "Holo Rare VSTAR",
             "Double Rare", "Rare Ultra", "Ultra Rare", "MEGA_ATTACK_RARE", "Trainer Gallery Rare Holo", "Radiant Rare",
-            "Amazing Rare", "ACE SPEC Rare", "Pikachu Rare", "Futuristic Rare", "Black White Rare",
-            "Rare Shining", "Rare Shiny", "Shiny Rare", "Rare Shiny GX", "Shiny Ultra Rare",
-            "Illustration Rare", "Special Illustration Rare", "Rare Holo Star", "Rare Rainbow", "Rare Secret",
+            "Amazing Rare", "ACE SPEC Rare", "Pikachu Rare", "Futuristic Rare", "Black White Rare", "RGB Rare",
+            "Rare Shining", "Rare Shiny", "Shiny Rare", "Shiny rare V", "Shiny rare VMAX", "Rare Shiny GX", "Shiny Ultra Rare",
+            "Full Art Trainer", "Illustration Rare", "Special Illustration Rare", "Rare Holo Star", "Rare Rainbow", "Rare Secret",
+            "Secret Rare",
             "Hyper Rare", "Mega Hyper Rare");
 
     private static final Map<String, Integer> POSIZIONE_RARITA = IntStream.range(0, SCALA_RARITA.size()).boxed()

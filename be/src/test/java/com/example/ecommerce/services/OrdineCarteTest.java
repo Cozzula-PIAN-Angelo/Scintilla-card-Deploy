@@ -73,6 +73,21 @@ class OrdineCarteTest {
                 .containsExactly(common, uncommon, rare, illustration, hyper, boh, vuota, nulla);
     }
 
+    // le rarità scritte da TCGdex: quelle con un'altra grafia ("Double rare") e quelle nuove ("Holo Rare",
+    // "Secret Rare") stanno al loro posto, non in fondo
+    @Test
+    void raritaDiTcgdexSullaScala() {
+        Oggetto rare = rara("Rare", "1");
+        Oggetto holo = rara("Holo Rare", "2");
+        Oggetto doppia = rara("Double rare", "3");
+        Oggetto fullArt = rara("Full Art Trainer", "4");
+        Oggetto segreta = rara("Secret Rare", "5");
+        Oggetto boh = rara("Boh", "6");
+
+        assertThat(ordina(CriterioOrdine.RARITA, boh, segreta, fullArt, doppia, holo, rare))
+                .containsExactly(rare, holo, doppia, fullArt, segreta, boh);
+    }
+
     private static List<Oggetto> ordina(CriterioOrdine criterio, Oggetto... carte) {
         List<Oggetto> lista = new ArrayList<>(Arrays.asList(carte));
         lista.sort(OrdineCarte.comparatore(criterio));
