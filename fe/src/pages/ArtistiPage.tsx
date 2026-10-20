@@ -47,7 +47,7 @@ export function ArtistiPage() {
     <PaginaAnimata className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-testo">Artisti</h1>
-        <p className="mt-1 text-testo/70">Gli illustratori delle carte, con tutto quello che hanno disegnato.</p>
+        <p className="mt-1 text-testo/70">Le mani dietro le carte: cerca il tuo illustratore preferito e sfoglia tutto quello che ha disegnato.</p>
       </div>
 
       {/* top-15: attaccata alla navbar ridotta dallo scorrimento (pulsanti da 44px + py-2 = 60px) */}

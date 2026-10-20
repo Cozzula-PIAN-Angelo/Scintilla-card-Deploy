@@ -56,7 +56,7 @@ export function ModaleCancellaAccount({ aperta, onChiudi }: Props) {
     // il token non vale più: uscita locale, come nel logout
     dispatch(logoutLocale())
     dispatch(api.util.resetApiState())
-    toast.info('Account cancellato')
+    toast.info('Account cancellato. Grazie per il tempo passato su CeloManca')
     onChiudi()
     navigate('/', { replace: true })
   }

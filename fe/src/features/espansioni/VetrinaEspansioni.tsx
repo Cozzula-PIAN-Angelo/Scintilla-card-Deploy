@@ -61,7 +61,7 @@ export function VetrinaEspansioni() {
       <StatoVuoto
         icona={<Layers aria-hidden className="size-16" />}
         titolo="Nessuna espansione"
-        testo="L'elenco dei set non è ancora arrivato da TCGdex: riprova tra qualche minuto."
+        testo="I set stanno ancora arrivando da TCGdex: dacci qualche minuto e riprova."
       />
     )
   }

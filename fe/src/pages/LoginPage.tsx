@@ -51,7 +51,7 @@ export function LoginPage() {
 
     try {
       await login({ identificativo: dati.identificativo.trim(), password: dati.password }).unwrap()
-      toast.successo('Accesso effettuato')
+      toast.successo('Eccoti! La tua collezione ti aspettava')
       navigate(stato.da ?? '/', { replace: true })
     } catch (errore) {
       setErrori(erroriCampi(errore))
@@ -62,7 +62,7 @@ export function LoginPage() {
   }
 
   return (
-    <LayoutAuth titolo="Accedi" sottotitolo="Con l'email o lo username del tuo account.">
+    <LayoutAuth titolo="Ciao di nuovo!" sottotitolo="Entra e riprendi la collezione da dove l'avevi lasciata.">
       <form onSubmit={invia} noValidate className="space-y-5">
         <Campo
           etichetta="Email o username"

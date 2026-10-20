@@ -11,7 +11,7 @@ export function NonTrovataPage() {
       <StatoVuoto
         icona={<SearchX aria-hidden className="size-16" />}
         titolo="Pagina non trovata"
-        testo="L'indirizzo non corrisponde a nessuna pagina: controlla il link o riparti dal catalogo."
+        testo="Questa tasca è vuota: il link non porta da nessuna parte. Torna al catalogo e riprendi a cercare."
         azione={
           <LinkBottone to="/" variante="primario" dimensione="lg">
             Torna al catalogo

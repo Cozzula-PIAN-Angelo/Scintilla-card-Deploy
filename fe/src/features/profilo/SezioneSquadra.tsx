@@ -7,7 +7,7 @@ const POSTI = 6
 // la squadra: sei posti, il primo è il compagno. Un Pokémon porta alla sua pagina del Pokédex
 export function SezioneSquadra({ squadra, onModifica }: { squadra: number[]; onModifica: () => void }) {
   return (
-    <SezioneProfilo titolo="La mia squadra" sottotitolo="Fino a sei Pokémon: il primo è il tuo compagno" onModifica={onModifica}>
+    <SezioneProfilo titolo="La mia squadra" sottotitolo="I tuoi Pokémon del cuore, fino a sei. Il primo è il tuo compagno" onModifica={onModifica}>
       <ul className="grid grid-cols-3 gap-3 sm:grid-cols-6">
         {Array.from({ length: POSTI }, (_, posto) => {
           const pokemon = squadra[posto] !== undefined ? trovaPokemon(squadra[posto]) : undefined
