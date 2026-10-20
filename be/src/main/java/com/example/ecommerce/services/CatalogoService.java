@@ -106,6 +106,9 @@ public class CatalogoService {
         }
 
         Carta carta = tcgdex.dettaglio(idEsterno);
+        if (carta.set() == null || carta.set().id() == null) {
+            throw new ServizioEsternoException("TCGdex ha restituito la carta " + idEsterno + " senza espansione", null);
+        }
 
         BigDecimal prezzo = body != null && body.prezzo() != null ? body.prezzo() : prezzoSuggerito(carta);
         if (prezzo == null) {
