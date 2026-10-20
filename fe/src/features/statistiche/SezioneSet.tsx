@@ -6,6 +6,7 @@ import { cn } from '../../utils/cn'
 import { Barra } from './Barra'
 import { gruppiSet, numeriMaster, percentuale, type OrdineSet } from './calcoli'
 import { Sezione } from './Sezione'
+import { SimboloSet } from '../../components/SimboloSet'
 
 const ORDINI: Array<{ valore: OrdineSet; etichetta: string }> = [
   { valore: 'completamento', etichetta: 'Più vicini al completamento' },
@@ -72,11 +73,7 @@ export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
                           to={`/espansioni/${s.id}`}
                           className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-tenue"
                         >
-                          {s.simboloUrl ? (
-                            <img src={s.simboloUrl} alt="" onError={(e) => (e.currentTarget.style.display = 'none')} className="size-6 shrink-0 object-contain" />
-                          ) : (
-                            <span className="size-6 shrink-0" />
-                          )}
+                          <SimboloSet src={s.simboloUrl} tieniPosto className="size-6 shrink-0" />
                           <span className="min-w-0 flex-1">
                             <span className="flex items-center gap-2 font-semibold text-testo">
                               <span className="truncate">{s.nome}</span>
