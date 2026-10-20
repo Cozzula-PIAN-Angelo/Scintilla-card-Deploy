@@ -396,21 +396,22 @@ public class CatalogoService {
         return set.size();
     }
 
-    // il logo si scrive solo se TCGdex ce l'ha: a una sessantina di set manca (30th, Temporal Forces, promo...) e
-    // quelli già nel catalogo tengono il loro (di pokemontcg.io). Il simbolo solo se manca: quelli di TCGdex oggi
-    // non si caricano (400)
+    // logo di TCGdex se c'è; a una sessantina di set manca (30th, Temporal Forces, promo...): allora la copia locale,
+    // se c'è, altrimenti resta quello salvato. Simbolo: la copia locale, quelli di TCGdex non si caricano (400);
+    // senza copia resta quello salvato
     private Espansione aggiornaDa(TcgdexApi.Set dati) {
         Espansione espansione = espansioneRepository.findById(dati.id()).orElseGet(() -> new Espansione(dati.id()));
         espansione.setNome(dati.name());
         espansione.setSerie(dati.serie() == null ? null : dati.serie().name());
         espansione.setTotaleCarte(totale(dati.cardCount()));
         espansione.setDataUscita(dataUscita(dati.releaseDate()));
+        AbbinamentoTcgdex abbinamento = AbbinamentoTcgdex.get();
         if (dati.logo() != null) {
             espansione.setLogoUrl(dati.logo() + ".png");
+        } else {
+            abbinamento.logo(dati.id()).ifPresent(espansione::setLogoUrl);
         }
-        if (espansione.getSimboloUrl() == null && dati.symbol() != null) {
-            espansione.setSimboloUrl(dati.symbol() + ".png");
-        }
+        abbinamento.simbolo(dati.id()).ifPresent(espansione::setSimboloUrl);
         return espansione;
     }
 
@@ -481,7 +482,7 @@ public class CatalogoService {
         return carta.illustrator() == null ? "" : carta.illustrator();
     }
 
-    // immagine grande di TCGdex; senza, la riserva di pokemontcg.io dal file di abbinamento; altrimenti null
+    // immagine grande di TCGdex; senza, la copia locale dal file di abbinamento; altrimenti null
     private static String immagineUrl(Carta carta) {
         if (carta.image() != null && !carta.image().isBlank()) {
             return carta.image() + "/high.webp";

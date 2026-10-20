@@ -213,6 +213,21 @@ class DatiInizialiSeederTest {
         assertThat(conta("utenti_oggetti_preferiti")).isEqualTo(1);
     }
 
+    // e le immagini dei vecchi server diventano le copie locali, come nella V10
+    @Test
+    void immaginiVecchieDiventanoLocali() throws Exception {
+        Map<String, List<Map<String, Object>>> dati = datiCompleti();
+        dati.get("espansioni").getFirst().put("id", "sm75");
+        dati.get("oggetti").getFirst().put("espansione_id", "sm75");
+        dati.get("oggetti").getFirst().put("id_esterno", "sm75-1");
+        dati.get("oggetti").getFirst().put("immagine_url", "https://images.pokemontcg.io/sm75/1_hires.png");
+
+        seeder(scriviFile(dati)).run();
+
+        assertThat(jdbc.queryForObject("SELECT id_esterno || '|' || immagine_url FROM oggetti", String.class))
+                .isEqualTo("sm7.5-1|/immagini/carte/sm7.5-1.webp");
+    }
+
     private DatiInizialiSeeder seeder(Path file) {
         return new DatiInizialiSeeder(jdbc, transazioni, file.toString());
     }

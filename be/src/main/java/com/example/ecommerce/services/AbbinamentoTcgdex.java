@@ -9,16 +9,19 @@ import java.util.Map;
 import java.util.Optional;
 
 // Passaggio da pokemontcg.io a TCGdex, da abbinamento-id.json (generato una volta da scripts/genera-abbinamento.mjs):
-// set e carte vecchi -> nuovi, URL delle immagini di TCGdex (senza estensione) e, per le carte che su TCGdex
-// non hanno immagine, l'immagine di pokemontcg.io come riserva. Un'istanza unica caricata dal classpath al primo
+// set e carte vecchi -> nuovi, URL delle immagini di TCGdex (senza estensione) e le copie locali (fe/public/immagini,
+// da scripts/scarica-immagini.mjs) di quello che TCGdex non ha: riserve delle carte, carte rimaste con l'id
+// vecchio, simboli e loghi dei set. Un'istanza unica caricata dal classpath al primo
 // uso, senza Spring, come ElencoArtisti: la usa anche la migrazione V9, che gira prima del contesto
 public final class AbbinamentoTcgdex {
 
     private static final String RISORSA = "abbinamento-id.json";
 
+    // riserveVecchie, simboli e loghi facoltative: un file di prima delle copie locali non le ha
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record File(Map<String, String> set, Map<String, String> carte, Map<String, String> immagini,
-                        Map<String, String> riserve) {
+                        Map<String, String> riserve, Map<String, String> riserveVecchie, Map<String, String> simboli,
+                        Map<String, String> loghi) {
     }
 
     private static final class Caricato {
@@ -73,8 +76,27 @@ public final class AbbinamentoTcgdex {
         return Optional.ofNullable(file.immagini().get(idNuovo));
     }
 
-    // immagine di pokemontcg.io per una carta che su TCGdex non ha immagine
+    // copia locale dell'immagine di una carta che su TCGdex non ha immagine
     public Optional<String> riserva(String idNuovo) {
         return Optional.ofNullable(file.riserve().get(idNuovo));
+    }
+
+    // copia locale dell'immagine di una carta rimasta con l'id di pokemontcg.io
+    public Optional<String> riservaVecchia(String idVecchio) {
+        return cerca(file.riserveVecchie(), idVecchio);
+    }
+
+    // copia locale del simbolo del set (quelli di TCGdex non si caricano)
+    public Optional<String> simbolo(String idSet) {
+        return cerca(file.simboli(), idSet);
+    }
+
+    // copia locale del logo, per i set che su TCGdex non ce l'hanno
+    public Optional<String> logo(String idSet) {
+        return cerca(file.loghi(), idSet);
+    }
+
+    private static Optional<String> cerca(Map<String, String> mappa, String chiave) {
+        return mappa == null ? Optional.empty() : Optional.ofNullable(mappa.get(chiave));
     }
 }

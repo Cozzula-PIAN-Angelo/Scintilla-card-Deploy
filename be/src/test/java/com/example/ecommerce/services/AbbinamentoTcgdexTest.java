@@ -19,8 +19,23 @@ class AbbinamentoTcgdexTest {
         assertThat(abbinamento.carte()).containsEntry("sv3pt5-6", "sv03.5-006");
         assertThat(abbinamento.immagine("sv03.5-006")).contains("https://assets.tcgdex.net/en/sv/sv03.5/006");
         assertThat(abbinamento.immagine("sm7.5-1")).isEmpty();
-        assertThat(abbinamento.riserva("sm7.5-1")).contains("https://images.pokemontcg.io/sm75/1_hires.png");
+        assertThat(abbinamento.riserva("sm7.5-1")).contains("/immagini/carte/sm7.5-1.webp");
         assertThat(abbinamento.riserva("sv03.5-006")).isEmpty();
+        assertThat(abbinamento.riservaVecchia("sm2-121a")).contains("/immagini/carte/sm2-121a.webp");
+        assertThat(abbinamento.simbolo("sv03.5")).contains("/immagini/set/sv03.5-simbolo.webp");
+        assertThat(abbinamento.logo("30th")).contains("/immagini/set/30th-logo.webp");
+        assertThat(abbinamento.logo("sv03.5")).isEmpty();
+    }
+
+    // un file generato prima delle copie locali non ha le mappe delle immagini: vuote, non un errore
+    @Test
+    void mappeDelleImmaginiFacoltative() {
+        AbbinamentoTcgdex abbinamento = AbbinamentoTcgdex.da(new ByteArrayInputStream(
+                "{\"set\": {}, \"carte\": {}, \"immagini\": {}, \"riserve\": {}}".getBytes(StandardCharsets.UTF_8)));
+
+        assertThat(abbinamento.simbolo("base1")).isEmpty();
+        assertThat(abbinamento.logo("30th")).isEmpty();
+        assertThat(abbinamento.riservaVecchia("sm2-121a")).isEmpty();
     }
 
     @Test

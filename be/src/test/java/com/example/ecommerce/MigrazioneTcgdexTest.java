@@ -66,8 +66,8 @@ class MigrazioneTcgdexTest {
         assertThat(jdbc.queryForList("SELECT id || '=' || importata FROM espansioni ORDER BY id", String.class))
                 .containsExactly("base1=true", "sm7.5=false", "sv03.5=true", "zzz=false");
         assertThat(campi(jdbc, charizard)).isEqualTo("sv03.5-006|sv03.5|https://assets.tcgdex.net/en/sv/sv03.5/006/high.webp|||");
-        // TCGdex non ha la figura: resta quella di pokemontcg.io, che fa da riserva
-        assertThat(campi(jdbc, charmander)).isEqualTo("sm7.5-1|sm7.5|" + RISERVA + "|||");
+        // TCGdex non ha la figura: la V9 tiene quella di pokemontcg.io, la V10 la sostituisce con la copia locale
+        assertThat(campi(jdbc, charmander)).isEqualTo("sm7.5-1|sm7.5|/immagini/carte/sm7.5-1.webp|||");
         assertThat(campi(jdbc, nonAbbinata)).isEqualTo("zzz-1|zzz|https://esempio.it/zzz.png|NORMALE|Common|Ken Sugimori");
         assertThat(jdbc.queryForObject("SELECT id_oggetto FROM collezione", UUID.class)).isEqualTo(charizard);
         assertThat(jdbc.queryForObject("SELECT id_oggetto FROM binder_slot", UUID.class)).isEqualTo(charizard);
