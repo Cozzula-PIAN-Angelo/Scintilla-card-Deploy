@@ -28,7 +28,7 @@ public interface CollezioneRepository extends JpaRepository<CartaInCollezione, U
             + "FROM CartaInCollezione c WHERE c.utente.id = :utenteId AND c.oggetto.artista IN :grafie")
     List<CopiaDTO> copieDiArtista(@Param("utenteId") UUID utenteId, @Param("grafie") Collection<String> grafie);
 
-    // carte per cui pokemontcg.io non indica l'artista
+    // carte per cui TCGdex non indica l'artista
     @Query("SELECT new com.example.ecommerce.payloads.CopiaDTO(c.oggetto.id, c.variante, c.quantita) "
             + "FROM CartaInCollezione c WHERE c.utente.id = :utenteId AND c.oggetto.artista = ''")
     List<CopiaDTO> copieSenzaArtista(@Param("utenteId") UUID utenteId);

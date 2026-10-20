@@ -26,6 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -44,7 +45,7 @@ class PokedexServiceTest {
     @Mock
     private PokemonImportatoRepository pokemonImportatoRepository;
     @Mock
-    private PokemonTcgService pokemonTcgService;
+    private CatalogoService catalogoService;
 
     private final List<Runnable> coda = new ArrayList<>();
     private PokedexService service;
@@ -53,7 +54,7 @@ class PokedexServiceTest {
     @BeforeEach
     void prepara() {
         ImportInBackground background = new ImportInBackground(coda::add, new LimitatoreImport(10, 1000), Clock.systemUTC());
-        service = new PokedexService(oggettoRepository, pokemonImportatoRepository, pokemonTcgService, background);
+        service = new PokedexService(oggettoRepository, pokemonImportatoRepository, catalogoService, background);
         // @Value non viene iniettato nei test con Mockito
         ReflectionTestUtils.setField(service, "numeroMassimo", 1025);
         cartaSalvata = new Oggetto("Pikachu (Base 58/102)", new BigDecimal("2.00"));
@@ -69,15 +70,15 @@ class PokedexServiceTest {
 
         assertThat(carte.completo()).isTrue();
         assertThat(carte.carte()).extracting(OggettoResponseDTO::nome).containsExactly("Pikachu (Base 58/102)");
-        verify(pokemonTcgService, never()).paginaCarte(any(), anyInt(), any());
+        verify(catalogoService, never()).paginaCarte(any(), anyInt(), anyBoolean());
         assertThat(coda).isEmpty();
     }
 
     @Test
     void primaAperturaPaginaAlVoloEImportAccodato() {
         when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.empty());
-        when(pokemonTcgService.paginaCarte("nationalPokedexNumbers:25", 1, "-set.releaseDate,number"))
-                .thenReturn(new PokemonTcgService.PaginaCarte(List.of(cartaSalvata), 213));
+        when(catalogoService.paginaCarte(FiltroCarte.diPokemon(25), 1, true))
+                .thenReturn(new CatalogoService.PaginaCarte(List.of(cartaSalvata), 213));
 
         CarteDTO carte = service.carte(PIKACHU, 1, CLIENT);
 
@@ -105,7 +106,7 @@ class PokedexServiceTest {
         when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.empty());
 
         assertThat(service.stato(PIKACHU, CLIENT)).isEqualTo(new StatoCarteDTO(false, false));
-        verifyNoInteractions(pokemonTcgService);
+        verifyNoInteractions(catalogoService);
         assertThat(coda).hasSize(1);
     }
 
@@ -113,7 +114,7 @@ class PokedexServiceTest {
     @Test
     void statoColLimiteRaggiuntoNonLancia() {
         ImportInBackground senzaPosti = new ImportInBackground(coda::add, new LimitatoreImport(0, 1000), Clock.systemUTC());
-        PokedexService conLimite = new PokedexService(oggettoRepository, pokemonImportatoRepository, pokemonTcgService, senzaPosti);
+        PokedexService conLimite = new PokedexService(oggettoRepository, pokemonImportatoRepository, catalogoService, senzaPosti);
         ReflectionTestUtils.setField(conLimite, "numeroMassimo", 1025);
         when(pokemonImportatoRepository.findById(PIKACHU)).thenReturn(Optional.empty());
 

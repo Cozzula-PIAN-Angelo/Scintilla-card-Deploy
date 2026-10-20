@@ -21,9 +21,6 @@ import java.util.stream.IntStream;
 // ordine delle carte nelle pagine del Pokédex e degli artisti, e criteri del riordino di un binder
 final class OrdineCarte {
 
-    // ordine di pokemontcg.io per le pagine al volo di Pokémon e artisti: per data, il numero lo sistema DALLA_PIU_RECENTE
-    static final String PIU_RECENTI_API = "-set.releaseDate,number";
-
     // carte brevi di TCGdex (pagine al volo di un set): per numero, nell'ordine "da album"
     static Comparator<TcgdexApi.CartaBreve> breviPerNumero() {
         return Comparator.comparing(carta -> CatalogoService.numeroDaLocalId(carta.localId()), NumeriCarta::confronta);

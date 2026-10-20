@@ -18,19 +18,19 @@ import java.util.List;
 public class PokedexService {
 
     private final OggettoRepository oggettoRepository;
-    private final PokemonTcgService pokemonTcgService;
+    private final CatalogoService catalogoService;
     // prima apertura, aggiornamento settimanale, limite e pausa dopo un errore: vedi ImportSettimanale
     private final ImportSettimanale<Integer> importSettimanale;
 
-    // oltre l'ultimo Pokémon esistente non si interroga pokemontcg.io: ogni numero inventato
+    // oltre l'ultimo Pokémon esistente non si interroga TCGdex: ogni numero inventato
     // costerebbe una chiamata (e un posto nel limite degli import) senza trovare niente
     @Value("${app.pokedex.numero-massimo}")
     private int numeroMassimo;
 
     public PokedexService(OggettoRepository oggettoRepository, PokemonImportatoRepository pokemonImportatoRepository,
-                          PokemonTcgService pokemonTcgService, ImportInBackground importInBackground) {
+                          CatalogoService catalogoService, ImportInBackground importInBackground) {
         this.oggettoRepository = oggettoRepository;
-        this.pokemonTcgService = pokemonTcgService;
+        this.catalogoService = catalogoService;
         this.importSettimanale = new ImportSettimanale<>(importInBackground,
                 numero -> pokemonImportatoRepository.findById(numero).map(PokemonImportato::getImportatoIl),
                 (numero, data) -> pokemonImportatoRepository.save(new PokemonImportato(numero, data)),
@@ -38,19 +38,18 @@ public class PokedexService {
     }
 
     // carte in cui compare il Pokémon, dalla più recente. Alla prima apertura solo la pagina chiesta (da 0), presa al
-    // volo da pokemontcg.io mentre le altre si scaricano in background. client: IP del visitatore, per il limite sugli import
+    // volo da TCGdex mentre le altre si scaricano in background. client: IP del visitatore, per il limite sugli import
     public CarteDTO carte(int numero, Integer pagina, String client) {
         if (numero < 1 || numero > numeroMassimo) {
             throw new BadRequestException("Numero di Pokédex non valido: deve essere tra 1 e " + numeroMassimo);
         }
         int numeroPagina = OrdineCarte.pagina(pagina);
 
-        ImportSettimanale.Stato stato = importSettimanale.assicura(numero, client, () -> pokemonTcgService.importaPokemon(numero));
+        ImportSettimanale.Stato stato = importSettimanale.assicura(numero, client, () -> catalogoService.importaPokemon(numero));
         if (stato.completo()) {
             return CarteDTO.completo(ordinate(oggettoRepository.findByNumeroPokedex(numero)));
         }
-        PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte("nationalPokedexNumbers:" + numero,
-                numeroPagina, OrdineCarte.PIU_RECENTI_API);
+        CatalogoService.PaginaCarte alVolo = catalogoService.paginaCarte(FiltroCarte.diPokemon(numero), numeroPagina, true);
         return new CarteDTO(false, alVolo.totale(), ordinate(alVolo.carte()), stato.fallito());
     }
 
@@ -61,7 +60,7 @@ public class PokedexService {
             throw new BadRequestException("Numero di Pokédex non valido: deve essere tra 1 e " + numeroMassimo);
         }
         try {
-            importSettimanale.assicura(numero, client, () -> pokemonTcgService.importaPokemon(numero));
+            importSettimanale.assicura(numero, client, () -> catalogoService.importaPokemon(numero));
         } catch (TroppeRichiesteException ex) {
             // si riprova al controllo dopo
         }

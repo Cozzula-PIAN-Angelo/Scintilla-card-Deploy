@@ -17,9 +17,9 @@ public record OggettoResponseDTO(UUID id,
                                  // versione leggera per le griglie (60-170 KB invece di 700 KB-1 MB)
                                  String immagineUrlPiccola,
                                  String idEsterno,
-                                 // null = non ancora lette da pokemontcg.io
+                                 // null = non ancora lette da TCGdex
                                  List<Variante> varianti,
-                                 // null = non ancora letta da pokemontcg.io
+                                 // null = non ancora letta da TCGdex
                                  String rarita,
                                  // autori (coautori divisi) con lo slug per il link alla loro pagina; vuota = non ancora letti
                                  List<ArtistaCartaDTO> artisti) {
@@ -40,17 +40,11 @@ public record OggettoResponseDTO(UUID id,
     }
 
     // si ricava dall'immagine grande salvata, così le carte già importate non vanno reimportate:
-    // images.pokemontcg.io/base1/4_hires.png -> base1/4.png, images.scrydex.com/.../large -> .../small.
-    // Per gli altri indirizzi (es. oggetti creati a mano) si usa quello originale
+    // assets.tcgdex.net/.../006/high.webp -> .../006/low.webp. Per gli altri indirizzi (riserve di pokemontcg.io,
+    // oggetti creati a mano) si usa quello originale
     public static String immaginePiccola(String grande) {
-        if (grande == null) {
-            return null;
-        }
-        if (grande.contains("images.pokemontcg.io/") && grande.endsWith("_hires.png")) {
-            return grande.substring(0, grande.length() - "_hires.png".length()) + ".png";
-        }
-        if (grande.contains("images.scrydex.com/") && grande.endsWith("/large")) {
-            return grande.substring(0, grande.length() - "/large".length()) + "/small";
+        if (grande != null && grande.contains("assets.tcgdex.net/") && grande.endsWith("/high.webp")) {
+            return grande.substring(0, grande.length() - "/high.webp".length()) + "/low.webp";
         }
         return grande;
     }

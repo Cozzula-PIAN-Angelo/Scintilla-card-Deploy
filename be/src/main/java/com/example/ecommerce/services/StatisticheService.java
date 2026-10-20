@@ -140,7 +140,7 @@ public class StatisticheService {
     }
 
     // importato: fanno fede le carte del catalogo. Non importato: nel catalogo ci sono solo le carte arrivate da
-    // altre pagine, quindi vale il totale di pokemontcg.io se c'è e non è più basso
+    // altre pagine, quindi vale il totale di TCGdex se c'è e non è più basso
     static int totaleSet(boolean importata, Integer totaleCarte, int nelCatalogo, int possedute) {
         int totale = importata || totaleCarte == null || totaleCarte < nelCatalogo ? nelCatalogo : totaleCarte;
         return Math.max(totale, possedute);

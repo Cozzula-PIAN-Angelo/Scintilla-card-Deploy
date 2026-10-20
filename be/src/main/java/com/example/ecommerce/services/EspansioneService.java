@@ -27,10 +27,10 @@ public class EspansioneService {
 
     private final EspansioneRepository espansioneRepository;
     private final OggettoRepository oggettoRepository;
-    private final PokemonTcgService pokemonTcgService;
+    private final CatalogoService catalogoService;
     private final ImportInBackground importInBackground;
 
-    // set trovati senza carte: dopo quanto si richiedono a pokemontcg.io
+    // set trovati senza carte: dopo quanto si richiedono a TCGdex
     private static final Duration ATTESA_SET_VUOTO = Duration.ofHours(6);
 
     // set annunciati ma ancora senza carte: per qualche ora non si richiedono. Dopo un riavvio si riprova
@@ -41,7 +41,7 @@ public class EspansioneService {
     private static final Duration ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA = Duration.ofMinutes(5);
 
     // una sola sincronizzazione alla volta dalle visite: con la vetrina vuota chi arriva insieme aspetta
-    // e poi trova le espansioni già salvate, invece di chiamare pokemontcg.io ognuno per conto suo
+    // e poi trova le espansioni già salvate, invece di chiamare TCGdex ognuno per conto suo
     private final Object lockSincronizzazione = new Object();
 
     // sincronizzazione dell'elenco fallita da poco, da una visita: una chiave sola, l'elenco intero
@@ -49,14 +49,14 @@ public class EspansioneService {
     private final PromemoriaTemporaneo<String> sincronizzazioneFallita =
             new PromemoriaTemporaneo<>(ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA);
 
-    // aggiorna l'elenco delle espansioni da pokemontcg.io: all'avvio e ogni notte (nuovi set)
+    // aggiorna l'elenco delle espansioni da TCGdex: all'avvio e ogni notte (nuovi set)
     @Scheduled(cron = "0 30 4 * * *")
     public void sincronizza() {
-        log.info("Espansioni sincronizzate: {}", pokemonTcgService.sincronizzaEspansioni());
+        log.info("Espansioni sincronizzate: {}", catalogoService.sincronizzaEspansioni());
     }
 
     public List<EspansioneResponseDTO> findAll() {
-        // primo avvio con pokemontcg.io giù: si riprova alla prima visita della vetrina
+        // primo avvio con TCGdex giù: si riprova alla prima visita della vetrina
         if (espansioneRepository.count() == 0) {
             sincronizzaDaVisita();
         }
@@ -89,7 +89,7 @@ public class EspansioneService {
     }
 
     // carte del set, ordinate per numero. Alla prima apertura solo la pagina chiesta (da 0), presa al volo da
-    // pokemontcg.io, mentre il set intero si scarica in background. client: IP del visitatore, per il limite sugli import
+    // TCGdex, mentre il set intero si scarica in background. client: IP del visitatore, per il limite sugli import
     public CarteDTO carte(String id, Integer pagina, String client) {
         Espansione espansione = espansioneRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Espansione " + id + " non trovata"));
@@ -98,13 +98,13 @@ public class EspansioneService {
         if (espansione.isImportata()) {
             return CarteDTO.completo(perNumero(oggettoRepository.findByEspansioneId(id)));
         }
-        // set annunciato ma ancora senza carte su pokemontcg.io: per qualche ora non si richiede
+        // set annunciato ma ancora senza carte su TCGdex: per qualche ora non si richiede
         if (setVuoti.isRecente(id)) {
             return CarteDTO.completo(List.of());
         }
-        PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte("set.id:" + id, numeroPagina, "number");
+        CatalogoService.PaginaCarte alVolo = catalogoService.paginaCarte(FiltroCarte.diSet(id), numeroPagina, false);
         if (numeroPagina == 0 && alVolo.totale() == 0) {
-            log.info("Set {} ancora senza carte su pokemontcg.io: si riprova tra {} ore", id, ATTESA_SET_VUOTO.toHours());
+            log.info("Set {} ancora senza carte su TCGdex: si riprova tra {} ore", id, ATTESA_SET_VUOTO.toHours());
             setVuoti.annota(id);
             return CarteDTO.completo(List.of());
         }
@@ -112,7 +112,7 @@ public class EspansioneService {
         String chiave = "set:" + id;
         importInBackground.avvia(chiave, client,
                 () -> !espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false),
-                () -> pokemonTcgService.importaSet(id));
+                () -> catalogoService.importaSet(id));
         return new CarteDTO(false, alVolo.totale(), perNumero(alVolo.carte()), importInBackground.fallitoDaPoco(chiave));
     }
 
@@ -127,7 +127,7 @@ public class EspansioneService {
             try {
                 importInBackground.avvia(chiave, client,
                         () -> !espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false),
-                        () -> pokemonTcgService.importaSet(id));
+                        () -> catalogoService.importaSet(id));
             } catch (TroppeRichiesteException ex) {
                 // si riprova al controllo dopo
             }

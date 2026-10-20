@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-// Carte di una pagina pubblica (un Pokémon, un artista) scaricate da pokemontcg.io alla prima apertura e
+// Carte di una pagina pubblica (un Pokémon, un artista) scaricate da TCGdex alla prima apertura e
 // riscaricate dopo una settimana, così compaiono le carte dei set usciti nel frattempo. Lo scaricamento gira sempre
 // in background (ImportInBackground: uno per chiave, limite sugli import, pausa dopo un errore):
 // - prima apertura: la pagina intanto mostra le carte prese al volo; col limite raggiunto 429;

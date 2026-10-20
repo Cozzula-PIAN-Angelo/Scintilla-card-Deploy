@@ -15,21 +15,21 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Stream;
 
-// sezione Artisti: elenco da artisti.json, carte di ogni artista importate da pokemontcg.io alla prima apertura
+// sezione Artisti: elenco da artisti.json, carte di ogni artista importate da TCGdex alla prima apertura
 // e riscaricate dopo una settimana, come le carte di un Pokémon
 @Service
 public class ArtistiService {
 
     private final OggettoRepository oggettoRepository;
-    private final PokemonTcgService pokemonTcgService;
+    private final CatalogoService catalogoService;
     private final ElencoArtisti elencoArtisti;
     private final ImportSettimanale<String> importSettimanale;
 
     public ArtistiService(OggettoRepository oggettoRepository, ArtistaImportatoRepository artistaImportatoRepository,
-                          PokemonTcgService pokemonTcgService, ImportInBackground importInBackground,
+                          CatalogoService catalogoService, ImportInBackground importInBackground,
                           ElencoArtisti elencoArtisti) {
         this.oggettoRepository = oggettoRepository;
-        this.pokemonTcgService = pokemonTcgService;
+        this.catalogoService = catalogoService;
         this.elencoArtisti = elencoArtisti;
         this.importSettimanale = new ImportSettimanale<>(importInBackground,
                 slug -> artistaImportatoRepository.findById(slug).map(ArtistaImportato::getImportatoIl),
@@ -48,23 +48,23 @@ public class ArtistiService {
     }
 
     // carte dell'artista, dalla più recente. Alla prima apertura solo la pagina chiesta (da 0), presa al volo da
-    // pokemontcg.io mentre le altre si scaricano in background; lo sconosciuto non ha una query di pagina e aspetta.
-    // Uno slug fuori dall'elenco non costa chiamate a pokemontcg.io. client: IP del visitatore, per il limite sugli import
+    // TCGdex mentre le altre si scaricano in background; lo sconosciuto non ha una pagina al volo e aspetta.
+    // Uno slug fuori dall'elenco non costa chiamate a TCGdex. client: IP del visitatore, per il limite sugli import
     public CarteDTO carte(String slug, Integer pagina, String client) {
         int numeroPagina = OrdineCarte.pagina(pagina);
         if (ElencoArtisti.SLUG_SCONOSCIUTO.equals(slug)) {
-            ImportSettimanale.Stato stato = importSettimanale.assicura(slug, client, pokemonTcgService::importaSenzaArtista);
+            ImportSettimanale.Stato stato = importSettimanale.assicura(slug, client, catalogoService::importaSenzaArtista);
             return stato.completo()
                     ? CarteDTO.completo(ordinate(oggettoRepository.findSenzaArtista()))
                     : new CarteDTO(false, 0, List.of(), stato.fallito());
         }
         ElencoArtisti.Artista artista = elencoArtisti.perSlug(slug)
                 .orElseThrow(() -> new NotFoundException("Artista non trovato: " + slug));
-        ImportSettimanale.Stato stato = importSettimanale.assicura(slug, client, () -> pokemonTcgService.importaArtista(artista.query()));
+        ImportSettimanale.Stato stato = importSettimanale.assicura(slug, client, () -> catalogoService.importaArtista(artista.grafie()));
         if (stato.completo()) {
             return CarteDTO.completo(ordinate(oggettoRepository.findByArtistaIn(artista.grafie())));
         }
-        PokemonTcgService.PaginaCarte alVolo = pokemonTcgService.paginaCarte(artista.query(), numeroPagina, OrdineCarte.PIU_RECENTI_API);
+        CatalogoService.PaginaCarte alVolo = catalogoService.paginaCarte(FiltroCarte.diArtista(artista.grafie()), numeroPagina, true);
         return new CarteDTO(false, alVolo.totale(), ordinate(alVolo.carte()), stato.fallito());
     }
 
@@ -73,11 +73,11 @@ public class ArtistiService {
     public StatoCarteDTO stato(String slug, String client) {
         Runnable importa;
         if (ElencoArtisti.SLUG_SCONOSCIUTO.equals(slug)) {
-            importa = pokemonTcgService::importaSenzaArtista;
+            importa = catalogoService::importaSenzaArtista;
         } else {
             ElencoArtisti.Artista artista = elencoArtisti.perSlug(slug)
                     .orElseThrow(() -> new NotFoundException("Artista non trovato: " + slug));
-            importa = () -> pokemonTcgService.importaArtista(artista.query());
+            importa = () -> catalogoService.importaArtista(artista.grafie());
         }
         try {
             importSettimanale.assicura(slug, client, importa);

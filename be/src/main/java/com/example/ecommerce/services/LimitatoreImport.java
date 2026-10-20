@@ -13,7 +13,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-// La prima apertura di un set o di un Pokémon è pubblica e scarica le carte da pokemontcg.io:
+// La prima apertura di un set o di un Pokémon è pubblica e scarica le carte da TCGdex:
 // senza un limite chiunque potrebbe chiamare in fila tutti i set e tutti i numeri del Pokédex,
 // esaurendo la quota giornaliera dell'API (circa 1.000 richieste senza chiave) e tenendo occupati
 // i thread del server. Si contano solo gli import che partono davvero: le aperture successive,

@@ -13,16 +13,16 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BooleanSupplier;
 
-// Scaricamenti completi da pokemontcg.io lanciati dalle pagine pubbliche (set, Pokémon, artisti) senza far aspettare
+// Scaricamenti completi da TCGdex lanciati dalle pagine pubbliche (set, Pokémon, artisti) senza far aspettare
 // il visitatore, che intanto vede la pagina presa al volo. Le regole:
 // - uno solo per chiave (es. "set:sv8"): chi arriva mentre è in corso non ne lancia un altro e non consuma il limite;
 // - LimitatoreImport conta solo l'avvio (col limite raggiunto TroppeRichiesteException, cioè 429);
-// - fallito: per 2 minuti non si riprova, così le visite non tempestano un pokemontcg.io giù
+// - fallito: per 2 minuti non si riprova, così le visite non tempestano un TCGdex giù
 @Slf4j
 @Component
 public class ImportInBackground {
 
-    // corta: pokemontcg.io senza chiave risponde 500 a raffiche e poco dopo torna; il frontend intanto ricontrolla
+    // corta: gli errori dell'API esterna di solito passano presto; il frontend intanto ricontrolla
     private static final Duration ATTESA_DOPO_ERRORE = Duration.ofMinutes(2);
 
     private final Executor esecutore;

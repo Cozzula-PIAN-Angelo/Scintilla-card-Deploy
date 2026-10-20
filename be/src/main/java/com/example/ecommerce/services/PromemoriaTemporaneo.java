@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-// Ricorda per un po' che a una chiave è successo qualcosa, di solito una chiamata a pokemontcg.io andata
+// Ricorda per un po' che a una chiave è successo qualcosa, di solito una chiamata a TCGdex andata
 // male: un set ancora senza carte, l'aggiornamento di un Pokémon fallito, l'elenco delle espansioni non
 // scaricato. Finché il promemoria è recente non si riprova, invece di rifare a ogni visita la stessa
 // chiamata destinata a fallire. In memoria: dopo un riavvio si riprova subito.

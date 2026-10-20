@@ -128,7 +128,7 @@ class MigrazioniTest {
         assertThat(oggettoRepository.findSenzaArtista()).extracting(Oggetto::getNome).containsExactly("Carta senza artista");
     }
 
-    // uscita da Sconosciuto: solo le carte '' che pokemontcg.io non restituisce più tra quelle senza artista
+    // uscita da Sconosciuto: solo le carte '' che TCGdex non restituisce più tra quelle senza artista
     @Test
     void liberaSenzaArtistaToccaSoloQuelleNonPiuSenza(@Autowired OggettoRepository oggettoRepository) {
         inserisciCartaConArtista("Ancora senza", "a-1", "");
