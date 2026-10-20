@@ -198,11 +198,37 @@ class TcgdexClientTest {
         tcgdex.verify();
     }
 
+    // una carta che TCGdex elenca ma non ha (404) non si ritenta: riprovando non cambia, e bloccherebbe per sempre
+    // l'import del suo set
+    @Test
+    void cartaInesistenteNeiDettagliSiSalta() {
+        tcgdex.expect(once(), requestTo(BASE_URL + "/en/cards/a-1"))
+                .andRespond(withSuccess("{\"id\": \"a-1\", \"localId\": \"1\", \"name\": \"Uno\"}", MediaType.APPLICATION_JSON));
+        tcgdex.expect(once(), requestTo(BASE_URL + "/en/cards/a-2")).andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+        TcgdexClient.Dettagli dettagli = client.dettagli(List.of("a-1", "a-2"));
+
+        assertThat(dettagli.carte()).extracting(TcgdexApi.Carta::id).containsExactly("a-1");
+        assertThat(dettagli.falliti()).isEmpty();
+    }
+
+    // la GraphQL risponde 200 anche con un errore: niente "0 set sincronizzati" silenzioso
+    @Test
+    void erroreGraphqlDeiSetLancia() {
+        tcgdex.expect(requestTo(BASE_URL + "/graphql"))
+                .andRespond(withSuccess("{\"errors\": [{\"message\": \"Cannot query field\"}], \"data\": null}",
+                        MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.set())
+                .isInstanceOf(ServizioEsternoException.class)
+                .hasMessageContaining("Cannot query field");
+    }
+
     @Test
     void dettagliInParalleloConUnoFallito() {
         tcgdex.expect(once(), requestTo(BASE_URL + "/en/cards/a-1"))
                 .andRespond(withSuccess("{\"id\": \"a-1\", \"localId\": \"1\", \"name\": \"Uno\"}", MediaType.APPLICATION_JSON));
-        tcgdex.expect(once(), requestTo(BASE_URL + "/en/cards/a-2")).andRespond(withStatus(HttpStatus.NOT_FOUND));
+        tcgdex.expect(times(3), requestTo(BASE_URL + "/en/cards/a-2")).andRespond(withServerError());
         tcgdex.expect(once(), requestTo(BASE_URL + "/en/cards/a-3"))
                 .andRespond(withSuccess("{\"id\": \"a-3\", \"localId\": \"3\", \"name\": \"Tre\"}", MediaType.APPLICATION_JSON));
 

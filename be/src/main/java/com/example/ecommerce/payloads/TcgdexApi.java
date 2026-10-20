@@ -27,9 +27,13 @@ public final class TcgdexApi {
     public record CardCount(Integer total, Integer official) {
     }
 
-    // risposta della GraphQL dei set: {"data": {"sets": [...]}}
+    // risposta della GraphQL dei set: {"data": {"sets": [...]}}; errors c'è quando la query non va (con status 200)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record RispostaSet(DatiSet data) {
+    public record RispostaSet(DatiSet data, List<ErroreGraphql> errors) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record ErroreGraphql(String message) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

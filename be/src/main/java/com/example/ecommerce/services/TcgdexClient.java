@@ -74,6 +74,10 @@ public class TcgdexClient {
                         .retrieve()
                         .body(TcgdexApi.RispostaSet.class),
                 "Elenco dei set non trovato su TCGdex"), "elenco dei set");
+        if (risposta.errors() != null && !risposta.errors().isEmpty()) {
+            throw new ServizioEsternoException("La GraphQL di TCGdex ha risposto con errori: "
+                    + risposta.errors().stream().map(TcgdexApi.ErroreGraphql::message).toList(), null);
+        }
         List<TcgdexApi.Set> set = risposta.data() == null || risposta.data().sets() == null ? List.of() : risposta.data().sets();
         return set.stream().filter(s -> s.serie() == null || !SERIE_POCKET.equals(s.serie().id())).toList();
     }
@@ -101,7 +105,8 @@ public class TcgdexClient {
                 "Carta " + id + " non trovata su TCGdex"), "carta " + id);
     }
 
-    // carte: quelle arrivate, nell'ordine degli id; falliti: gli id che non sono arrivati nemmeno ritentando
+    // carte: quelle arrivate, nell'ordine degli id; falliti: gli id che non sono arrivati per un errore temporaneo
+    // (da riprovare). Le carte che TCGdex non ha (404) non sono né l'una né l'altra cosa: riprovando non cambia
     public record Dettagli(List<TcgdexApi.Carta> carte, List<String> falliti) {
     }
 
@@ -116,7 +121,12 @@ public class TcgdexClient {
             try {
                 carte.add(richieste.get(i).join());
             } catch (RuntimeException ex) {
-                log.warn("Carta {} non letta da TCGdex: {}", ids.get(i), ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage());
+                Throwable causa = ex.getCause() != null ? ex.getCause() : ex;
+                if (causa instanceof NotFoundException) {
+                    log.warn("Carta {} elencata ma non trovata su TCGdex: saltata", ids.get(i));
+                    continue;
+                }
+                log.warn("Carta {} non letta da TCGdex: {}", ids.get(i), causa.getMessage());
                 falliti.add(ids.get(i));
             }
         }
