@@ -54,7 +54,7 @@ export function CopertinaBinder({ nome, colore, motivo, tasche, cartaCopertina, 
           <img
             src={cartaCopertina.immagineUrlPiccola ?? cartaCopertina.immagineUrl ?? ''}
             alt=""
-            className="aspect-[63/88] w-full rounded-[1.4cqw] object-cover"
+            className="aspect-[63/88] w-full rounded-[1.4cqw] object-fill"
           />
         </div>
       )}
