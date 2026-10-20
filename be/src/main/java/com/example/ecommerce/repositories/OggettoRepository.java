@@ -58,10 +58,11 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     List<String> findSetConVariantiMancanti(@Param("limite") int limite);
 
     // carte da rileggere (varianti, rarità o artista mai letti) fuori dai set importati: arrivate dalle pagine di
-    // Pokémon e artisti, il riempimento per set non le vede
+    // Pokémon e artisti, il riempimento per set non le vede. Ordine casuale come per i set: le carte sempre in errore
+    // non occupano ogni giro
     @Query(value = "SELECT o.id_esterno FROM oggetti o LEFT JOIN espansioni e ON e.id = o.espansione_id "
             + "WHERE o.id_esterno IS NOT NULL AND (e.id IS NULL OR NOT e.importata) "
-            + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL) ORDER BY o.id_esterno LIMIT :limite",
+            + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL) ORDER BY random() LIMIT :limite",
             nativeQuery = true)
     List<String> findIdEsterniDaRiempireFuoriDaiSetImportati(@Param("limite") int limite);
 

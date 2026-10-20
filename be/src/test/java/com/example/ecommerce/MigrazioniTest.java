@@ -17,8 +17,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import javax.sql.DataSource;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -161,6 +163,26 @@ class MigrazioniTest {
         inserisciCartaDelSet("Carta C", "sv1-1", "sv1", null, "");
 
         assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
+    }
+
+    // coda delle carte fuori dai set importati in ordine casuale: le carte sempre in errore non bloccano le altre
+    @Test
+    void carteFuoriDaiSetImportatiInOrdineCasuale(@Autowired OggettoRepository oggettoRepository) {
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('base1', 'Base', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('sv1', 'Scarlet', false)");
+        inserisciCartaDelSet("Carta A", "base1-1", "base1", null, "");
+        inserisciCartaDelSet("Carta B", "sv1-1", "sv1", null, "");
+        inserisciCartaDelSet("Carta C", "sv1-2", "sv1", "", "");
+        inserisciCartaConArtista("Carta D", "svp-1", null);
+        inserisciCartaConArtista("Carta E", "svp-2", null);
+
+        assertThat(oggettoRepository.findIdEsterniDaRiempireFuoriDaiSetImportati(10))
+                .containsExactlyInAnyOrder("sv1-1", "svp-1", "svp-2");
+        Set<String> prime = new HashSet<>();
+        for (int i = 0; i < 40; i++) {
+            prime.addAll(oggettoRepository.findIdEsterniDaRiempireFuoriDaiSetImportati(1));
+        }
+        assertThat(prime).hasSizeGreaterThan(1);
     }
 
     // basta la sola rarità da leggere perché il set torni in coda
