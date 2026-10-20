@@ -57,6 +57,14 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
             + "GROUP BY o.espansione_id ORDER BY random() LIMIT :limite", nativeQuery = true)
     List<String> findSetConVariantiMancanti(@Param("limite") int limite);
 
+    // carte da rileggere (varianti, rarità o artista mai letti) fuori dai set importati: arrivate dalle pagine di
+    // Pokémon e artisti, il riempimento per set non le vede
+    @Query(value = "SELECT o.id_esterno FROM oggetti o LEFT JOIN espansioni e ON e.id = o.espansione_id "
+            + "WHERE o.id_esterno IS NOT NULL AND (e.id IS NULL OR NOT e.importata) "
+            + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL) ORDER BY o.id_esterno LIMIT :limite",
+            nativeQuery = true)
+    List<String> findIdEsterniDaRiempireFuoriDaiSetImportati(@Param("limite") int limite);
+
     // le carte di un set ancora senza varianti, rarità o artista: dopo il riempimento sono quelle che TCGdex non restituisce più
     @Query("SELECT o FROM Oggetto o WHERE o.espansione.id = :espansioneId AND o.idEsterno IS NOT NULL "
             + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL)")

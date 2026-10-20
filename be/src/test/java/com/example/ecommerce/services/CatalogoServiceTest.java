@@ -97,7 +97,7 @@ class CatalogoServiceTest {
 
     // l'elenco del filtro e i dettagli delle carte; gli id in "falliti" non arrivano
     private void risponde(FiltroCarte filtro, List<TcgdexApi.Carta> carte, String... falliti) {
-        when(client.elenco(filtro)).thenReturn(carte.stream().map(CatalogoServiceTest::breve).toList());
+        lenient().when(client.elenco(filtro)).thenReturn(carte.stream().map(CatalogoServiceTest::breve).toList());
         Map<String, TcgdexApi.Carta> perId = new LinkedHashMap<>();
         carte.forEach(c -> perId.put(c.id(), c));
         List<String> nonArrivate = Arrays.asList(falliti);
@@ -223,6 +223,37 @@ class CatalogoServiceTest {
 
         verify(oggettoRepository).saveAll(salvati.capture());
         assertThat(salvati.getValue()).extracting(Oggetto::getRarita).containsExactly("");
+    }
+
+    // TCGdex scrive "Rare" per le holo dei set vecchi (Charizard del Set Base): se la carta esiste solo holo è una
+    // "Rare Holo", come la chiamava pokemontcg.io, e il frontend le dà l'effetto olografico
+    @Test
+    void rareSoloHoloDiventaRareHolo() {
+        TcgdexApi.Varianti soloHolo = new TcgdexApi.Varianti(false, false, true, true);
+        TcgdexApi.Varianti normaleEHolo = new TcgdexApi.Varianti(true, false, true, false);
+        risponde(FiltroCarte.diSet("base1"), List.of(
+                carta("base1-4", "Charizard", "Base", 102, soloHolo, "300", "Rare", "Mitsuhiro Arita"),
+                carta("base1-5", "Clefairy", "Base", 102, normaleEHolo, "10", "Rare", "Ken Sugimori"),
+                carta("base1-6", "Gyarados", "Base", 102, soloHolo, "20", "Common", "Ken Sugimori")));
+
+        service.importaSet("base1");
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        assertThat(salvati.getValue()).extracting(Oggetto::getRarita).containsExactly("Rare Holo", "Rare", "Common");
+    }
+
+    // carte fuori dai set importati (arrivate da Pokédex e artisti) da rileggere: dettagli a blocchi, quelle che non
+    // arrivano restano da leggere senza fermare le altre
+    @Test
+    void riempiCarteLeggeIDettagliESalva() {
+        List<TcgdexApi.Carta> trenta = IntStream.rangeClosed(1, 30).mapToObj(i -> carta("sv1-" + i, "Carta " + i)).toList();
+        risponde(FiltroCarte.diSet("sv1"), trenta, "sv1-30");
+
+        int lette = service.riempiCarte(trenta.stream().map(TcgdexApi.Carta::id).toList());
+
+        verify(oggettoRepository, times(2)).saveAll(salvati.capture());
+        assertThat(salvati.getAllValues()).extracting(Collection::size).containsExactly(24, 5);
+        assertThat(lette).isEqualTo(29);
     }
 
     // --- nomi (come con pokemontcg.io)

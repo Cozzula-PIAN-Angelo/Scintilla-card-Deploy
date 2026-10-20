@@ -171,6 +171,19 @@ public class CatalogoService {
         log.info("Varianti, rarità e artisti del set {} aggiornate ({} carte)", setId, download.elenco().size());
     }
 
+    // rilegge da TCGdex le carte date (varianti, rarità e artista mancanti), a blocchi; quelle che non arrivano
+    // restano da leggere e si riprovano al giro dopo. Restituisce quante ne sono arrivate
+    public int riempiCarte(List<String> idEsterni) {
+        int lette = 0;
+        for (int da = 0; da < idEsterni.size(); da += BLOCCO) {
+            TcgdexClient.Dettagli dettagli = tcgdex.dettagli(idEsterni.subList(da, Math.min(da + BLOCCO, idEsterni.size())));
+            salvaCarte(dettagli.carte());
+            lette += dettagli.carte().size();
+        }
+        log.info("Carte fuori dai set importati rilette: {} su {}", lette, idEsterni.size());
+        return lette;
+    }
+
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
     // Nessuna carta non è un errore: alcuni Pokémon non ne hanno ancora
     public EsitoImport importaPokemon(int numeroPokedex) {
@@ -452,9 +465,15 @@ public class CatalogoService {
         return localId.replaceFirst("^0+(?=\\d)", "");
     }
 
-    // senza rarità (o "None", usato da TCGdex per le promo) '': carta letta, nessuna indicata
+    // senza rarità (o "None", usato da TCGdex per le promo) '': carta letta, nessuna indicata. TCGdex scrive "Rare"
+    // anche per le holo dei set vecchi (Charizard del Set Base): se la carta esiste solo holo è una "Rare Holo",
+    // come la chiamava pokemontcg.io, così il frontend le dà l'effetto olografico
     private static String rarita(Carta carta) {
-        return carta.rarity() == null || carta.rarity().equals("None") ? "" : carta.rarity();
+        if (carta.rarity() == null || carta.rarity().equals("None")) {
+            return "";
+        }
+        boolean soloHolo = carta.variants() != null && carta.variants().holo() && !carta.variants().normal();
+        return carta.rarity().equals("Rare") && soloHolo ? "Rare Holo" : carta.rarity();
     }
 
     // senza artista nella risposta '' (carta letta, nessuno indicato)
