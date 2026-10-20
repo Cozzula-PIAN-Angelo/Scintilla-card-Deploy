@@ -3,7 +3,12 @@ package com.example.ecommerce.services;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,6 +30,21 @@ class AbbinamentoTcgdexTest {
         assertThat(abbinamento.simbolo("sv03.5")).contains("/immagini/set/sv03.5-simbolo.webp");
         assertThat(abbinamento.logo("30th")).contains("/immagini/set/30th-logo.webp");
         assertThat(abbinamento.logo("sv03.5")).isEmpty();
+    }
+
+    // ConversioneIdTcgdex rifiuta un id nuovo che è l'id vecchio di un'altra carta: con catene o scambi (a -> b, b -> c)
+    // non si distinguono le carte già convertite, e il seeder, che la rilancia a ogni export, le sposterebbe di nuovo.
+    // Il file vero non ne deve avere (src/main: nei test il classpath ha quello di prova)
+    @Test
+    void fileVeroSenzaCateneDiId() throws IOException {
+        try (InputStream json = Files.newInputStream(Path.of("src/main/resources/abbinamento-id.json"))) {
+            Map<String, String> carte = AbbinamentoTcgdex.da(json).carte();
+            assertThat(carte).isNotEmpty();
+            assertThat(carte.entrySet()).filteredOn(voce -> !voce.getKey().equals(voce.getValue()))
+                    .extracting(Map.Entry::getValue)
+                    .doesNotContainAnyElementsOf(carte.entrySet().stream()
+                            .filter(voce -> !voce.getKey().equals(voce.getValue())).map(Map.Entry::getKey).toList());
+        }
     }
 
     // un file generato prima delle copie locali non ha le mappe delle immagini: vuote, non un errore

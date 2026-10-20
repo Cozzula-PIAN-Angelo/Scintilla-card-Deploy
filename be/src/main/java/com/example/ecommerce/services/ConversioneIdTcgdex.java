@@ -54,6 +54,8 @@ public final class ConversioneIdTcgdex {
             if (stessoId && (immagine == null || immagine.equals(carta.immagine()))) {
                 continue;
             }
+            // rifiutato anche se l'altra carta si sposta nello stesso giro: con catene nel file (a -> b, b -> c) un rilancio
+            // sposterebbe di nuovo le carte già convertite. Il file vero non ne ha (AbbinamentoTcgdexTest)
             if (!stessoId && !usati.add(nuovo)) {
                 log.warn("Carta {}: l'id di TCGdex {} è già usato da un'altra carta, resta com'è", carta.idEsterno(), nuovo);
                 nonAbbinate++;
