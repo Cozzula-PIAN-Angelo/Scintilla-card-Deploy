@@ -110,7 +110,7 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
             alt=""
             draggable={false}
             loading="lazy"
-            className={cn('h-full w-full object-cover transition', mancante && 'grayscale')}
+            className={cn('h-full w-full object-fill transition', mancante && 'grayscale')}
           />
         ) : null}
         {effetto && (

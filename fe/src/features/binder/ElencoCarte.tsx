@@ -128,7 +128,7 @@ export function ElencoCarte({ onScegli, selezionata, onTrascina, onFineTrascinam
                     alt={oggetto.nome}
                     loading="lazy"
                     draggable={false}
-                    className="aspect-[63/88] w-full bg-tenue object-cover"
+                    className="aspect-[63/88] w-full bg-tenue object-fill"
                   />
                 </button>
               </li>

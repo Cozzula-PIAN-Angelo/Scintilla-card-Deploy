@@ -17,8 +17,9 @@ interface Props {
 export const FORMA_CARTA = 'rounded-[3%/2.1%] bg-transparent!'
 
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato.
-// object-cover: le scansioni di TCGdex (600x825) sono un po' più larghe della carta vera (63x88) e con
-// object-contain lasciavano una striscia vuota in basso; così si perde meno dell'1% del bordo per lato
+// object-fill: le scansioni di TCGdex (600x825) sono un po' più larghe della carta vera (63x88). Con object-contain
+// restava una striscia vuota in basso, con object-cover si tagliavano i lati: così la carta si vede intera,
+// stretta in larghezza dell'1,5%, che a occhio non si nota
 export function ImmagineCarta({ src, alt, className, priorita = false, riflesso = null }: Props) {
   // stato legato allo src: se cambia, si riparte da "non caricata"
   const [srcCaricata, setSrcCaricata] = useState<string | null>(null)
@@ -38,7 +39,7 @@ export function ImmagineCarta({ src, alt, className, priorita = false, riflesso 
         onLoad={() => setSrcCaricata(src)}
         onError={() => setSrcInErrore(src)}
         className={cn(
-          'relative h-full w-full object-cover transition-opacity duration-500',
+          'relative h-full w-full object-fill transition-opacity duration-500',
           caricata ? 'opacity-100' : 'opacity-0',
         )}
       />
