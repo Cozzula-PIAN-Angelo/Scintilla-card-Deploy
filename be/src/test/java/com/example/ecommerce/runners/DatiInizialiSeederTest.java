@@ -196,6 +196,23 @@ class DatiInizialiSeederTest {
         assertThat(conta("oggetti")).isEqualTo(1);
     }
 
+    // export fatto prima del passaggio a TCGdex (id di pokemontcg.io) caricato in un database già alla V9:
+    // il seeder converte gli id come la migrazione
+    @Test
+    void datiConIdVecchiVengonoConvertiti() throws Exception {
+        Map<String, List<Map<String, Object>>> dati = datiCompleti();
+        dati.get("espansioni").getFirst().put("id", "sv3pt5");
+        dati.get("oggetti").getFirst().put("espansione_id", "sv3pt5");
+        dati.get("oggetti").getFirst().put("id_esterno", "sv3pt5-6");
+
+        seeder(scriviFile(dati)).run();
+
+        assertThat(jdbc.queryForList("SELECT id FROM espansioni", String.class)).containsExactly("sv03.5");
+        assertThat(jdbc.queryForObject("SELECT id_esterno || '|' || espansione_id FROM oggetti", String.class))
+                .isEqualTo("sv03.5-006|sv03.5");
+        assertThat(conta("utenti_oggetti_preferiti")).isEqualTo(1);
+    }
+
     private DatiInizialiSeeder seeder(Path file) {
         return new DatiInizialiSeeder(jdbc, transazioni, file.toString());
     }
