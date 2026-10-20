@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Eye, Move, Plus, Trash2 } from 'lucide-react'
 import { useState, type DragEvent, type PointerEvent, type ReactNode } from 'react'
+import { ImmagineOPlaceholder } from '../../components/ImmagineCarta'
 import type { Oggetto, Variante } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { stessaPosizione, TIPO_TRASCINAMENTO, useContestoBinder } from './contesto'
@@ -103,8 +104,9 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
         )}
       >
         {oggetto ? (
-          <img
-            src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl ?? ''}
+          <ImmagineOPlaceholder
+            src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
+            nome={oggetto.nome}
             alt=""
             draggable={false}
             loading="lazy"

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ImgHTMLAttributes } from 'react'
 import { cn } from '../utils/cn'
 import { Anello, Fulmine, Scintilla, Stella } from './Forme'
 
@@ -43,6 +43,19 @@ export function ImmagineCarta({ src, alt, className, priorita = false, riflesso 
       {riflesso === 'arcobaleno' && caricata && <div aria-hidden className="holo-riflesso pointer-events-none absolute inset-0" />}
     </div>
   )
+}
+
+// immagine semplice (tasche e elenchi del binder), senza dissolvenza: se manca o non si carica (per esempio una
+// riserva di pokemontcg.io che non esiste più) il placeholder illustrato
+export function ImmagineOPlaceholder({
+  src,
+  nome,
+  className,
+  ...resto
+}: Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> & { src: string | null; nome: string }) {
+  const [srcInErrore, setSrcInErrore] = useState<string | null>(null)
+  if (!src || srcInErrore === src) return <PlaceholderCarta nome={nome} className={className} />
+  return <img src={src} {...resto} className={className} onError={() => setSrcInErrore(src)} />
 }
 
 export function PlaceholderCarta({ nome, className }: { nome: string; className?: string }) {

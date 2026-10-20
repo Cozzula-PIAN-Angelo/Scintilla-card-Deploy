@@ -40,11 +40,11 @@ export interface Oggetto {
   // versione leggera per griglie e miniature; la grande resta per il dettaglio
   immagineUrlPiccola: string | null
   idEsterno: string | null
-  // varianti suggerite da pokemontcg.io; null = non ancora lette, [] = non indicate
+  // varianti suggerite da TCGdex; null = non ancora lette, [] = non indicate
   varianti: Variante[] | null
-  // rarità di pokemontcg.io (es. "Double Rare"); null = non ancora letta, '' = non indicata
+  // rarità di TCGdex (es. "Double rare"); null = non ancora letta, '' = non indicata
   rarita: string | null
-  // autori della carta, coautori divisi; vuota finché pokemontcg.io non è stato letto
+  // autori della carta, coautori divisi; vuota finché TCGdex non è stato letto
   artisti: ArtistaCarta[]
 }
 
@@ -62,7 +62,7 @@ export interface Artista {
   avatar: string | null
 }
 
-// espansione (set) di pokemontcg.io; importata = carte già nel catalogo
+// espansione (set) di TCGdex; importata = carte già nel catalogo
 export interface Espansione {
   id: string
   nome: string
@@ -75,10 +75,10 @@ export interface Espansione {
 }
 
 // carte di un set, di un Pokémon o di un artista (GET .../carte?pagina=). completo: tutte quelle del catalogo;
-// altrimenti solo la pagina chiesta, presa al volo da pokemontcg.io mentre il resto si scarica in background
+// altrimenti solo la pagina chiesta, presa al volo da TCGdex mentre il resto si scarica in background
 export interface CarteProgressive {
   completo: boolean
-  // a pezzi: il totale delle carte su pokemontcg.io
+  // a pezzi: il totale delle carte su TCGdex
   totale: number
   carte: Oggetto[]
   // lo scaricamento in background è fallito da poco: si riprova più tardi

@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Heart, Search } from 'lucide-react'
 import { useState, type DragEvent } from 'react'
 import { messaggioErrore } from '../../app/errori'
+import { ImmagineOPlaceholder } from '../../components/ImmagineCarta'
 import { Skeleton } from '../../components/Skeleton'
 import { useDebounce } from '../../hooks/useDebounce'
 import type { Oggetto, Pagina } from '../../types/api'
@@ -121,8 +122,9 @@ export function ElencoCarte({ onScegli, selezionata, onTrascina, onFineTrascinam
                     selezionata === oggetto.id && 'ring-4 ring-giallo-400',
                   )}
                 >
-                  <img
-                    src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl ?? ''}
+                  <ImmagineOPlaceholder
+                    src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
+                    nome={oggetto.nome}
                     alt={oggetto.nome}
                     loading="lazy"
                     draggable={false}

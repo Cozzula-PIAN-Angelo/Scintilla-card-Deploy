@@ -55,7 +55,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
           {espansione.serie && <p className="text-sm font-semibold uppercase tracking-wide text-accento">{espansione.serie}</p>}
           <h3 className="text-4xl font-bold text-testo">{espansione.nome}</h3>
           <p className="mt-1 flex items-center gap-2 text-testo/70">
-            {espansione.simboloUrl && <img src={espansione.simboloUrl} alt="" className="size-5 object-contain" />}
+            {espansione.simboloUrl && <img src={espansione.simboloUrl} alt="" onError={(e) => (e.currentTarget.style.display = 'none')} className="size-5 object-contain" />}
             {[anno, totale != null && (totale === 1 ? '1 carta' : `${totale} carte`)].filter(Boolean).join(' · ')}
           </p>
         </div>

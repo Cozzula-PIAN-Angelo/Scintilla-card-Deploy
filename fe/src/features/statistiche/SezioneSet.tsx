@@ -73,7 +73,7 @@ export function SezioneSet({ set }: { set: AvanzamentoSet[] }) {
                           className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-tenue"
                         >
                           {s.simboloUrl ? (
-                            <img src={s.simboloUrl} alt="" className="size-6 shrink-0 object-contain" />
+                            <img src={s.simboloUrl} alt="" onError={(e) => (e.currentTarget.style.display = 'none')} className="size-6 shrink-0 object-contain" />
                           ) : (
                             <span className="size-6 shrink-0" />
                           )}

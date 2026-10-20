@@ -17,7 +17,7 @@ type UsaQuery<K> = (arg: RichiestaCarte<K>, opzioni: { skip?: boolean }) => Risu
 type UsaStato<K> = (chiave: K, opzioni: { skip?: boolean; pollingInterval?: number }) => { currentData?: StatoCarte }
 
 // Carte di un set, di un Pokémon o di un artista. Completo: la lista intera, come sempre. Alla prima apertura il
-// backend risponde "a pezzi": solo la pagina dell'URL (?page=), presa al volo da pokemontcg.io, mentre il resto si
+// backend risponde "a pezzi": solo la pagina dell'URL (?page=), presa al volo da TCGdex, mentre il resto si
 // scarica in background. Finché non è completa si controlla ogni 3 secondi lo stato leggero (usaStato), non la pagina
 export function useCarteProgressive<K extends string | number>(
   usaQuery: UsaQuery<K>,

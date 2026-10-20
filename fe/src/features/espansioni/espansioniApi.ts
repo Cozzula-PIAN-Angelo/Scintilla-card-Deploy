@@ -8,7 +8,7 @@ export const espansioniApi = api.injectEndpoints({
       providesTags: ['Espansioni'],
       extraOptions: { maxRetries: 2 },
     }),
-    // alla prima apertura il backend risponde a pezzi (la pagina chiesta, presa al volo da pokemontcg.io) e scarica
+    // alla prima apertura il backend risponde a pezzi (la pagina chiesta, presa al volo da TCGdex) e scarica
     // il resto in background (vedi useCarteProgressive). Niente maxRetries: il backend ritenta già da solo.
     // Su un 502 resta il pulsante Riprova
     getCarteEspansione: build.query<CarteProgressive, RichiestaCarte<string>>({
@@ -18,7 +18,7 @@ export const espansioniApi = api.injectEndpoints({
       }),
       providesTags: ['Oggetti'],
     }),
-    // a che punto è lo scaricamento in background: niente pagine, niente pokemontcg.io (vedi useCarteProgressive)
+    // a che punto è lo scaricamento in background: niente pagine, niente TCGdex (vedi useCarteProgressive)
     getStatoCarteEspansione: build.query<StatoCarte, string>({
       query: (chiave) => `/espansioni/${encodeURIComponent(chiave)}/carte/stato`,
     }),

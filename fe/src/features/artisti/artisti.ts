@@ -1,6 +1,6 @@
 import type { Artista, ArtistaCarta, Oggetto } from '../../types/api'
 
-// pagina delle carte per cui pokemontcg.io non indica l'artista: in fondo all'elenco, fuori dalle lettere
+// pagina delle carte per cui TCGdex non indica l'artista: in fondo all'elenco, fuori dalle lettere
 export const SLUG_SCONOSCIUTO = 'sconosciuto'
 
 // minuscole e senza accenti: "MÉKAYU" e "mekayu" trovano Mékayu
