@@ -5,6 +5,7 @@ import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.entities.Variante;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.ProfiloDTO;
 import com.example.ecommerce.payloads.StatisticheDTO;
 import com.example.ecommerce.payloads.StatisticheDTO.AvanzamentoSetDTO;
 import com.example.ecommerce.payloads.StatisticheDTO.CartaPreziosaDTO;
@@ -57,6 +58,15 @@ public class StatisticheService {
 
         StatisticheDTO.Totali totali = new StatisticheDTO.Totali(carteDiverse, copie, perVariante, set.size(), completati, binder, tasche);
         return new StatisticheDTO(totali, valore(id), set, pokemon(id));
+    }
+
+    // i numeri del profilo: le stesse query delle statistiche, senza valore e varianti
+    @Transactional(readOnly = true)
+    public ProfiloDTO.RiepilogoDTO riepilogo(UUID id) {
+        int completati = (int) set(id).stream().filter(s -> s.possedute() == s.totale()).count();
+        Long carteDiverse = jdbc.queryForObject("SELECT COUNT(DISTINCT id_oggetto) FROM collezione WHERE id_utente = ?", Long.class, id);
+        Long binder = jdbc.queryForObject("SELECT COUNT(*) FROM binder WHERE id_utente = ?", Long.class, id);
+        return new ProfiloDTO.RiepilogoDTO(carteDiverse, completati, pokemon(id).size(), binder);
     }
 
     private StatisticheDTO.Valore valore(UUID id) {
