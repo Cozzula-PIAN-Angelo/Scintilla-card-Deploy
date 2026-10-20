@@ -38,7 +38,7 @@ public final class AbbinamentoTcgdex {
         return Caricato.ISTANZA;
     }
 
-    static AbbinamentoTcgdex da(InputStream json) {
+    public static AbbinamentoTcgdex da(InputStream json) {
         try {
             File file = new ObjectMapper().readValue(json, File.class);
             if (file.set() == null || file.carte() == null || file.immagini() == null || file.riserve() == null) {
