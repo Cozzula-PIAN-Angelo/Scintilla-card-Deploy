@@ -11,10 +11,10 @@ interface Props {
   riflesso?: 'arcobaleno' | 'specchio' | null
 }
 
-// forma di una carta: angoli di circa 2,5 mm su 63x88, un filo più acuti di quelli stampati, così le scansioni
+// forma di una carta: angoli di circa 2 mm su 63x88, più acuti di quelli stampati (circa 3 mm), così le scansioni
 // di TCGdex (angoli dritti) perdono meno immagine. Stesse proporzioni delle tasche del binder (Tasca, ModaleCarta);
 // sfondo trasparente: le immagini di riserva (pokemontcg.io) hanno già gli angoli trasparenti
-export const FORMA_CARTA = 'rounded-[4%/2.9%] bg-transparent!'
+export const FORMA_CARTA = 'rounded-[3%/2.1%] bg-transparent!'
 
 // immagine lazy con dissolvenza al caricamento; senza immagine (o se fallisce) un placeholder illustrato.
 // object-cover: le scansioni di TCGdex (600x825) sono un po' più larghe della carta vera (63x88) e con
