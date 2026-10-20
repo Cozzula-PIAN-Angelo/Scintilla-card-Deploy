@@ -1,5 +1,6 @@
 package com.example.ecommerce.services;
 
+import com.example.ecommerce.entities.AvatarProfilo;
 import com.example.ecommerce.entities.Binder;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.Profilo;
@@ -10,6 +11,7 @@ import com.example.ecommerce.payloads.BinderResponseDTO;
 import com.example.ecommerce.payloads.ModificaProfiloDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.ProfiloDTO;
+import com.example.ecommerce.repositories.AvatarProfiloRepository;
 import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.ProfiloRepository;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +47,7 @@ public class ProfiloService {
     private final BinderRepository binderRepository;
     private final SlotBinderRepository slotRepository;
     private final StatisticheService statisticheService;
+    private final AvatarProfiloRepository avatarRepository;
 
     @Transactional(readOnly = true)
     public ProfiloDTO getProfilo(Utente utente) {
@@ -107,6 +111,36 @@ public class ProfiloService {
         Profilo profilo = profiloDi(utente);
         profilo.setSquadra(new ArrayList<>(numeri));
         return comeDTO(utente, profiloRepository.save(profilo));
+    }
+
+    // immagine già ritagliata e compressa dal browser; la data fa da versione nell'URL
+    @Transactional
+    public ProfiloDTO salvaAvatar(Utente utente, byte[] contenuto) {
+        String contentType = FormatoImmagine.controlla(contenuto);
+        AvatarProfilo avatar = avatarRepository.findById(utente.getId())
+                .orElseGet(() -> new AvatarProfilo(utente, contenuto, contentType));
+        avatar.setContenuto(contenuto);
+        avatar.setContentType(contentType);
+        avatarRepository.save(avatar);
+        Profilo profilo = profiloDi(utente);
+        profilo.setAvatarAggiornatoIl(Instant.now());
+        return comeDTO(utente, profiloRepository.save(profilo));
+    }
+
+    @Transactional
+    public ProfiloDTO rimuoviAvatar(Utente utente) {
+        if (avatarRepository.existsById(utente.getId())) avatarRepository.deleteById(utente.getId());
+        Profilo profilo = profiloDi(utente);
+        profilo.setAvatarAggiornatoIl(null);
+        return comeDTO(utente, profiloRepository.save(profilo));
+    }
+
+    // pubblica (GET /avatar/{id}): un account cancellato non ha più un'immagine
+    @Transactional(readOnly = true)
+    public AvatarProfilo getAvatar(UUID idUtente) {
+        return avatarRepository.findById(idUtente)
+                .filter(avatar -> !avatar.getUtente().isAnonimizzato())
+                .orElseThrow(() -> new NotFoundException("Questo utente non ha un'immagine profilo"));
     }
 
     // il profilo salvato, o uno nuovo da salvare per la prima volta

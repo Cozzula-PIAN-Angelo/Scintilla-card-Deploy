@@ -1,5 +1,6 @@
 package com.example.ecommerce.services;
 
+import com.example.ecommerce.entities.AvatarProfilo;
 import com.example.ecommerce.entities.Binder;
 import com.example.ecommerce.entities.MotivoBinder;
 import com.example.ecommerce.entities.Oggetto;
@@ -11,6 +12,7 @@ import com.example.ecommerce.payloads.BinderResponseDTO;
 import com.example.ecommerce.payloads.ModificaProfiloDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.ProfiloDTO;
+import com.example.ecommerce.repositories.AvatarProfiloRepository;
 import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.ProfiloRepository;
@@ -56,6 +58,8 @@ class ProfiloServiceTest {
     private SlotBinderRepository slotRepository;
     @Mock
     private StatisticheService statisticheService;
+    @Mock
+    private AvatarProfiloRepository avatarRepository;
 
     private ProfiloService service;
     private Utente utente;
@@ -64,7 +68,7 @@ class ProfiloServiceTest {
 
     @BeforeEach
     void prepara() {
-        service = new ProfiloService(profiloRepository, oggettoRepository, binderRepository, slotRepository, statisticheService);
+        service = new ProfiloService(profiloRepository, oggettoRepository, binderRepository, slotRepository, statisticheService, avatarRepository);
         id = UUID.randomUUID();
         utente = new Utente("mario", "mario@esempio.it", "hash");
         ReflectionTestUtils.setField(utente, "id", id);
@@ -227,6 +231,64 @@ class ProfiloServiceTest {
 
         assertThat(risposta.vetrina()).extracting(OggettoResponseDTO::id).containsExactly(a.getId(), c.getId());
         assertThat(risposta.binder()).isEmpty();
+    }
+
+    @Test
+    void salvaAvatarImpostaLaVersione() {
+        Profilo profilo = profiloEsistente();
+        when(avatarRepository.findById(id)).thenReturn(Optional.empty());
+
+        ProfiloDTO risposta = service.salvaAvatar(utente, webp());
+
+        ArgumentCaptor<AvatarProfilo> salvato = ArgumentCaptor.forClass(AvatarProfilo.class);
+        verify(avatarRepository).save(salvato.capture());
+        assertThat(salvato.getValue().getContentType()).isEqualTo("image/webp");
+        assertThat(profilo.getAvatarAggiornatoIl()).isNotNull();
+        assertThat(risposta.avatarAggiornatoIl()).isEqualTo(profilo.getAvatarAggiornatoIl());
+    }
+
+    @Test
+    void salvaAvatarRifiutaUnFormatoSconosciuto() {
+        profiloEsistente();
+
+        assertThatThrownBy(() -> service.salvaAvatar(utente, new byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}))
+                .isInstanceOf(BadRequestException.class);
+        verify(avatarRepository, never()).save(any());
+    }
+
+    @Test
+    void rimuoviAvatarAzzeraLaVersione() {
+        Profilo profilo = profiloEsistente();
+        profilo.setAvatarAggiornatoIl(Instant.now());
+        when(avatarRepository.existsById(id)).thenReturn(true);
+
+        ProfiloDTO risposta = service.rimuoviAvatar(utente);
+
+        verify(avatarRepository).deleteById(id);
+        assertThat(profilo.getAvatarAggiornatoIl()).isNull();
+        assertThat(risposta.avatarAggiornatoIl()).isNull();
+    }
+
+    @Test
+    void getAvatarDiUnUtenteSenzaAvatar() {
+        when(avatarRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getAvatar(id)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void getAvatarDiUnAccountAnonimizzato() {
+        utente.setAnonimizzatoIl(Instant.now());
+        when(avatarRepository.findById(id)).thenReturn(Optional.of(new AvatarProfilo(utente, webp(), "image/webp")));
+
+        assertThatThrownBy(() -> service.getAvatar(id)).isInstanceOf(NotFoundException.class);
+    }
+
+    private static byte[] webp() {
+        byte[] b = new byte[32];
+        byte[] firma = {'R', 'I', 'F', 'F', 0, 0, 0, 0, 'W', 'E', 'B', 'P'};
+        System.arraycopy(firma, 0, b, 0, firma.length);
+        return b;
     }
 
     private Profilo profiloEsistente() {

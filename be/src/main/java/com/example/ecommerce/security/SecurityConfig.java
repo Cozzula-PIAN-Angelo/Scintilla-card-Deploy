@@ -54,6 +54,8 @@ public class SecurityConfig {
             get("/artisti"),
             get("/artisti/*/carte"),
             get("/artisti/*/carte/stato"),
+            // immagine profilo: URL con UUID e versione, servita senza token per usarla in un <img>
+            get("/avatar/*"),
             // health check di Render
             get("/actuator/health"),
             get("/actuator/health/**"));
