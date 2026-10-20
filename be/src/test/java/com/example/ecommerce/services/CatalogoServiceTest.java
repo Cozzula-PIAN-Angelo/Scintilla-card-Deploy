@@ -503,6 +503,20 @@ class CatalogoServiceTest {
         assertThat(nuova.getSimboloUrl()).isEqualTo("https://assets.tcgdex.net/univ/me/me05/symbol.png");
     }
 
+    // 59 set su TCGdex non hanno logo (30th, Temporal Forces, promo...): resta quello salvato (di pokemontcg.io)
+    @Test
+    void sincronizzaTieneIlLogoSalvatoSeTcgdexNonLoHa() {
+        Espansione salvata = new Espansione("30th");
+        salvata.setLogoUrl("https://images.pokemontcg.io/me55/logo.png");
+        when(espansioneRepository.findById("30th")).thenReturn(Optional.of(salvata));
+        when(client.set()).thenReturn(List.of(new TcgdexApi.Set("30th", "30th Celebration", "2026-09-16", null, null,
+                new TcgdexApi.Serie("me", "Mega Evolution"), new TcgdexApi.CardCount(161, 128))));
+
+        service.sincronizzaEspansioni();
+
+        assertThat(salvata.getLogoUrl()).isEqualTo("https://images.pokemontcg.io/me55/logo.png");
+    }
+
     // la carta porta solo id, nome e totali del set: un set già nel catalogo non perde serie, data e logo
     @Test
     void cartaNonRovinaIlSetGiaSalvato() {

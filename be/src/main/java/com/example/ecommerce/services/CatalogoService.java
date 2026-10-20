@@ -383,15 +383,18 @@ public class CatalogoService {
         return set.size();
     }
 
-    // il simbolo si scrive solo se manca: quelli di TCGdex oggi non si caricano (400), e i set già nel catalogo
-    // tengono quello che hanno
+    // il logo si scrive solo se TCGdex ce l'ha: a una sessantina di set manca (30th, Temporal Forces, promo...) e
+    // quelli già nel catalogo tengono il loro (di pokemontcg.io). Il simbolo solo se manca: quelli di TCGdex oggi
+    // non si caricano (400)
     private Espansione aggiornaDa(TcgdexApi.Set dati) {
         Espansione espansione = espansioneRepository.findById(dati.id()).orElseGet(() -> new Espansione(dati.id()));
         espansione.setNome(dati.name());
         espansione.setSerie(dati.serie() == null ? null : dati.serie().name());
         espansione.setTotaleCarte(totale(dati.cardCount()));
         espansione.setDataUscita(dataUscita(dati.releaseDate()));
-        espansione.setLogoUrl(dati.logo() == null ? null : dati.logo() + ".png");
+        if (dati.logo() != null) {
+            espansione.setLogoUrl(dati.logo() + ".png");
+        }
         if (espansione.getSimboloUrl() == null && dati.symbol() != null) {
             espansione.setSimboloUrl(dati.symbol() + ".png");
         }
