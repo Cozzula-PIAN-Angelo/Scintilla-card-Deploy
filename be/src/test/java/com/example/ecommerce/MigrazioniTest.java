@@ -88,7 +88,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -281,7 +281,7 @@ class MigrazioniTest {
                 UUID.randomUUID(), binder, carta));
     }
 
-    // V10: limiti e doppioni del profilo, controllati anche dal database
+    // V11: limiti e doppioni del profilo, controllati anche dal database
     @Test
     void vincoliDelProfilo() {
         inserisciUtenteCartaEBinder();

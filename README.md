@@ -200,7 +200,7 @@ cancellato). Per ripartire da un database nuovo senza perdere i dati:
    ```
    Nasce `dati-iniziali.b64` (base64 di gzip di un JSON con le righe di ogni tabella). Contiene email e
    hash delle password: non va in git (è nel `.gitignore`). Dentro c'è solo quello che non si può
-   riscaricare: utenti, collezioni, binder, preferiti e le sole carte che usano. Il resto del catalogo si
+   riscaricare: utenti, collezioni, binder, preferiti, profili e le sole carte che usano. Il resto del catalogo si
    riscarica da TCGdex alla prima apertura delle pagine (i set escono non importati), così il file resta di
    pochi kB anche con migliaia di carte nel catalogo.
 2. `scintilla-be` > **Environment** > **Secret Files**: aggiungere `dati-iniziali.b64` con il contenuto

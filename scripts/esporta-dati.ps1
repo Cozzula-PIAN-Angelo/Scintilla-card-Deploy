@@ -1,6 +1,6 @@
 # Esporta i dati del database (di solito quello di Render) in dati-iniziali.b64: lo legge DatiInizialiSeeder
 # al primo avvio di un database nuovo. Formato: base64 di gzip di un JSON {"tabella": [righe...]}.
-# Solo quello che non si può riscaricare: utenti, collezioni, binder, preferiti e le sole carte che usano. Il resto
+# Solo quello che non si può riscaricare: utenti, collezioni, binder, preferiti, profili e le sole carte che usano. Il resto
 # del catalogo si riscarica da TCGdex alla prima apertura delle pagine: i set escono non importati e le date degli
 # import di Pokémon e artisti vuote. Così il file resta piccolo anche quando il catalogo cresce.
 # Il file contiene email e hash delle password: non va in git (vedi .gitignore), si carica su Render come
@@ -28,7 +28,7 @@ $soglia = 450 * 1024
 
 # carte usate dai dati degli utenti: le uniche del catalogo che vanno nel file
 $usate = 'SELECT id_oggetto FROM collezione UNION SELECT id_oggetto FROM binder_slot ' +
-    'UNION SELECT id_oggetto FROM utenti_oggetti_preferiti ' +
+    'UNION SELECT id_oggetto FROM utenti_oggetti_preferiti UNION SELECT id_oggetto FROM profili_vetrina ' +
     'UNION SELECT id_carta_copertina FROM binder WHERE id_carta_copertina IS NOT NULL'
 # righe da esportare per tabella (una colonna r con la riga in JSON); le altre tabelle tutte intere
 $selezione = @{

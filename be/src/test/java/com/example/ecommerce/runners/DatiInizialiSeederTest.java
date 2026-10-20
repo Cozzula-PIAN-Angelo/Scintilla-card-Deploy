@@ -101,6 +101,28 @@ class DatiInizialiSeederTest {
         assertThat(nelloScript).containsExactlyElementsOf(DatiInizialiSeeder.TABELLE);
     }
 
+    // lo script esporta solo le carte usate dai dati degli utenti: ogni tabella che punta a una carta (tranne
+    // l'indice per Pokémon, che segue le carte) deve finire in $usate, altrimenti l'import viola la chiave esterna
+    @Test
+    void scriptEsportaLeCarteDiOgniTabellaCheLeUsa() throws Exception {
+        String script = Files.readString(Path.of("..", "scripts", "esporta-dati.ps1"));
+        Matcher usate = Pattern.compile("\\$usate = ((?:'[^']*'\\s*\\+?\\s*)+)").matcher(script);
+        assertThat(usate.find()).as("query $usate nello script").isTrue();
+        String query = usate.group(1).replaceAll("'\\s*\\+\\s*'", "");
+        List<String> riferimenti = jdbc.queryForList("""
+                SELECT c.conrelid::regclass::text || '.' || a.attname FROM pg_constraint c
+                JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
+                WHERE c.contype = 'f' AND c.confrelid = 'oggetti'::regclass""", String.class);
+
+        assertThat(riferimenti).isNotEmpty();
+        for (String riferimento : riferimenti) {
+            String tabella = riferimento.substring(0, riferimento.indexOf('.'));
+            String colonna = riferimento.substring(riferimento.indexOf('.') + 1);
+            if (tabella.equals("oggetti_pokedex")) continue;
+            assertThat(query).as(riferimento).contains("SELECT " + colonna + " FROM " + tabella);
+        }
+    }
+
     @Test
     void colonnaAssenteNelFilePrendeIlDefault() throws Exception {
         // file esportato prima di una migrazione che aggiunge una colonna NOT NULL DEFAULT (es. V4 mostra_mancanti)
