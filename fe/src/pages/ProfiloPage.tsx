@@ -6,6 +6,10 @@ import { Skeleton } from '../components/Skeleton'
 import { StatoErrore } from '../components/StatiPagina'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { IntestazioneProfilo } from '../features/profilo/IntestazioneProfilo'
+import { ModaleBinderEvidenza } from '../features/profilo/ModaleBinderEvidenza'
+import { ModaleProfilo } from '../features/profilo/ModaleProfilo'
+import { ModaleSquadra } from '../features/profilo/ModaleSquadra'
+import { ModaleVetrina } from '../features/profilo/ModaleVetrina'
 import { useGetProfiloQuery } from '../features/profilo/profiloApi'
 import { RiepilogoProfilo } from '../features/profilo/RiepilogoProfilo'
 import { SezioneBinderEvidenza } from '../features/profilo/SezioneBinderEvidenza'
@@ -20,7 +24,8 @@ export type Modifica = 'profilo' | 'squadra' | 'vetrina' | 'binder'
 export function ProfiloPage() {
   useTitolo('Il mio profilo')
   const { data: profilo, isLoading, isError, error, refetch } = useGetProfiloQuery()
-  const [, setModifica] = useState<Modifica | null>(null)
+  const [modifica, setModifica] = useState<Modifica | null>(null)
+  const chiudi = () => setModifica(null)
   const preferiti = usePreferiti()
   // le frecce del dettaglio sfogliano le carte della vetrina
   const { apri, modale } = useCartaSelezionata(preferiti, undefined, profilo?.vetrina)
@@ -49,6 +54,11 @@ export function ProfiloPage() {
             <SezioneVetrina vetrina={profilo.vetrina} onApri={apri} onModifica={() => setModifica('vetrina')} />
             <SezioneBinderEvidenza binder={profilo.binder} onModifica={() => setModifica('binder')} />
           </div>
+
+          <ModaleProfilo aperta={modifica === 'profilo'} onChiudi={chiudi} profilo={profilo} />
+          <ModaleSquadra aperta={modifica === 'squadra'} onChiudi={chiudi} squadra={profilo.squadra} />
+          <ModaleVetrina aperta={modifica === 'vetrina'} onChiudi={chiudi} vetrina={profilo.vetrina} />
+          <ModaleBinderEvidenza aperta={modifica === 'binder'} onChiudi={chiudi} binder={profilo.binder} />
         </>
       )}
 
