@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
 import { selectToken, selectUtente } from '../features/auth/authSlice'
-import { ModaleCancellaAccount } from '../features/auth/ModaleCancellaAccount'
 import { useScrollato } from '../hooks/useScrollato'
 import { molla } from '../theme/motion'
 import { useTema } from '../theme/tema'
@@ -21,7 +20,6 @@ export function Navbar() {
   const utente = useAppSelector(selectUtente)
   const { tema, alterna } = useTema()
   const [menuAperto, setMenuAperto] = useState(false)
-  const [cancellazioneAperta, setCancellazioneAperta] = useState(false)
   const { pathname } = useLocation()
 
   useEffect(() => setMenuAperto(false), [pathname])
@@ -70,7 +68,7 @@ export function Navbar() {
 
           <div className="hidden lg:block">
             {utente ? (
-              <MenuAccount onCancellaAccount={() => setCancellazioneAperta(true)} />
+              <MenuAccount />
             ) : (
               !token && (
                 <div className="flex items-center gap-2">
@@ -118,13 +116,12 @@ export function Navbar() {
             className="overflow-hidden lg:hidden"
           >
             <div className="mx-4 mt-3 rounded-3xl bg-notte-2 p-3 shadow-xl sm:ml-auto sm:mr-6 sm:max-w-sm">
-              <ContenutoAccount onCancellaAccount={() => setCancellazioneAperta(true)} />
+              <ContenutoAccount />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <ModaleCancellaAccount aperta={cancellazioneAperta} onChiudi={() => setCancellazioneAperta(false)} />
     </header>
   )
 }

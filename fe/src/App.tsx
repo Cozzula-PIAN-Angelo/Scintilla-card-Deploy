@@ -14,11 +14,13 @@ import { BinderPage } from './pages/BinderPage'
 import { CollezionePage } from './pages/CollezionePage'
 import { CatalogoPage } from './pages/CatalogoPage'
 import { EspansionePage } from './pages/EspansionePage'
+import { ImpostazioniPage } from './pages/ImpostazioniPage'
 import { LoginPage } from './pages/LoginPage'
 import { NonTrovataPage } from './pages/NonTrovataPage'
 import { PokedexPage } from './pages/PokedexPage'
 import { PokemonPage } from './pages/PokemonPage'
 import { PreferitiPage } from './pages/PreferitiPage'
+import { ProfiloPage } from './pages/ProfiloPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { cn } from './utils/cn'
 
@@ -66,6 +68,22 @@ export function App() {
               element={
                 <ProtectedRoute>
                   <PreferitiPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profilo"
+              element={
+                <ProtectedRoute>
+                  <ProfiloPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profilo/impostazioni"
+              element={
+                <ProtectedRoute>
+                  <ImpostazioniPage />
                 </ProtectedRoute>
               }
             />

@@ -1,4 +1,4 @@
-import { Album, BookOpen, ChartPie, Heart, LayoutGrid, Palette, ShieldCheck, type LucideIcon } from 'lucide-react'
+import { Album, BookOpen, ChartPie, Heart, LayoutGrid, Palette, Settings, ShieldCheck, UserRound, type LucideIcon } from 'lucide-react'
 
 export interface VoceMenu {
   a: string
@@ -20,6 +20,10 @@ export const VOCE_ADMIN: VoceMenu = { a: '/admin', etichetta: 'Admin', icona: Sh
 
 // statistiche della collezione: nel pannello account (telefono) e accanto a Esci (desktop)
 export const VOCE_COLLEZIONE: VoceMenu = { a: '/collezione', etichetta: 'Collezione', icona: ChartPie }
+
+// profilo e impostazioni dell'account: nel pannello account
+export const VOCE_PROFILO: VoceMenu = { a: '/profilo', etichetta: 'Profilo', icona: UserRound }
+export const VOCE_IMPOSTAZIONI: VoceMenu = { a: '/profilo/impostazioni', etichetta: 'Impostazioni', icona: Settings }
 
 // la pagina di un'espansione fa parte del catalogo
 export function voceAttiva(voce: VoceMenu, isActive: boolean, pathname: string): boolean {
