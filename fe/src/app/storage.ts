@@ -1,4 +1,4 @@
-const CHIAVE_TOKEN = 'scintilla.token'
+export const CHIAVE_TOKEN = 'scintilla.token'
 
 // localStorage può essere inaccessibile (navigazione privata, cookie bloccati):
 // in quel caso il token resta solo in memoria per la sessione corrente

@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
-import authReducer from '../features/auth/authSlice'
+import authReducer, { tokenRinnovato } from '../features/auth/authSlice'
 import toastReducer from '../features/toast/toastSlice'
 import { api } from './api'
+import { tokenDaAltraScheda } from './sessione'
 import { salvaToken } from './storage'
 
 export const store = configureStore({
@@ -21,6 +22,12 @@ store.subscribe(() => {
     tokenPrecedente = token
     salvaToken(token)
   }
+})
+
+// cambio password in un'altra scheda: questa prende il token nuovo (vedi tokenDaAltraScheda)
+window.addEventListener('storage', (evento) => {
+  const nuovo = tokenDaAltraScheda(evento.key, evento.newValue, store.getState().auth.token)
+  if (nuovo) store.dispatch(tokenRinnovato(nuovo))
 })
 
 export type RootState = ReturnType<typeof store.getState>
