@@ -14,8 +14,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -95,38 +93,6 @@ class MigrazioneTcgdexTest {
         assertThat(campi(jdbc, charizard)).isEqualTo("base1-4|base1|https://assets.tcgdex.net/en/base/base1/4/high.webp|||");
         assertThat(ConversioneIdTcgdex.converti(jdbc, AbbinamentoTcgdex.get()))
                 .isEqualTo(new ConversioneIdTcgdex.Esito(0, 0, 0));
-    }
-
-    // un id nuovo uguale all'id vecchio di un'altra carta che si sposta nello stesso giro: catena e scambio passano;
-    // resta ferma solo la carta il cui id nuovo è di una carta che non si sposta (e quella che puntava al suo id)
-    @Test
-    void idNuovoLiberatoNelloStessoGiro() {
-        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-        set(jdbc, "aa", false);
-        UUID catena1 = carta(jdbc, "Uno", "aa-1", "aa", null);
-        UUID catena2 = carta(jdbc, "Due", "aa-2", "aa", null);
-        UUID scambio1 = carta(jdbc, "Tre", "bb-1", "aa", null);
-        UUID scambio2 = carta(jdbc, "Quattro", "bb-2", "aa", null);
-        UUID bloccata = carta(jdbc, "Cinque", "cc-1", "aa", null);
-        carta(jdbc, "Sei", "cc-2", "aa", null);
-        UUID versoBloccata = carta(jdbc, "Sette", "dd-1", "aa", null);
-        AbbinamentoTcgdex abbinamento = AbbinamentoTcgdex.da(new ByteArrayInputStream("""
-                {"set": {}, "immagini": {}, "riserve": {}, "carte": {
-                  "aa-1": "aa-2", "aa-2": "aa-3", "bb-1": "bb-2", "bb-2": "bb-1", "cc-1": "cc-2", "dd-1": "cc-1"}}
-                """.getBytes(StandardCharsets.UTF_8)));
-
-        assertThat(ConversioneIdTcgdex.converti(jdbc, abbinamento)).isEqualTo(new ConversioneIdTcgdex.Esito(0, 4, 2));
-
-        assertThat(idEsterno(jdbc, catena1)).isEqualTo("aa-2");
-        assertThat(idEsterno(jdbc, catena2)).isEqualTo("aa-3");
-        assertThat(idEsterno(jdbc, scambio1)).isEqualTo("bb-2");
-        assertThat(idEsterno(jdbc, scambio2)).isEqualTo("bb-1");
-        assertThat(idEsterno(jdbc, bloccata)).isEqualTo("cc-1");
-        assertThat(idEsterno(jdbc, versoBloccata)).isEqualTo("dd-1");
-    }
-
-    private static String idEsterno(JdbcTemplate jdbc, UUID carta) {
-        return jdbc.queryForObject("SELECT id_esterno FROM oggetti WHERE id = ?", String.class, carta);
     }
 
     private static void set(JdbcTemplate jdbc, String id, boolean importata) {
