@@ -179,9 +179,13 @@ cancellato). Per ripartire da un database nuovo senza perdere i dati:
    powershell -ExecutionPolicy Bypass -File scripts\esporta-dati.ps1 -FileUrl C:\percorso\render-url.txt
    ```
    Nasce `dati-iniziali.b64` (base64 di gzip di un JSON con le righe di ogni tabella). Contiene email e
-   hash delle password: non va in git (è nel `.gitignore`).
+   hash delle password: non va in git (è nel `.gitignore`). Dentro c'è solo quello che non si può
+   riscaricare: utenti, collezioni, binder, preferiti e le sole carte che usano. Il resto del catalogo si
+   riscarica da TCGdex alla prima apertura delle pagine (i set escono non importati), così il file resta di
+   pochi kB anche con migliaia di carte nel catalogo.
 2. `scintilla-be` > **Environment** > **Secret Files**: aggiungere `dati-iniziali.b64` con il contenuto
-   del file. Render ne accetta al massimo 1 MB in tutto: lo script avvisa sopra 900 kB e si ferma oltre.
+   del file. Render accetta Secret File fino a **500 KiB** (oltre, il deploy fallisce con `secret ... too big`):
+   lo script avvisa sopra 450 KiB e si ferma oltre.
 3. Cancellare il vecchio `scintilla-db` (un solo database gratuito per volta), poi **Blueprint** >
    **Manual Sync**: nasce un `scintilla-db` vuoto, collegato da solo al backend.
 4. `scintilla-be` > **Manual Deploy**. Al primo avvio Flyway crea le tabelle e `DatiInizialiSeeder`, visto
