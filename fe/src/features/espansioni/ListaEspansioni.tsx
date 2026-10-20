@@ -6,6 +6,7 @@ import { useDebounce } from '../../hooks/useDebounce'
 import type { Espansione } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { raggruppaPerSerie } from './raggruppaPerSerie'
+import { SimboloSet } from '../../components/SimboloSet'
 
 interface Props {
   espansioni: Espansione[]
@@ -109,9 +110,7 @@ export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, class
                             )}
                           >
                             <span className="grid size-5 shrink-0 place-items-center">
-                              {espansione.simboloUrl && (
-                                <img src={espansione.simboloUrl} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.display = 'none')} className="max-h-5 max-w-5 object-contain" />
-                              )}
+                              <SimboloSet src={espansione.simboloUrl} lazy className="max-h-5 max-w-5" />
                             </span>
                             <span className="min-w-0 flex-1 truncate">{espansione.nome}</span>
                             <span className={cn('shrink-0 text-xs', attuale ? 'text-white/80' : 'text-testo/40')}>

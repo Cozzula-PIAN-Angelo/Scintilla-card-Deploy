@@ -106,6 +106,9 @@ public class CatalogoService {
         }
 
         Carta carta = tcgdex.dettaglio(idEsterno);
+        if (!haEspansione(carta)) {
+            throw new ServizioEsternoException("TCGdex ha restituito la carta " + idEsterno + " senza espansione", null);
+        }
 
         BigDecimal prezzo = body != null && body.prezzo() != null ? body.prezzo() : prezzoSuggerito(carta);
         if (prezzo == null) {
@@ -323,7 +326,7 @@ public class CatalogoService {
                 // nomi già nel catalogo tra quelli delle carte nuove, letti tutti insieme; nomeLibero ci
                 // aggiunge man mano quelli assegnati in questo import, non ancora salvati
                 Set<String> nomiUsati = nomiOccupati(carte.stream()
-                        .filter(carta -> carta.set() != null && carta.set().id() != null)
+                        .filter(CatalogoService::haEspansione)
                         .filter(carta -> !giaImportate.containsKey(carta.id()))
                         .map(CatalogoService::componiNome)
                         .collect(Collectors.toSet()));
@@ -333,7 +336,7 @@ public class CatalogoService {
                 int rinominate = 0;
 
                 for (Carta carta : carte) {
-                    if (carta.set() == null || carta.set().id() == null) {
+                    if (!haEspansione(carta)) {
                         log.warn("Carta {} senza espansione nella risposta di TCGdex: non importata", carta.id());
                         saltate++;
                         continue;
@@ -417,6 +420,11 @@ public class CatalogoService {
 
     // l'espansione di una carta: quella del catalogo, oppure una nuova con i soli dati che la carta porta (nome
     // e totale; serie, data e logo arrivano con la sincronizzazione). Sempre in transazione
+    // una carta senza espansione nella risposta di TCGdex non si importa
+    private static boolean haEspansione(Carta carta) {
+        return carta.set() != null && carta.set().id() != null;
+    }
+
     private Espansione espansioneDi(TcgdexApi.SetDellaCarta dati) {
         return espansioneRepository.findById(dati.id()).orElseGet(() -> {
             Espansione nuova = new Espansione(dati.id());

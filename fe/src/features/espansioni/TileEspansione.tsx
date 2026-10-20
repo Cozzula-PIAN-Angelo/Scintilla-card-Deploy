@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Espansione } from '../../types/api'
 import { elementoGriglia } from '../../theme/motion'
 import { cn } from '../../utils/cn'
+import { SimboloSet } from '../../components/SimboloSet'
 
 interface Props {
   espansione: Espansione
@@ -46,7 +47,7 @@ export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
         <div className="mt-auto">
           <p className="line-clamp-2 font-semibold leading-tight text-testo">{espansione.nome}</p>
           <p className="mt-1 flex items-center justify-center gap-1.5 text-xs font-medium text-testo/70">
-            {espansione.simboloUrl && <img src={espansione.simboloUrl} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.display = 'none')} className="size-4 object-contain" />}
+            <SimboloSet src={espansione.simboloUrl} lazy className="size-4" />
             {[anno, espansione.totaleCarte != null && `${espansione.totaleCarte} carte`].filter(Boolean).join(' · ')}
           </p>
         </div>

@@ -7,6 +7,7 @@ import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.payloads.CartaEsternaDTO;
+import com.example.ecommerce.payloads.ImportaCartaDTO;
 import com.example.ecommerce.payloads.ImportaSetResponseDTO;
 import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.payloads.TcgdexApi;
@@ -193,6 +194,18 @@ class CatalogoServiceTest {
         assertThatThrownBy(() -> service.importa("sv1-3", null))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("prezzo");
+    }
+
+    // risposta di TCGdex senza espansione: errore del servizio esterno (502), non un 500
+    @Test
+    void importSingoloSenzaSetEErroreEsterno() {
+        TcgdexApi.Carta senzaSet = new TcgdexApi.Carta("xx-1", "1", "Energia", null, null, null, null, null, null, null);
+        when(client.dettaglio("xx-1")).thenReturn(senzaSet);
+
+        assertThatThrownBy(() -> service.importa("xx-1", new ImportaCartaDTO(BigDecimal.ONE)))
+                .isInstanceOf(ServizioEsternoException.class)
+                .hasMessageContaining("xx-1");
+        verify(oggettoRepository, never()).saveAndFlush(any());
     }
 
     // Review Focus 4: dettaglio a cui mancano i blocchi facoltativi
