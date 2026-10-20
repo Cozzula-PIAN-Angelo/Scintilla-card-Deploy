@@ -1,65 +1,48 @@
 // Genera be/src/main/resources/artisti.json, l'elenco degli artisti della sezione Artisti, da tutte le carte
-// di pokemontcg.io. Si rilancia quando escono set nuovi, poi si fa il deploy:
+// di TCGdex. Si rilancia quando escono set nuovi, poi si fa il deploy:
 //   node scripts/genera-artisti.mjs
-// Chiave facoltativa: POKEMONTCG_API_KEY (alza i limiti dell'API). Con l'API instabile può durare mezz'ora;
-// le pagine lette si salvano in una cache temporanea, così dopo un'interruzione si riparte da dove si era
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { ALIAS, QUERY_MANUALI, dividi, query, sceltaAvatar, slug } from './artisti-regole.mjs'
+// Tutte le carte arrivano con una chiamata GraphQL (qualche MB, pochi secondi)
+import { writeFileSync } from 'node:fs'
+import { ALIAS, dividi, sceltaAvatar, slug } from './artisti-regole.mjs'
 
-const API = 'https://api.pokemontcg.io/v2/cards'
+const GRAPHQL = 'https://api.tcgdex.net/v2/graphql'
 const DESTINAZIONE = new URL('../be/src/main/resources/artisti.json', import.meta.url)
 // riservato alla pagina delle carte senza artista
 const SLUG_SCONOSCIUTO = 'sconosciuto'
-// l'API resta giù anche per minuti: 20 tentativi con attese fino a un minuto
-const TENTATIVI = 20
-// pagine più piccole del massimo (250): con quelle grandi pokemontcg.io risponde 500/502 molto più spesso
-const PAGINA = 100
-const CACHE = join(tmpdir(), 'scintilla-genera-artisti.json')
-
-const intestazioni = {
-  // senza User-Agent pokemontcg.io risponde 403 ai client che non sono browser o curl
-  'User-Agent': 'scintilla-genera-artisti',
-  ...(process.env.POKEMONTCG_API_KEY ? { 'X-Api-Key': process.env.POKEMONTCG_API_KEY } : {}),
-}
+// i set di Pokémon TCG Pocket (gioco per telefono) non sono carte da collezionare
+const SERIE_POCKET = 'tcgp'
+const TENTATIVI = 5
 
 const attendi = (ms) => new Promise((risolvi) => setTimeout(risolvi, ms))
 
-// GET con tentativi: pokemontcg.io dà spesso 500/502/429 a caso. Si ritentano quelli e gli errori di rete;
-// gli altri stati (400, 403, 404) non cambiano riprovando e fermano subito lo script
-async function leggi(parametri) {
-  const url = `${API}?${new URLSearchParams(parametri)}`
+async function graphql(query) {
   for (let tentativo = 1; ; tentativo++) {
-    let risposta
     try {
-      risposta = await fetch(url, { headers: intestazioni })
+      const risposta = await fetch(GRAPHQL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+        signal: AbortSignal.timeout(120_000),
+      })
+      if (!risposta.ok) throw new Error(`HTTP ${risposta.status}`)
+      const corpo = await risposta.json()
+      if (corpo.errors) throw new Error(`GraphQL di TCGdex: ${JSON.stringify(corpo.errors).slice(0, 500)}`)
+      return corpo.data
     } catch (errore) {
       if (tentativo >= TENTATIVI) throw errore
+      await attendi(tentativo * 5000)
     }
-    if (risposta?.ok) return await risposta.json()
-    if (risposta) {
-      const temporaneo = risposta.status >= 500 || risposta.status === 429
-      if (!temporaneo || tentativo >= TENTATIVI) throw new Error(`HTTP ${risposta.status} su ${url}`)
-    }
-    await attendi(Math.min(2 ** (tentativo - 1), 60) * 1000)
   }
 }
 
+// la GraphQL non risolve la serie del set dentro la carta: set e carte si chiedono a parte e si uniscono per id
 async function scaricaTutte() {
-  // orderBy=id pagina in modo stabile: con la cache si riparte dalla pagina dopo l'ultima completa
-  const carte = new Map(existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, 'utf8')) : [])
-  if (carte.size > 0) console.error(`ripresa dalla cache: ${carte.size} carte`)
-  for (let pagina = Math.floor(carte.size / PAGINA) + 1; ; pagina++) {
-    const risposta = await leggi({ page: pagina, pageSize: PAGINA, orderBy: 'id', select: 'id,artist,rarity,set,images' })
-    if (!risposta.data?.length) break
-    for (const carta of risposta.data) carte.set(carta.id, carta)
-    writeFileSync(CACHE, JSON.stringify([...carte]), 'utf8')
-    process.stderr.write(`\rcarte lette: ${carte.size} / ${risposta.totalCount}`)
-    if (carte.size >= risposta.totalCount) break
-  }
-  process.stderr.write('\n')
-  return [...carte.values()]
+  const { sets } = await graphql('{ sets { id releaseDate serie { id } } }')
+  const perId = new Map(sets.filter((set) => set.serie?.id !== SERIE_POCKET).map((set) => [set.id, set]))
+  const { cards } = await graphql('{ cards { id illustrator rarity image set { id } } }')
+  return cards
+    .filter((carta) => perId.has(carta.set?.id))
+    .map((carta) => ({ ...carta, data: perId.get(carta.set.id).releaseDate ?? '' }))
 }
 
 // nome pulito -> { grafie, carte, candidati per l'avatar }
@@ -68,42 +51,41 @@ function raggruppa(carte) {
   let sconosciuti = 0
   let conCoautori = 0
   for (const carta of carte) {
-    if (!carta.artist) {
+    if (!carta.illustrator) {
       sconosciuti++
       continue
     }
-    const nomi = dividi(carta.artist)
+    const nomi = dividi(carta.illustrator)
     if (nomi.length > 1) conCoautori++
     for (const nome of nomi) {
       if (!perNome.has(nome)) perNome.set(nome, { grafie: new Set(), carte: new Set(), candidati: [] })
       const voce = perNome.get(nome)
-      voce.grafie.add(carta.artist)
+      voce.grafie.add(carta.illustrator)
       voce.carte.add(carta.id)
       voce.candidati.push({
         rarity: carta.rarity,
-        data: carta.set?.releaseDate ?? '',
+        data: carta.data,
         id: carta.id,
-        immagine: carta.images?.small,
+        immagine: carta.image ? `${carta.image}/low.webp` : null,
       })
     }
   }
   return { perNome, sconosciuti, conCoautori }
 }
 
+// grafie: i valori grezzi di illustrator, così come li cerca il backend (una chiamata per grafia)
 function componi(perNome) {
-  const artisti = [...perNome].map(([nome, voce]) => {
-    const alias = Object.keys(ALIAS).filter((grafia) => ALIAS[grafia] === nome)
-    return {
-      slug: slug(nome),
-      nome,
-      grafie: [...voce.grafie].sort(),
-      query: QUERY_MANUALI[nome] ?? query([nome, ...alias]),
-      carte: voce.carte.size,
-      avatar: sceltaAvatar(voce.candidati),
-    }
-  })
+  const artisti = [...perNome].map(([nome, voce]) => ({
+    slug: slug(nome),
+    nome,
+    grafie: [...voce.grafie].sort(),
+    carte: voce.carte.size,
+    // senza immagine nessun avatar: la pagina mostra le iniziali
+    avatar: sceltaAvatar(voce.candidati.filter((candidato) => candidato.immagine)) ?? null,
+  }))
   const visti = new Map()
   for (const artista of artisti) {
+    if (artista.slug === '') throw new Error(`Slug vuoto per "${artista.nome}" (aggiungi un alias)`)
     if (artista.slug === SLUG_SCONOSCIUTO) throw new Error(`Lo slug "${SLUG_SCONOSCIUTO}" è riservato: ${artista.nome}`)
     if (visti.has(artista.slug)) {
       throw new Error(`Slug "${artista.slug}" doppio: "${visti.get(artista.slug)}" e "${artista.nome}" (aggiungi un alias)`)
@@ -113,36 +95,12 @@ function componi(perNome) {
   return artisti.sort((a, b) => a.slug.localeCompare(b.slug))
 }
 
-// ogni query deve ritrovare almeno tutte le carte dell'artista: un nome che l'API non trova si scopre qui
-// più query insieme: una alla volta, con i 502 e le attese dei tentativi, la verifica durerebbe ore
-const VERIFICHE_IN_PARALLELO = 6
-
-async function verifica(artisti) {
-  const errori = []
-  const daFare = [...artisti]
-  let fatte = 0
-  const lavora = async () => {
-    for (let artista = daFare.shift(); artista; artista = daFare.shift()) {
-      const risposta = await leggi({ q: artista.query, pageSize: 1, select: 'id' })
-      if (risposta.totalCount < artista.carte) {
-        errori.push(`${artista.nome}: la query ${artista.query} trova ${risposta.totalCount} carte, attese ${artista.carte}`)
-      }
-      process.stderr.write(`\rquery verificate: ${++fatte} / ${artisti.length}`)
-    }
-  }
-  await Promise.all(Array.from({ length: VERIFICHE_IN_PARALLELO }, lavora))
-  process.stderr.write('\n')
-  if (errori.length > 0) throw new Error(`Query da sistemare:\n${errori.join('\n')}`)
-}
-
 const carte = await scaricaTutte()
 const { perNome, sconosciuti, conCoautori } = raggruppa(carte)
 const artisti = componi(perNome)
-await verifica(artisti)
 
 const testo = JSON.stringify({ generatoIl: new Date().toISOString().slice(0, 10), sconosciuti, artisti }, null, 1)
 writeFileSync(DESTINAZIONE, testo + '\n', 'utf8')
-rmSync(CACHE, { force: true })
 
 console.log(`Carte lette: ${carte.length}`)
 console.log(`Artisti: ${artisti.length}`)

@@ -1,6 +1,6 @@
 {
- "generatoIl": "2026-10-14",
- "sconosciuti": 1277,
+ "generatoIl": "2026-10-20",
+ "sconosciuti": 719,
  "artisti": [
   {
    "slug": "0313",
@@ -8,9 +8,8 @@
    "grafie": [
     "0313"
    ],
-   "query": "artist:\"0313\"",
-   "carte": 64,
-   "avatar": "https://images.scrydex.com/pokemon/me55-145/small"
+   "carte": 68,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/145/low.webp"
   },
   {
    "slug": "2017-pikachu-project",
@@ -18,9 +17,8 @@
    "grafie": [
     "2017 Pikachu Project"
    ],
-   "query": "artist:\"2017 Pikachu Project\"",
    "carte": 7,
-   "avatar": "https://images.pokemontcg.io/smp/SM114.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/smp/SM114/low.webp"
   },
   {
    "slug": "2019-pikachu-project",
@@ -28,9 +26,8 @@
    "grafie": [
     "2019 Pikachu Project"
    ],
-   "query": "artist:\"2019 Pikachu Project\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/smp/SM228.png"
+   "avatar": null
   },
   {
    "slug": "5ban-graphics",
@@ -38,9 +35,17 @@
    "grafie": [
     "5ban Graphics"
    ],
-   "query": "artist:\"5ban Graphics\"",
-   "carte": 1651,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-57/small"
+   "carte": 1762,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/109/low.webp"
+  },
+  {
+   "slug": "acorviart",
+   "nome": "Acorviart",
+   "grafie": [
+    "Acorviart"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "aimi-tomita",
@@ -48,9 +53,8 @@
    "grafie": [
     "Aimi Tomita"
    ],
-   "query": "artist:\"Aimi Tomita\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/ex8/70.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex8/70/low.webp"
   },
   {
    "slug": "akagi",
@@ -58,9 +62,8 @@
    "grafie": [
     "akagi"
    ],
-   "query": "artist:\"akagi\"",
-   "carte": 24,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-278/small"
+   "carte": 31,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/278/low.webp"
   },
   {
    "slug": "akino-fukuji",
@@ -68,9 +71,8 @@
    "grafie": [
     "Akino Fukuji"
    ],
-   "query": "artist:\"Akino Fukuji\"",
-   "carte": 3,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/106.png"
+   "carte": 4,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/106/low.webp"
   },
   {
    "slug": "akira-egawa",
@@ -78,9 +80,8 @@
    "grafie": [
     "AKIRA EGAWA"
    ],
-   "query": "artist:\"AKIRA EGAWA\"",
-   "carte": 87,
-   "avatar": "https://images.scrydex.com/pokemon/me55-155/small"
+   "carte": 93,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/155/low.webp"
   },
   {
    "slug": "akira-komayama",
@@ -88,9 +89,8 @@
    "grafie": [
     "Akira Komayama"
    ],
-   "query": "artist:\"Akira Komayama\"",
-   "carte": 243,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-279/small"
+   "carte": 258,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/279/low.webp"
   },
   {
    "slug": "aky-cg-works",
@@ -99,19 +99,8 @@
     "aky CG Works",
     "akyCG Works"
    ],
-   "query": "artist:\"aky CG Works\" OR artist:\"akyCG Works\"",
-   "carte": 171,
-   "avatar": "https://images.scrydex.com/pokemon/me55-66/small"
-  },
-  {
-   "slug": "aky-gg-works",
-   "nome": "aky GG Works",
-   "grafie": [
-    "aky GG Works"
-   ],
-   "query": "artist:\"aky GG Works\"",
-   "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me5-55/small"
+   "carte": 187,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/066/low.webp"
   },
   {
    "slug": "aliya-chen",
@@ -119,9 +108,8 @@
    "grafie": [
     "Aliya Chen"
    ],
-   "query": "artist:\"Aliya Chen\"",
-   "carte": 3,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-30/small"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/030/low.webp"
   },
   {
    "slug": "amelicart",
@@ -129,9 +117,17 @@
    "grafie": [
     "Amelicart"
    ],
-   "query": "artist:\"Amelicart\"",
-   "carte": 11,
-   "avatar": "https://images.scrydex.com/pokemon/me55-131/small"
+   "carte": 16,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/131/low.webp"
+  },
+  {
+   "slug": "anderson",
+   "nome": "Anderson",
+   "grafie": [
+    "Anderson"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "anesaki-dynamic",
@@ -139,9 +135,8 @@
    "grafie": [
     "Anesaki Dynamic"
    ],
-   "query": "artist:\"Anesaki Dynamic\"",
-   "carte": 141,
-   "avatar": "https://images.pokemontcg.io/sv2/218.png"
+   "carte": 150,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/098/low.webp"
   },
   {
    "slug": "aoki",
@@ -149,9 +144,8 @@
    "grafie": [
     "aoki"
    ],
-   "query": "artist:\"aoki\"",
-   "carte": 19,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/113.png"
+   "carte": 20,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/113/low.webp"
   },
   {
    "slug": "apios",
@@ -159,9 +153,8 @@
    "grafie": [
     "Apios"
    ],
-   "query": "artist:\"Apios\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/132.png"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/132/low.webp"
   },
   {
    "slug": "arai-kiriko",
@@ -169,9 +162,8 @@
    "grafie": [
     "Arai Kiriko"
    ],
-   "query": "artist:\"Arai Kiriko\"",
-   "carte": 2,
-   "avatar": "https://images.pokemontcg.io/sv3pt5/121.png"
+   "carte": 4,
+   "avatar": "https://assets.tcgdex.net/en/me/me01/145/low.webp"
   },
   {
    "slug": "asako-ito",
@@ -179,9 +171,8 @@
    "grafie": [
     "Asako Ito"
    ],
-   "query": "artist:\"Asako Ito\"",
    "carte": 37,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/151.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/151/low.webp"
   },
   {
    "slug": "aspara",
@@ -189,9 +180,8 @@
    "grafie": [
     "aspara"
    ],
-   "query": "artist:\"aspara\"",
-   "carte": 16,
-   "avatar": "https://images.scrydex.com/pokemon/me4-95/small"
+   "carte": 20,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/095/low.webp"
   },
   {
    "slug": "asuka-iwashita",
@@ -199,9 +189,8 @@
    "grafie": [
     "Asuka Iwashita"
    ],
-   "query": "artist:\"Asuka Iwashita\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/ex8/65.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex8/65/low.webp"
   },
   {
    "slug": "atsuko-nishida",
@@ -209,9 +198,8 @@
    "grafie": [
     "Atsuko Nishida"
    ],
-   "query": "artist:\"Atsuko Nishida\"",
-   "carte": 409,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-5/small"
+   "carte": 419,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/047/low.webp"
   },
   {
    "slug": "atsuko-ujiie",
@@ -219,9 +207,8 @@
    "grafie": [
     "Atsuko Ujiie"
    ],
-   "query": "artist:\"Atsuko Ujiie\"",
    "carte": 7,
-   "avatar": "https://images.pokemontcg.io/ex4/63.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex4/63/low.webp"
   },
   {
    "slug": "atsushi-furusawa",
@@ -229,9 +216,8 @@
    "grafie": [
     "Atsushi Furusawa"
    ],
-   "query": "artist:\"Atsushi Furusawa\"",
-   "carte": 45,
-   "avatar": "https://images.scrydex.com/pokemon/me55-147/small"
+   "carte": 53,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/147/low.webp"
   },
   {
    "slug": "atsuya-uki",
@@ -239,9 +225,8 @@
    "grafie": [
     "Atsuya Uki"
    ],
-   "query": "artist:\"Atsuya Uki\"",
-   "carte": 9,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/134.png"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/134/low.webp"
   },
   {
    "slug": "avec-yoko",
@@ -249,9 +234,8 @@
    "grafie": [
     "Avec Yoko"
    ],
-   "query": "artist:\"Avec Yoko\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sm12/247.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm12/247/low.webp"
   },
   {
    "slug": "aya-kusube",
@@ -259,9 +243,8 @@
    "grafie": [
     "Aya Kusube"
    ],
-   "query": "artist:\"Aya Kusube\"",
-   "carte": 128,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/121.png"
+   "carte": 135,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/121/low.webp"
   },
   {
    "slug": "ayaka-yoshida",
@@ -269,9 +252,8 @@
    "grafie": [
     "Ayaka Yoshida"
    ],
-   "query": "artist:\"Ayaka Yoshida\"",
-   "carte": 129,
-   "avatar": "https://images.scrydex.com/pokemon/me5-105/small"
+   "carte": 140,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/105/low.webp"
   },
   {
    "slug": "ayako-ozaki",
@@ -279,9 +261,8 @@
    "grafie": [
     "Ayako Ozaki"
    ],
-   "query": "artist:\"Ayako Ozaki\"",
-   "carte": 12,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/145.png"
+   "carte": 13,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/145/low.webp"
   },
   {
    "slug": "ayumi-odashima",
@@ -289,20 +270,17 @@
    "grafie": [
     "AYUMI ODASHIMA"
    ],
-   "query": "artist:\"AYUMI ODASHIMA\"",
-   "carte": 56,
-   "avatar": "https://images.scrydex.com/pokemon/me55-129/small"
+   "carte": 78,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/129/low.webp"
   },
   {
    "slug": "benimaru-itoh",
    "nome": "Benimaru Itoh",
    "grafie": [
-    "\"Big Mama\" Tagawa & Benimaru Itoh",
     "Benimaru Itoh"
    ],
-   "query": "artist:\"Benimaru Itoh\"",
-   "carte": 3,
-   "avatar": "https://images.pokemontcg.io/neo2/75.png"
+   "carte": 2,
+   "avatar": "https://assets.tcgdex.net/en/gym/gym1/21/low.webp"
   },
   {
    "slug": "beruburi",
@@ -310,21 +288,20 @@
    "grafie": [
     "BERUBURI"
    ],
-   "query": "artist:\"BERUBURI\"",
    "carte": 5,
-   "avatar": "https://images.pokemontcg.io/bw7/99.png"
+   "avatar": "https://assets.tcgdex.net/en/bw/bw7/99/low.webp"
   },
   {
    "slug": "big-mama-tagawa",
    "nome": "\"Big Mama\" Tagawa",
    "grafie": [
     "\"Big Mama\" Tagawa",
-    "\"Big Mama\" Tagawa & Benimaru Itoh",
-    "\"Big Mama\" Tagawa, CR CG gangs"
+    "\"Big Mama\" Tagawa\"",
+    "\"Big Mama\" Tagawa\"Big Mama\" Tagawa",
+    "Sumiyoshi Kizuki\"Big Mama\" Tagawa"
    ],
-   "query": "artist:\"*Big Mama* Tagawa\"",
-   "carte": 22,
-   "avatar": "https://images.pokemontcg.io/ex14/78.png"
+   "carte": 10,
+   "avatar": "https://assets.tcgdex.net/en/ex/ex14/78/low.webp"
   },
   {
    "slug": "booota",
@@ -332,9 +309,8 @@
    "grafie": [
     "booota"
    ],
-   "query": "artist:\"booota\"",
    "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-276/small"
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/276/low.webp"
   },
   {
    "slug": "buchi",
@@ -342,9 +318,8 @@
    "grafie": [
     "buchi"
    ],
-   "query": "artist:\"buchi\"",
-   "carte": 5,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-218/small"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/218/low.webp"
   },
   {
    "slug": "bun-toujo",
@@ -352,9 +327,17 @@
    "grafie": [
     "Bun Toujo"
    ],
-   "query": "artist:\"Bun Toujo\"",
-   "carte": 13,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/145.png"
+   "carte": 15,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/145/low.webp"
+  },
+  {
+   "slug": "burari",
+   "nome": "burari",
+   "grafie": [
+    "burari"
+   ],
+   "carte": 2,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv06.5/094/low.webp"
   },
   {
    "slug": "chibi",
@@ -362,9 +345,8 @@
    "grafie": [
     "chibi"
    ],
-   "query": "artist:\"chibi\"",
-   "carte": 42,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-289/small"
+   "carte": 46,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/289/low.webp"
   },
   {
    "slug": "choriso",
@@ -372,9 +354,8 @@
    "grafie": [
     "CHORISO"
    ],
-   "query": "artist:\"CHORISO\"",
    "carte": 4,
-   "avatar": "https://images.scrydex.com/pokemon/me55-154/small"
+   "avatar": "https://assets.tcgdex.net/en/me/30th/154/low.webp"
   },
   {
    "slug": "christopher-rush",
@@ -382,9 +363,8 @@
    "grafie": [
     "Christopher Rush"
    ],
-   "query": "artist:\"Christopher Rush\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/base6/29.png"
+   "avatar": "https://assets.tcgdex.net/en/lc/lc/29/low.webp"
   },
   {
    "slug": "cochi8i",
@@ -392,9 +372,8 @@
    "grafie": [
     "cochi8i"
    ],
-   "query": "artist:\"cochi8i\"",
-   "carte": 10,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/149.png"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/149/low.webp"
   },
   {
    "slug": "cona-nitanda",
@@ -402,9 +381,8 @@
    "grafie": [
     "Cona Nitanda"
    ],
-   "query": "artist:\"Cona Nitanda\"",
-   "carte": 14,
-   "avatar": "https://images.pokemontcg.io/sv5/209.png"
+   "carte": 21,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/119/low.webp"
   },
   {
    "slug": "conceptlab",
@@ -412,28 +390,17 @@
    "grafie": [
     "ConceptLab"
    ],
-   "query": "artist:\"ConceptLab\"",
    "carte": 20,
-   "avatar": "https://images.pokemontcg.io/sm11/249.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm11/249/low.webp"
   },
   {
    "slug": "cr-cg-gangs",
    "nome": "CR CG gangs",
    "grafie": [
-    "\"Big Mama\" Tagawa, CR CG gangs",
-    "CR CG gangs",
-    "Hiromichi Sugiyama, CR CG gangs",
-    "Jungo Suzuki, CR CG gangs",
-    "K. Hoshiba, CR CG gangs",
-    "Katsura Tabata, CR CG gangs",
-    "Keita Komatsuya, CR CG gangs",
-    "Ryuta Kusumi, CR CG gangs",
-    "Shin-ichi Yoshikawa, CR CG gangs",
-    "Yousuke Hirata, CR CG gangs"
+    "CR CG gangs"
    ],
-   "query": "artist:\"CR CG gangs\"",
-   "carte": 51,
-   "avatar": "https://images.pokemontcg.io/neo4/98.png"
+   "carte": 27,
+   "avatar": "https://assets.tcgdex.net/en/neo/neo4/89/low.webp"
   },
   {
    "slug": "craig-turvey",
@@ -441,9 +408,8 @@
    "grafie": [
     "Craig Turvey"
    ],
-   "query": "artist:\"Craig Turvey\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/basep/49.png"
+   "avatar": "https://assets.tcgdex.net/en/base/basep/49/low.webp"
   },
   {
    "slug": "d-a-g-inc",
@@ -451,9 +417,8 @@
    "grafie": [
     "D.A.G Inc."
    ],
-   "query": "artist:\"D.A.G Inc.\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/swsh6/74.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh6/74/low.webp"
   },
   {
    "slug": "daisuke-ito",
@@ -461,9 +426,8 @@
    "grafie": [
     "Daisuke Ito"
    ],
-   "query": "artist:\"Daisuke Ito\"",
    "carte": 48,
-   "avatar": "https://images.pokemontcg.io/dp6/129.png"
+   "avatar": "https://assets.tcgdex.net/en/dp/dp6/129/low.webp"
   },
   {
    "slug": "daisuke-iwamoto",
@@ -471,9 +435,8 @@
    "grafie": [
     "Daisuke Iwamoto"
    ],
-   "query": "artist:\"Daisuke Iwamoto\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/bw1/103.png"
+   "avatar": "https://assets.tcgdex.net/en/bw/bw1/103/low.webp"
   },
   {
    "slug": "danciao",
@@ -481,9 +444,8 @@
    "grafie": [
     "danciao"
    ],
-   "query": "artist:\"danciao\"",
-   "carte": 8,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-284/small"
+   "carte": 15,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/284/low.webp"
   },
   {
    "slug": "demizuposuka",
@@ -491,9 +453,8 @@
    "grafie": [
     "DemizuPosuka"
    ],
-   "query": "artist:\"DemizuPosuka\"",
    "carte": 5,
-   "avatar": "https://images.pokemontcg.io/sm35/36.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm1/6/low.webp"
   },
   {
    "slug": "dom",
@@ -501,9 +462,8 @@
    "grafie": [
     "DOM"
    ],
-   "query": "artist:\"DOM\"",
-   "carte": 40,
-   "avatar": "https://images.scrydex.com/pokemon/me5-95/small"
+   "carte": 48,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/118/low.webp"
   },
   {
    "slug": "dr-ooyama",
@@ -511,9 +471,8 @@
    "grafie": [
     "Dr.Ooyama"
    ],
-   "query": "artist:\"Dr.Ooyama\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/xy12/109.png"
+   "avatar": "https://assets.tcgdex.net/en/xy/xy12/109/low.webp"
   },
   {
    "slug": "dsuke",
@@ -521,9 +480,17 @@
    "grafie": [
     "Dsuke"
    ],
-   "query": "artist:\"Dsuke\"",
-   "carte": 20,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-227/small"
+   "carte": 27,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/224/low.webp"
+  },
+  {
+   "slug": "ebila",
+   "nome": "Ebila",
+   "grafie": [
+    "Ebila"
+   ],
+   "carte": 1,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv08/096/low.webp"
   },
   {
    "slug": "emi-ando",
@@ -531,9 +498,8 @@
    "grafie": [
     "Emi Ando"
    ],
-   "query": "artist:\"Emi Ando\"",
    "carte": 6,
-   "avatar": "https://images.pokemontcg.io/swsh4/153.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh4/153/low.webp"
   },
   {
    "slug": "emi-miwa",
@@ -541,9 +507,8 @@
    "grafie": [
     "Emi Miwa"
    ],
-   "query": "artist:\"Emi Miwa\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/ex7/41.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex7/41/low.webp"
   },
   {
    "slug": "emi-yoshida",
@@ -551,9 +516,8 @@
    "grafie": [
     "Emi Yoshida"
    ],
-   "query": "artist:\"Emi Yoshida\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/dp6/49.png"
+   "avatar": "https://assets.tcgdex.net/en/dp/dp6/49/low.webp"
   },
   {
    "slug": "en-morikura",
@@ -561,9 +525,8 @@
    "grafie": [
     "En Morikura"
    ],
-   "query": "artist:\"En Morikura\"",
-   "carte": 20,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/92.png"
+   "carte": 21,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/092/low.webp"
   },
   {
    "slug": "eri-kamei",
@@ -571,9 +534,8 @@
    "grafie": [
     "Eri Kamei"
    ],
-   "query": "artist:\"Eri Kamei\"",
-   "carte": 5,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/156.png"
+   "carte": 6,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/156/low.webp"
   },
   {
    "slug": "eri-yamaki",
@@ -581,9 +543,8 @@
    "grafie": [
     "Eri Yamaki"
    ],
-   "query": "artist:\"Eri Yamaki\"",
-   "carte": 40,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-12/small"
+   "carte": 38,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/012/low.webp"
   },
   {
    "slug": "eske-yoshinob",
@@ -591,9 +552,8 @@
    "grafie": [
     "Eske Yoshinob"
    ],
-   "query": "artist:\"Eske Yoshinob\"",
-   "carte": 179,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-85/small"
+   "carte": 177,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10/168/low.webp"
   },
   {
    "slug": "etsuya-hattori",
@@ -601,9 +561,8 @@
    "grafie": [
     "Etsuya Hattori"
    ],
-   "query": "artist:\"Etsuya Hattori\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/neo4/83.png"
+   "avatar": "https://assets.tcgdex.net/en/neo/neo4/83/low.webp"
   },
   {
    "slug": "felicia-chen",
@@ -611,9 +570,8 @@
    "grafie": [
     "Felicia Chen"
    ],
-   "query": "artist:\"Felicia Chen\"",
-   "carte": 5,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-42/small"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/042/low.webp"
   },
   {
    "slug": "framestore",
@@ -621,9 +579,8 @@
    "grafie": [
     "Framestore"
    ],
-   "query": "artist:\"Framestore\"",
    "carte": 11,
-   "avatar": "https://images.pokemontcg.io/det1/8.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/det1/8/low.webp"
   },
   {
    "slug": "fujimoto-gold",
@@ -631,9 +588,8 @@
    "grafie": [
     "Fujimoto Gold"
    ],
-   "query": "artist:\"Fujimoto Gold\"",
-   "carte": 7,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/135.png"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/135/low.webp"
   },
   {
    "slug": "fumie-kittaka",
@@ -641,9 +597,8 @@
    "grafie": [
     "Fumie Kittaka"
    ],
-   "query": "artist:\"Fumie Kittaka\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/sv3pt5/195.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv03.5/195/low.webp"
   },
   {
    "slug": "gakuji-nomoto",
@@ -651,9 +606,8 @@
    "grafie": [
     "Gakuji Nomoto"
    ],
-   "query": "artist:\"Gakuji Nomoto\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/basep/26.png"
+   "avatar": "https://assets.tcgdex.net/en/base/basep/26/low.webp"
   },
   {
    "slug": "game-freak-inc",
@@ -661,9 +615,8 @@
    "grafie": [
     "GAME FREAK inc."
    ],
-   "query": "artist:\"GAME FREAK inc.\"",
    "carte": 5,
-   "avatar": "https://images.pokemontcg.io/swsh5/130.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh5/130/low.webp"
   },
   {
    "slug": "gapao",
@@ -671,9 +624,8 @@
    "grafie": [
     "Gapao"
    ],
-   "query": "artist:\"Gapao\"",
-   "carte": 10,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/141.png"
+   "carte": 13,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/141/low.webp"
   },
   {
    "slug": "gemi",
@@ -681,9 +633,8 @@
    "grafie": [
     "Gemi"
    ],
-   "query": "artist:\"Gemi\"",
-   "carte": 22,
-   "avatar": "https://images.scrydex.com/pokemon/me55-143/small"
+   "carte": 24,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/143/low.webp"
   },
   {
    "slug": "gidora",
@@ -691,9 +642,8 @@
    "grafie": [
     "GIDORA"
    ],
-   "query": "artist:\"GIDORA\"",
-   "carte": 66,
-   "avatar": "https://images.scrydex.com/pokemon/me55-148/small"
+   "carte": 80,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/148/low.webp"
   },
   {
    "slug": "gossan",
@@ -701,9 +651,8 @@
    "grafie": [
     "GOSSAN"
    ],
-   "query": "artist:\"GOSSAN\"",
-   "carte": 62,
-   "avatar": "https://images.scrydex.com/pokemon/me55-140/small"
+   "carte": 76,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/140/low.webp"
   },
   {
    "slug": "goto-minori",
@@ -711,9 +660,8 @@
    "grafie": [
     "GOTO minori"
    ],
-   "query": "artist:\"GOTO minori\"",
-   "carte": 8,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/99.png"
+   "carte": 12,
+   "avatar": "https://assets.tcgdex.net/en/me/me01/182/low.webp"
   },
   {
    "slug": "haccan",
@@ -721,9 +669,17 @@
    "grafie": [
     "HACCAN"
    ],
-   "query": "artist:\"HACCAN\"",
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/005/low.webp"
+  },
+  {
+   "slug": "hagiya-kaoru",
+   "nome": "HAGIYA Kaoru",
+   "grafie": [
+    "HAGIYA Kaoru"
+   ],
    "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me4-5/small"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv06.5/043/low.webp"
   },
   {
    "slug": "hajime-kusajima",
@@ -731,9 +687,8 @@
    "grafie": [
     "Hajime Kusajima"
    ],
-   "query": "artist:\"Hajime Kusajima\"",
-   "carte": 207,
-   "avatar": "https://images.pokemontcg.io/sm7/4.png"
+   "carte": 206,
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/4/low.webp"
   },
   {
    "slug": "hanabushi",
@@ -741,9 +696,8 @@
    "grafie": [
     "hanabushi"
    ],
-   "query": "artist:\"hanabushi\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sv4pt5/237.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv04.5/237/low.webp"
   },
   {
    "slug": "haru-akasaka",
@@ -751,9 +705,8 @@
    "grafie": [
     "Haru Akasaka"
    ],
-   "query": "artist:\"Haru Akasaka\"",
-   "carte": 18,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/123.png"
+   "carte": 19,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/123/low.webp"
   },
   {
    "slug": "haruko-ichikawa",
@@ -761,9 +714,8 @@
    "grafie": [
     "Haruko Ichikawa"
    ],
-   "query": "artist:\"Haruko Ichikawa\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/swsh12pt5gg/GG13.png"
+   "avatar": null
   },
   {
    "slug": "hasegawa-saki",
@@ -771,9 +723,8 @@
    "grafie": [
     "Hasegawa Saki"
    ],
-   "query": "artist:\"Hasegawa Saki\"",
    "carte": 8,
-   "avatar": "https://images.pokemontcg.io/swsh9/133.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh9/133/low.webp"
   },
   {
    "slug": "hasuno",
@@ -781,9 +732,8 @@
    "grafie": [
     "Hasuno"
    ],
-   "query": "artist:\"Hasuno\"",
-   "carte": 76,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/69.png"
+   "carte": 74,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/017/low.webp"
   },
   {
    "slug": "hatachu",
@@ -791,9 +741,8 @@
    "grafie": [
     "hatachu"
    ],
-   "query": "artist:\"hatachu\"",
    "carte": 32,
-   "avatar": "https://images.pokemontcg.io/sv5/113.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv05/113/low.webp"
   },
   {
    "slug": "hataya",
@@ -801,9 +750,8 @@
    "grafie": [
     "Hataya"
    ],
-   "query": "artist:\"Hataya\"",
    "carte": 9,
-   "avatar": "https://images.pokemontcg.io/swsh12pt5gg/GG48.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh12/184/low.webp"
   },
   {
    "slug": "heisuke-kitazawa",
@@ -811,9 +759,8 @@
    "grafie": [
     "Heisuke Kitazawa"
    ],
-   "query": "artist:\"Heisuke Kitazawa\"",
-   "carte": 3,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/93.png"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/093/low.webp"
   },
   {
    "slug": "hico-kim",
@@ -821,9 +768,8 @@
    "grafie": [
     "HICO KIM"
    ],
-   "query": "artist:\"HICO KIM\"",
    "carte": 3,
-   "avatar": "https://images.scrydex.com/pokemon/me5-89/small"
+   "avatar": "https://assets.tcgdex.net/en/me/me05/089/low.webp"
   },
   {
    "slug": "hideaki-hakozaki",
@@ -831,9 +777,8 @@
    "grafie": [
     "Hideaki Hakozaki"
    ],
-   "query": "artist:\"Hideaki Hakozaki\"",
-   "carte": 36,
-   "avatar": "https://images.pokemontcg.io/bw7/67.png"
+   "carte": 40,
+   "avatar": "https://assets.tcgdex.net/en/bw/bw7/67/low.webp"
   },
   {
    "slug": "hideki-ishikawa",
@@ -841,9 +786,8 @@
    "grafie": [
     "Hideki Ishikawa"
    ],
-   "query": "artist:\"Hideki Ishikawa\"",
-   "carte": 105,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-222/small"
+   "carte": 111,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/222/low.webp"
   },
   {
    "slug": "hideki-kazama",
@@ -851,9 +795,8 @@
    "grafie": [
     "Hideki Kazama"
    ],
-   "query": "artist:\"Hideki Kazama\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/neo4/99.png"
+   "avatar": "https://assets.tcgdex.net/en/neo/neo4/99/low.webp"
   },
   {
    "slug": "hideyuki-nakajima",
@@ -861,9 +804,8 @@
    "grafie": [
     "Hideyuki Nakajima"
    ],
-   "query": "artist:\"Hideyuki Nakajima\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/dp5/81.png"
+   "avatar": "https://assets.tcgdex.net/en/dp/dp5/81/low.webp"
   },
   {
    "slug": "hikaru-koike",
@@ -871,9 +813,8 @@
    "grafie": [
     "Hikaru Koike"
    ],
-   "query": "artist:\"Hikaru Koike\"",
    "carte": 47,
-   "avatar": "https://images.pokemontcg.io/ex12/83.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex12/83/low.webp"
   },
   {
    "slug": "hiroaki-ito",
@@ -881,9 +822,8 @@
    "grafie": [
     "Hiroaki Ito"
    ],
-   "query": "artist:\"Hiroaki Ito\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/dp2/12.png"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/dp/dp2/12/low.webp"
   },
   {
    "slug": "hiroki-asanuma",
@@ -891,9 +831,8 @@
    "grafie": [
     "Hiroki Asanuma"
    ],
-   "query": "artist:\"Hiroki Asanuma\"",
    "carte": 10,
-   "avatar": "https://images.pokemontcg.io/sv3/185.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv03/185/low.webp"
   },
   {
    "slug": "hiroki-fuchino",
@@ -901,20 +840,17 @@
    "grafie": [
     "Hiroki Fuchino"
    ],
-   "query": "artist:\"Hiroki Fuchino\"",
    "carte": 13,
-   "avatar": "https://images.pokemontcg.io/pl4/18.png"
+   "avatar": "https://assets.tcgdex.net/en/pl/pl4/18/low.webp"
   },
   {
    "slug": "hiromichi-sugiyama",
    "nome": "Hiromichi Sugiyama",
    "grafie": [
-    "Hiromichi Sugiyama",
-    "Hiromichi Sugiyama, CR CG gangs"
+    "Hiromichi Sugiyama"
    ],
-   "query": "artist:\"Hiromichi Sugiyama\"",
-   "carte": 35,
-   "avatar": "https://images.pokemontcg.io/sm7/147.png"
+   "carte": 33,
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/147/low.webp"
   },
   {
    "slug": "hiron",
@@ -922,9 +858,8 @@
    "grafie": [
     "HiRON"
    ],
-   "query": "artist:\"HiRON\"",
    "carte": 13,
-   "avatar": "https://images.pokemontcg.io/mcd16/9.png"
+   "avatar": "https://assets.tcgdex.net/en/xy/xy6/43/low.webp"
   },
   {
    "slug": "hironobu-yoshida",
@@ -932,9 +867,8 @@
    "grafie": [
     "Hironobu Yoshida"
    ],
-   "query": "artist:\"Hironobu Yoshida\"",
    "carte": 40,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-106/small"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/87/low.webp"
   },
   {
    "slug": "hiroyuki-yamamoto",
@@ -942,9 +876,8 @@
    "grafie": [
     "Hiroyuki Yamamoto"
    ],
-   "query": "artist:\"Hiroyuki Yamamoto\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/sv3pt5/173.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv03.5/173/low.webp"
   },
   {
    "slug": "hisao-nakamura",
@@ -952,9 +885,8 @@
    "grafie": [
     "Hisao Nakamura"
    ],
-   "query": "artist:\"Hisao Nakamura\"",
-   "carte": 72,
-   "avatar": "https://images.pokemontcg.io/sm7/61.png"
+   "carte": 73,
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/61/low.webp"
   },
   {
    "slug": "hitoshi-ariga",
@@ -962,9 +894,8 @@
    "grafie": [
     "Hitoshi Ariga"
    ],
-   "query": "artist:\"Hitoshi Ariga\"",
-   "carte": 156,
-   "avatar": "https://images.scrydex.com/pokemon/me55-118/small"
+   "carte": 158,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/118/low.webp"
   },
   {
    "slug": "hizuki-misono",
@@ -972,9 +903,8 @@
    "grafie": [
     "Hizuki Misono"
    ],
-   "query": "artist:\"Hizuki Misono\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/ecard3/65.png"
+   "avatar": "https://assets.tcgdex.net/en/ecard/ecard3/65/low.webp"
   },
   {
    "slug": "hncl",
@@ -982,9 +912,8 @@
    "grafie": [
     "hncl"
    ],
-   "query": "artist:\"hncl\"",
-   "carte": 33,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-244/small"
+   "carte": 43,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/244/low.webp"
   },
   {
    "slug": "hoshino-kuro",
@@ -992,9 +921,8 @@
    "grafie": [
     "Hoshino KURO"
    ],
-   "query": "artist:\"Hoshino KURO\"",
-   "carte": 1,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/101.png"
+   "carte": 2,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/101/low.webp"
   },
   {
    "slug": "huang-tzu-en",
@@ -1002,9 +930,8 @@
    "grafie": [
     "Huang Tzu En"
    ],
-   "query": "artist:\"Huang Tzu En\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sm12/244.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm12/244/low.webp"
   },
   {
    "slug": "hyogonosuke",
@@ -1012,9 +939,8 @@
    "grafie": [
     "HYOGONOSUKE"
    ],
-   "query": "artist:\"HYOGONOSUKE\"",
-   "carte": 80,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/116.png"
+   "carte": 90,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/093/low.webp"
   },
   {
    "slug": "ikeda-saki",
@@ -1022,9 +948,8 @@
    "grafie": [
     "IKEDA Saki"
    ],
-   "query": "artist:\"IKEDA Saki\"",
-   "carte": 6,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-220/small"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/220/low.webp"
   },
   {
    "slug": "imakuni",
@@ -1032,9 +957,8 @@
    "grafie": [
     "Imakuni?"
    ],
-   "query": "artist:\"Imakuni?\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/xy12/112.png"
+   "avatar": "https://assets.tcgdex.net/en/xy/xy12/112/low.webp"
   },
   {
    "slug": "imoniii",
@@ -1042,9 +966,8 @@
    "grafie": [
     "imoniii"
    ],
-   "query": "artist:\"imoniii\"",
-   "carte": 4,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-51/small"
+   "carte": 8,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/203/low.webp"
   },
   {
    "slug": "inose-yukie",
@@ -1052,9 +975,8 @@
    "grafie": [
     "inose yukie"
    ],
-   "query": "artist:\"inose yukie\"",
-   "carte": 22,
-   "avatar": "https://images.scrydex.com/pokemon/me5-82/small"
+   "carte": 31,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/113/low.webp"
   },
   {
    "slug": "iori-suzuki",
@@ -1062,9 +984,17 @@
    "grafie": [
     "Iori Suzuki"
    ],
-   "query": "artist:\"Iori Suzuki\"",
-   "carte": 7,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/133.png"
+   "carte": 13,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/123/low.webp"
+  },
+  {
+   "slug": "ito-kyoko",
+   "nome": "Ito Kyoko",
+   "grafie": [
+    "Ito Kyoko"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "iwamoto05",
@@ -1072,9 +1002,8 @@
    "grafie": [
     "Iwamoto05"
    ],
-   "query": "artist:\"Iwamoto05\"",
-   "carte": 4,
-   "avatar": "https://images.scrydex.com/pokemon/me5-86/small"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/086/low.webp"
   },
   {
    "slug": "izucch",
@@ -1082,9 +1011,8 @@
    "grafie": [
     "Izucch"
    ],
-   "query": "artist:\"Izucch\"",
    "carte": 4,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-52/small"
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/052/low.webp"
   },
   {
    "slug": "james-turner",
@@ -1092,9 +1020,8 @@
    "grafie": [
     "James Turner"
    ],
-   "query": "artist:\"James Turner\"",
-   "carte": 3,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-277/small"
+   "carte": 6,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/277/low.webp"
   },
   {
    "slug": "jerky",
@@ -1102,9 +1029,8 @@
    "grafie": [
     "Jerky"
    ],
-   "query": "artist:\"Jerky\"",
-   "carte": 38,
-   "avatar": "https://images.scrydex.com/pokemon/me5-92/small"
+   "carte": 46,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/092/low.webp"
   },
   {
    "slug": "jiro-sasumo",
@@ -1112,9 +1038,8 @@
    "grafie": [
     "Jiro Sasumo"
    ],
-   "query": "artist:\"Jiro Sasumo\"",
-   "carte": 32,
-   "avatar": "https://images.scrydex.com/pokemon/me5-85/small"
+   "carte": 37,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/085/low.webp"
   },
   {
    "slug": "julie-hang",
@@ -1122,9 +1047,8 @@
    "grafie": [
     "Julie Hang"
    ],
-   "query": "artist:\"Julie Hang\"",
-   "carte": 7,
-   "avatar": "https://images.scrydex.com/pokemon/me4-45/small"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/045/low.webp"
   },
   {
    "slug": "jumpei-akasaka",
@@ -1132,20 +1056,26 @@
    "grafie": [
     "Jumpei Akasaka"
    ],
-   "query": "artist:\"Jumpei Akasaka\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/swsh1/52.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh1/52/low.webp"
+  },
+  {
+   "slug": "june",
+   "nome": "June",
+   "grafie": [
+    "June"
+   ],
+   "carte": 1,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/227/low.webp"
   },
   {
    "slug": "jungo-suzuki",
    "nome": "Jungo Suzuki",
    "grafie": [
-    "Jungo Suzuki",
-    "Jungo Suzuki, CR CG gangs"
+    "Jungo Suzuki"
    ],
-   "query": "artist:\"Jungo Suzuki\"",
-   "carte": 10,
-   "avatar": "https://images.pokemontcg.io/ex8/85.png"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/ex/ex8/85/low.webp"
   },
   {
    "slug": "junsei-kuninobu",
@@ -1153,21 +1083,17 @@
    "grafie": [
     "Junsei Kuninobu"
    ],
-   "query": "artist:\"Junsei Kuninobu\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sm12/229.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm12/229/low.webp"
   },
   {
    "slug": "k-hoshiba",
    "nome": "K. Hoshiba",
    "grafie": [
-    "K Hoshiba",
-    "K. Hoshiba",
-    "K. Hoshiba, CR CG gangs"
+    "K. Hoshiba"
    ],
-   "query": "artist:\"K. Hoshiba\" OR artist:\"K Hoshiba\"",
-   "carte": 15,
-   "avatar": "https://images.pokemontcg.io/ex6/95.png"
+   "carte": 8,
+   "avatar": "https://assets.tcgdex.net/en/ex/ex6/95/low.webp"
   },
   {
    "slug": "k-utsunomiya",
@@ -1175,9 +1101,8 @@
    "grafie": [
     "K. Utsunomiya"
    ],
-   "query": "artist:\"K. Utsunomiya\"",
    "carte": 6,
-   "avatar": "https://images.pokemontcg.io/ex6/96.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex6/96/low.webp"
   },
   {
    "slug": "kagemaru-himeno",
@@ -1185,9 +1110,8 @@
    "grafie": [
     "Kagemaru Himeno"
    ],
-   "query": "artist:\"Kagemaru Himeno\"",
-   "carte": 657,
-   "avatar": "https://images.scrydex.com/pokemon/me55-68/small"
+   "carte": 667,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/068/low.webp"
   },
   {
    "slug": "kai-ishikawa",
@@ -1195,9 +1119,8 @@
    "grafie": [
     "Kai Ishikawa"
    ],
-   "query": "artist:\"Kai Ishikawa\"",
-   "carte": 10,
-   "avatar": "https://images.pokemontcg.io/dp1/117.png"
+   "carte": 12,
+   "avatar": "https://assets.tcgdex.net/en/dp/dp1/117/low.webp"
   },
   {
    "slug": "kamome-shirahama",
@@ -1205,9 +1128,8 @@
    "grafie": [
     "Kamome Shirahama"
    ],
-   "query": "artist:\"Kamome Shirahama\"",
-   "carte": 2,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/151.png"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/151/low.webp"
   },
   {
    "slug": "kamonabe",
@@ -1215,9 +1137,8 @@
    "grafie": [
     "kamonabe"
    ],
-   "query": "artist:\"kamonabe\"",
-   "carte": 5,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/155.png"
+   "carte": 8,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/089/low.webp"
   },
   {
    "slug": "kanahei",
@@ -1225,9 +1146,8 @@
    "grafie": [
     "kanahei"
    ],
-   "query": "artist:\"kanahei\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/swsh2/39.png"
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh2/39/low.webp"
   },
   {
    "slug": "kanako-eo",
@@ -1235,9 +1155,8 @@
    "grafie": [
     "Kanako Eo"
    ],
-   "query": "artist:\"Kanako Eo\"",
-   "carte": 100,
-   "avatar": "https://images.pokemontcg.io/sma/SV86.png"
+   "carte": 103,
+   "avatar": "https://assets.tcgdex.net/en/sm/sma/SV86/low.webp"
   },
   {
    "slug": "kanami-ogata",
@@ -1245,9 +1164,17 @@
    "grafie": [
     "Kanami Ogata"
    ],
-   "query": "artist:\"Kanami Ogata\"",
-   "carte": 3,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/124.png"
+   "carte": 4,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/124/low.webp"
+  },
+  {
+   "slug": "kannnu",
+   "nome": "Kannnu",
+   "grafie": [
+    "Kannnu"
+   ],
+   "carte": 1,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/034/low.webp"
   },
   {
    "slug": "kantaro",
@@ -1255,9 +1182,8 @@
    "grafie": [
     "kantaro"
    ],
-   "query": "artist:\"kantaro\"",
-   "carte": 32,
-   "avatar": "https://images.scrydex.com/pokemon/me55-150/small"
+   "carte": 45,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/150/low.webp"
   },
   {
    "slug": "kariya",
@@ -1265,9 +1191,17 @@
    "grafie": [
     "Kariya"
    ],
-   "query": "artist:\"Kariya\"",
-   "carte": 13,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/104.png"
+   "carte": 18,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/104/low.webp"
+  },
+  {
+   "slug": "katie-gross",
+   "nome": "Katie Gross",
+   "grafie": [
+    "Katie Gross"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "katsunori-sato",
@@ -1275,20 +1209,17 @@
    "grafie": [
     "Katsunori Sato"
    ],
-   "query": "artist:\"Katsunori Sato\"",
-   "carte": 6,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/99.png"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/099/low.webp"
   },
   {
    "slug": "katsura-tabata",
    "nome": "Katsura Tabata",
    "grafie": [
-    "Katsura Tabata",
-    "Katsura Tabata, CR CG gangs"
+    "Katsura Tabata"
    ],
-   "query": "artist:\"Katsura Tabata\"",
    "carte": 37,
-   "avatar": "https://images.pokemontcg.io/sm7/140.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/181/low.webp"
   },
   {
    "slug": "kawayoo",
@@ -1296,9 +1227,8 @@
    "grafie": [
     "kawayoo"
    ],
-   "query": "artist:\"kawayoo\"",
-   "carte": 211,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/166.png"
+   "carte": 223,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/097/low.webp"
   },
   {
    "slug": "kazuaki-aihara",
@@ -1306,9 +1236,8 @@
    "grafie": [
     "Kazuaki Aihara"
    ],
-   "query": "artist:\"Kazuaki Aihara\"",
    "carte": 12,
-   "avatar": "https://images.pokemontcg.io/dp6/82.png"
+   "avatar": "https://assets.tcgdex.net/en/dp/dp6/82/low.webp"
   },
   {
    "slug": "kazuhisa-uragami",
@@ -1316,9 +1245,8 @@
    "grafie": [
     "Kazuhisa Uragami"
    ],
-   "query": "artist:\"Kazuhisa Uragami\"",
-   "carte": 3,
-   "avatar": "https://images.scrydex.com/pokemon/me4-93/small"
+   "carte": 4,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/093/low.webp"
   },
   {
    "slug": "kazuki-minami",
@@ -1326,9 +1254,8 @@
    "grafie": [
     "Kazuki Minami"
    ],
-   "query": "artist:\"Kazuki Minami\"",
-   "carte": 2,
-   "avatar": "https://images.scrydex.com/pokemon/me55-52/small"
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/121/low.webp"
   },
   {
    "slug": "kazuma-koda",
@@ -1336,9 +1263,8 @@
    "grafie": [
     "Kazuma Koda"
    ],
-   "query": "artist:\"Kazuma Koda\"",
    "carte": 14,
-   "avatar": "https://images.pokemontcg.io/swsh9/59.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh9/059/low.webp"
   },
   {
    "slug": "kazumasa-yasukuni",
@@ -1346,19 +1272,8 @@
    "grafie": [
     "Kazumasa Yasukuni"
    ],
-   "query": "artist:\"Kazumasa Yasukuni\"",
-   "carte": 18,
-   "avatar": "https://images.scrydex.com/pokemon/me55-134/small"
-  },
-  {
-   "slug": "kazumasa-yasukunio",
-   "nome": "Kazumasa Yasukunio",
-   "grafie": [
-    "Kazumasa Yasukunio"
-   ],
-   "query": "artist:\"Kazumasa Yasukunio\"",
-   "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me4-118/small"
+   "carte": 27,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/134/low.webp"
   },
   {
    "slug": "kazuo-yazawa",
@@ -1366,9 +1281,8 @@
    "grafie": [
     "Kazuo Yazawa"
    ],
-   "query": "artist:\"Kazuo Yazawa\"",
    "carte": 10,
-   "avatar": "https://images.pokemontcg.io/cel25c/9_A.png"
+   "avatar": "https://assets.tcgdex.net/en/pop/pop2/10/low.webp"
   },
   {
    "slug": "kazuyuki-kano",
@@ -1376,9 +1290,8 @@
    "grafie": [
     "Kazuyuki Kano"
    ],
-   "query": "artist:\"Kazuyuki Kano\"",
    "carte": 27,
-   "avatar": "https://images.pokemontcg.io/pop7/5.png"
+   "avatar": "https://assets.tcgdex.net/en/pop/pop7/5/low.webp"
   },
   {
    "slug": "kedamahadaitai-yawarakai",
@@ -1386,9 +1299,8 @@
    "grafie": [
     "Kedamahadaitai Yawarakai"
    ],
-   "query": "artist:\"Kedamahadaitai Yawarakai\"",
-   "carte": 9,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/119.png"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/119/low.webp"
   },
   {
    "slug": "keiichiro-ito",
@@ -1396,9 +1308,8 @@
    "grafie": [
     "KEIICHIRO ITO"
    ],
-   "query": "artist:\"KEIICHIRO ITO\"",
-   "carte": 56,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-241/small"
+   "carte": 63,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/241/low.webp"
   },
   {
    "slug": "keiji-kinebuchi",
@@ -1406,9 +1317,8 @@
    "grafie": [
     "Keiji Kinebuchi"
    ],
-   "query": "artist:\"Keiji Kinebuchi\"",
-   "carte": 213,
-   "avatar": "https://images.pokemontcg.io/sm7/146.png"
+   "carte": 219,
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/146/low.webp"
   },
   {
    "slug": "keiko-fukuyama",
@@ -1416,9 +1326,8 @@
    "grafie": [
     "Keiko Fukuyama"
    ],
-   "query": "artist:\"Keiko Fukuyama\"",
    "carte": 20,
-   "avatar": "https://images.pokemontcg.io/ecard3/78.png"
+   "avatar": "https://assets.tcgdex.net/en/ecard/ecard3/78/low.webp"
   },
   {
    "slug": "keiko-moritsugu",
@@ -1426,9 +1335,8 @@
    "grafie": [
     "Keiko Moritsugu"
    ],
-   "query": "artist:\"Keiko Moritsugu\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/pl4/3.png"
+   "avatar": "https://assets.tcgdex.net/en/pl/pl4/3/low.webp"
   },
   {
    "slug": "keisin",
@@ -1436,9 +1344,8 @@
    "grafie": [
     "Keisin"
    ],
-   "query": "artist:\"Keisin\"",
-   "carte": 9,
-   "avatar": "https://images.scrydex.com/pokemon/me4-119/small"
+   "carte": 12,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/119/low.webp"
   },
   {
    "slug": "keisuke-azuma",
@@ -1446,19 +1353,8 @@
    "grafie": [
     "Keisuke Azuma"
    ],
-   "query": "artist:\"Keisuke Azuma\"",
    "carte": 5,
-   "avatar": "https://images.scrydex.com/pokemon/me55-92/small"
-  },
-  {
-   "slug": "keita-komatsuya",
-   "nome": "Keita Komatsuya",
-   "grafie": [
-    "Keita Komatsuya, CR CG gangs"
-   ],
-   "query": "artist:\"Keita Komatsuya\"",
-   "carte": 1,
-   "avatar": "https://images.pokemontcg.io/neo3/25.png"
+   "avatar": "https://assets.tcgdex.net/en/me/30th/092/low.webp"
   },
   {
    "slug": "ken-ikuji",
@@ -1466,20 +1362,18 @@
    "grafie": [
     "Ken Ikuji"
    ],
-   "query": "artist:\"Ken Ikuji\"",
    "carte": 17,
-   "avatar": "https://images.pokemontcg.io/sm7/129.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/129/low.webp"
   },
   {
    "slug": "ken-sugimori",
    "nome": "Ken Sugimori",
    "grafie": [
     "Ken Sugimori",
-    "Ken Sugimori/Yusuke Ohmura"
+    "Ken Sugimori Yusuke Ohmura"
    ],
-   "query": "artist:\"Ken Sugimori\"",
-   "carte": 1116,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-69/small"
+   "carte": 1120,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/023/low.webp"
   },
   {
    "slug": "kenkichi-toyama",
@@ -1487,9 +1381,8 @@
    "grafie": [
     "Kenkichi Toyama"
    ],
-   "query": "artist:\"Kenkichi Toyama\"",
    "carte": 7,
-   "avatar": "https://images.pokemontcg.io/pl2/7.png"
+   "avatar": "https://assets.tcgdex.net/en/pl/pl2/7/low.webp"
   },
   {
    "slug": "kent-kanetsuna",
@@ -1498,9 +1391,8 @@
     "Kent Kanetsuna",
     "Kent Kanetsuna/Direc. Shinji Higuchi"
    ],
-   "query": "artist:\"Kent Kanetsuna\"",
-   "carte": 76,
-   "avatar": "https://images.pokemontcg.io/cel25c/107_A.png"
+   "carte": 78,
+   "avatar": "https://assets.tcgdex.net/en/bw/bw11/112/low.webp"
   },
   {
    "slug": "kg-2000",
@@ -1508,9 +1400,8 @@
    "grafie": [
     "KG-2000"
    ],
-   "query": "artist:\"KG-2000\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sv3pt5/83.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv03.5/083/low.webp"
   },
   {
    "slug": "kimiya-masago",
@@ -1518,9 +1409,8 @@
    "grafie": [
     "Kimiya Masago"
    ],
-   "query": "artist:\"Kimiya Masago\"",
    "carte": 25,
-   "avatar": "https://images.pokemontcg.io/ex12/89.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex12/89/low.webp"
   },
   {
    "slug": "kinu-nishimura",
@@ -1528,9 +1418,8 @@
    "grafie": [
     "Kinu Nishimura"
    ],
-   "query": "artist:\"Kinu Nishimura\"",
-   "carte": 5,
-   "avatar": "https://images.pokemontcg.io/me2/128.png"
+   "carte": 6,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/096/low.webp"
   },
   {
    "slug": "kirisaki",
@@ -1538,9 +1427,8 @@
    "grafie": [
     "kirisAki"
    ],
-   "query": "artist:\"kirisAki\"",
-   "carte": 190,
-   "avatar": "https://images.pokemontcg.io/sv2/269.png"
+   "carte": 191,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv02/269/low.webp"
   },
   {
    "slug": "kiyotaka-oshiyama",
@@ -1548,9 +1436,8 @@
    "grafie": [
     "KIYOTAKA OSHIYAMA"
    ],
-   "query": "artist:\"KIYOTAKA OSHIYAMA\"",
-   "carte": 32,
-   "avatar": "https://images.pokemontcg.io/sv2/267.png"
+   "carte": 31,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv02/267/low.webp"
   },
   {
    "slug": "kodama",
@@ -1558,9 +1445,8 @@
    "grafie": [
     "kodama"
    ],
-   "query": "artist:\"kodama\"",
-   "carte": 93,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/95.png"
+   "carte": 103,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/095/low.webp"
   },
   {
    "slug": "koji-nakata",
@@ -1568,9 +1454,8 @@
    "grafie": [
     "Koji Nakata"
    ],
-   "query": "artist:\"Koji Nakata\"",
-   "carte": 2,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/124.png"
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/124/low.webp"
   },
   {
    "slug": "kouji-tajima",
@@ -1578,9 +1463,8 @@
    "grafie": [
     "Kouji Tajima"
    ],
-   "query": "artist:\"Kouji Tajima\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/bw8/74.png"
+   "avatar": "https://assets.tcgdex.net/en/bw/bw8/74/low.webp"
   },
   {
    "slug": "kouki-saitou",
@@ -1588,9 +1472,8 @@
    "grafie": [
     "Kouki Saitou"
    ],
-   "query": "artist:\"Kouki Saitou\"",
-   "carte": 653,
-   "avatar": "https://images.pokemontcg.io/sv2/256.png"
+   "carte": 670,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv02/256/low.webp"
   },
   {
    "slug": "krgc",
@@ -1598,9 +1481,8 @@
    "grafie": [
     "Krgc"
    ],
-   "query": "artist:\"Krgc\"",
-   "carte": 11,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-245/small"
+   "carte": 16,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/245/low.webp"
   },
   {
    "slug": "kunihiko-yuyama",
@@ -1608,9 +1490,8 @@
    "grafie": [
     "Kunihiko Yuyama"
    ],
-   "query": "artist:\"Kunihiko Yuyama\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/dpp/DP50.png"
+   "avatar": "https://assets.tcgdex.net/en/dp/dpp/DP50/low.webp"
   },
   {
    "slug": "kurata-so",
@@ -1618,9 +1499,8 @@
    "grafie": [
     "Kurata So"
    ],
-   "query": "artist:\"Kurata So\"",
-   "carte": 23,
-   "avatar": "https://images.scrydex.com/pokemon/me4-94/small"
+   "carte": 29,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/094/low.webp"
   },
   {
    "slug": "kuroimori",
@@ -1628,9 +1508,8 @@
    "grafie": [
     "Kuroimori"
    ],
-   "query": "artist:\"Kuroimori\"",
-   "carte": 7,
-   "avatar": "https://images.scrydex.com/pokemon/me55-152/small"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/152/low.webp"
   },
   {
    "slug": "kurumitsu",
@@ -1638,9 +1517,8 @@
    "grafie": [
     "kurumitsu"
    ],
-   "query": "artist:\"kurumitsu\"",
-   "carte": 35,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/133.png"
+   "carte": 33,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/133/low.webp"
   },
   {
    "slug": "kyoko-koizumi",
@@ -1648,9 +1526,8 @@
    "grafie": [
     "Kyoko Koizumi"
    ],
-   "query": "artist:\"Kyoko Koizumi\"",
    "carte": 15,
-   "avatar": "https://images.pokemontcg.io/ex10/Z.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex7/30/low.webp"
   },
   {
    "slug": "kyoko-umemoto",
@@ -1658,9 +1535,8 @@
    "grafie": [
     "Kyoko Umemoto"
    ],
-   "query": "artist:\"Kyoko Umemoto\"",
-   "carte": 177,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/147.png"
+   "carte": 179,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/147/low.webp"
   },
   {
    "slug": "kyupiyama",
@@ -1668,9 +1544,8 @@
    "grafie": [
     "KYUPIYAMA"
    ],
-   "query": "artist:\"KYUPIYAMA\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/sv3/204.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv03/204/low.webp"
   },
   {
    "slug": "lee-hyunjung",
@@ -1678,9 +1553,8 @@
    "grafie": [
     "Lee HyunJung"
    ],
-   "query": "artist:\"Lee HyunJung\"",
    "carte": 31,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-103/small"
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/103/low.webp"
   },
   {
    "slug": "ligton",
@@ -1688,9 +1562,8 @@
    "grafie": [
     "Ligton"
    ],
-   "query": "artist:\"Ligton\"",
-   "carte": 17,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-287/small"
+   "carte": 20,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/287/low.webp"
   },
   {
    "slug": "linne",
@@ -1698,9 +1571,8 @@
    "grafie": [
     "LINNE"
    ],
-   "query": "artist:\"LINNE\"",
-   "carte": 9,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/167.png"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/167/low.webp"
   },
   {
    "slug": "m-akiyama",
@@ -1708,9 +1580,8 @@
    "grafie": [
     "M. Akiyama"
    ],
-   "query": "artist:\"M. Akiyama\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/ex4/53.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex4/53/low.webp"
   },
   {
    "slug": "mahou",
@@ -1718,9 +1589,8 @@
    "grafie": [
     "MAHOU"
    ],
-   "query": "artist:\"MAHOU\"",
-   "carte": 123,
-   "avatar": "https://images.pokemontcg.io/sv5/103.png"
+   "carte": 125,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv05/103/low.webp"
   },
   {
    "slug": "maiko-fujiwara",
@@ -1728,9 +1598,8 @@
    "grafie": [
     "Maiko Fujiwara"
    ],
-   "query": "artist:\"Maiko Fujiwara\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/g1/68.png"
+   "avatar": "https://assets.tcgdex.net/en/xy/g1/68/low.webp"
   },
   {
    "slug": "makoto-imai",
@@ -1738,9 +1607,8 @@
    "grafie": [
     "Makoto Imai"
    ],
-   "query": "artist:\"Makoto Imai\"",
    "carte": 12,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-47/small"
+   "avatar": "https://assets.tcgdex.net/en/pl/pl2/95/low.webp"
   },
   {
    "slug": "makura-tami",
@@ -1748,9 +1616,8 @@
    "grafie": [
     "Makura Tami"
    ],
-   "query": "artist:\"Makura Tami\"",
-   "carte": 7,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/155.png"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/155/low.webp"
   },
   {
    "slug": "mana-ibe",
@@ -1758,9 +1625,8 @@
    "grafie": [
     "Mana Ibe"
    ],
-   "query": "artist:\"Mana Ibe\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/sm12/232.png"
+   "carte": 2,
+   "avatar": "https://assets.tcgdex.net/en/sm/sm12/232/low.webp"
   },
   {
    "slug": "marina-chikazawa",
@@ -1768,9 +1634,17 @@
    "grafie": [
     "MARINA Chikazawa"
    ],
-   "query": "artist:\"MARINA Chikazawa\"",
-   "carte": 13,
-   "avatar": "https://images.scrydex.com/pokemon/me4-97/small"
+   "carte": 24,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/097/low.webp"
+  },
+  {
+   "slug": "mark-kraus",
+   "nome": "Mark Kraus",
+   "grafie": [
+    "Mark Kraus"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "masa",
@@ -1778,9 +1652,8 @@
    "grafie": [
     "Masa"
    ],
-   "query": "artist:\"Masa\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/97.png"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/092/low.webp"
   },
   {
    "slug": "masahiko-ishii",
@@ -1788,9 +1661,8 @@
    "grafie": [
     "Masahiko Ishii"
    ],
-   "query": "artist:\"Masahiko Ishii\"",
-   "carte": 6,
-   "avatar": "https://images.pokemontcg.io/cel25c/93_A.png"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/dp/dp1/26/low.webp"
   },
   {
    "slug": "masakazu-fukuda",
@@ -1798,9 +1670,8 @@
    "grafie": [
     "Masakazu Fukuda"
    ],
-   "query": "artist:\"Masakazu Fukuda\"",
-   "carte": 473,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-11/small"
+   "carte": 486,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv05/031/low.webp"
   },
   {
    "slug": "masako-tomii",
@@ -1808,9 +1679,8 @@
    "grafie": [
     "Masako Tomii"
    ],
-   "query": "artist:\"Masako Tomii\"",
-   "carte": 12,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/120.png"
+   "carte": 17,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/120/low.webp"
   },
   {
    "slug": "masako-yamashita",
@@ -1818,9 +1688,8 @@
    "grafie": [
     "Masako Yamashita"
    ],
-   "query": "artist:\"Masako Yamashita\"",
-   "carte": 24,
-   "avatar": "https://images.pokemontcg.io/sm7/1.png"
+   "carte": 25,
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/1/low.webp"
   },
   {
    "slug": "mashu",
@@ -1828,9 +1697,8 @@
    "grafie": [
     "mashu"
    ],
-   "query": "artist:\"mashu\"",
-   "carte": 11,
-   "avatar": "https://images.scrydex.com/pokemon/me55-133/small"
+   "carte": 16,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/133/low.webp"
   },
   {
    "slug": "matazo",
@@ -1838,9 +1706,8 @@
    "grafie": [
     "matazo"
    ],
-   "query": "artist:\"matazo\"",
-   "carte": 15,
-   "avatar": "https://images.scrydex.com/pokemon/me4-92/small"
+   "carte": 23,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/092/low.webp"
   },
   {
    "slug": "match",
@@ -1848,9 +1715,17 @@
    "grafie": [
     "match"
    ],
-   "query": "artist:\"match\"",
-   "carte": 144,
-   "avatar": "https://images.pokemontcg.io/sm6/3.png"
+   "carte": 158,
+   "avatar": "https://assets.tcgdex.net/en/sm/sm6/3/low.webp"
+  },
+  {
+   "slug": "may-do",
+   "nome": "May Do",
+   "grafie": [
+    "May Do"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "megumi-higuchi",
@@ -1858,9 +1733,8 @@
    "grafie": [
     "Megumi Higuchi"
    ],
-   "query": "artist:\"Megumi Higuchi\"",
-   "carte": 18,
-   "avatar": "https://images.pokemontcg.io/sv2/9.png"
+   "carte": 17,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv02/087/low.webp"
   },
   {
    "slug": "megumi-mizutani",
@@ -1868,9 +1742,8 @@
    "grafie": [
     "Megumi Mizutani"
    ],
-   "query": "artist:\"Megumi Mizutani\"",
-   "carte": 137,
-   "avatar": "https://images.pokemontcg.io/sv9/185.png"
+   "carte": 142,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv09/185/low.webp"
   },
   {
    "slug": "mekayu",
@@ -1878,9 +1751,8 @@
    "grafie": [
     "Mékayu"
    ],
-   "query": "artist:\"M*kayu\"",
-   "carte": 10,
-   "avatar": "https://images.scrydex.com/pokemon/me5-90/small"
+   "carte": 15,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/090/low.webp"
   },
   {
    "slug": "mele",
@@ -1888,9 +1760,8 @@
    "grafie": [
     "mele"
    ],
-   "query": "artist:\"mele\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/165.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/165/low.webp"
   },
   {
    "slug": "midori-harada",
@@ -1898,9 +1769,8 @@
    "grafie": [
     "Midori Harada"
    ],
-   "query": "artist:\"Midori Harada\"",
-   "carte": 353,
-   "avatar": "https://images.pokemontcg.io/sv5/2.png"
+   "carte": 355,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv05/002/low.webp"
   },
   {
    "slug": "mika-pikazo",
@@ -1908,9 +1778,8 @@
    "grafie": [
     "Mika Pikazo"
    ],
-   "query": "artist:\"Mika Pikazo\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/swsh7/9.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh7/9/low.webp"
   },
   {
    "slug": "miki-kudo",
@@ -1918,9 +1787,8 @@
    "grafie": [
     "miki kudo"
    ],
-   "query": "artist:\"miki kudo\"",
-   "carte": 60,
-   "avatar": "https://images.scrydex.com/pokemon/me5-94/small"
+   "carte": 67,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/094/low.webp"
   },
   {
    "slug": "miki-tanaka",
@@ -1928,9 +1796,8 @@
    "grafie": [
     "Miki Tanaka"
    ],
-   "query": "artist:\"Miki Tanaka\"",
-   "carte": 195,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/154.png"
+   "carte": 198,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/154/low.webp"
   },
   {
    "slug": "mikiko-takeda",
@@ -1938,9 +1805,8 @@
    "grafie": [
     "Mikiko Takeda"
    ],
-   "query": "artist:\"Mikiko Takeda\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/dp1/7.png"
+   "avatar": "https://assets.tcgdex.net/en/dp/dp1/7/low.webp"
   },
   {
    "slug": "mikio-menjo",
@@ -1948,9 +1814,17 @@
    "grafie": [
     "Mikio Menjo"
    ],
-   "query": "artist:\"Mikio Menjo\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/ecard2/148.png"
+   "avatar": "https://assets.tcgdex.net/en/ecard/ecard2/148/low.webp"
+  },
+  {
+   "slug": "mikitanaka",
+   "nome": "MikiTanaka",
+   "grafie": [
+    "MikiTanaka"
+   ],
+   "carte": 1,
+   "avatar": "https://assets.tcgdex.net/en/ex/ex6/4/low.webp"
   },
   {
    "slug": "milky-isobe",
@@ -1958,9 +1832,8 @@
    "grafie": [
     "Milky Isobe"
    ],
-   "query": "artist:\"Milky Isobe\"",
    "carte": 23,
-   "avatar": "https://images.pokemontcg.io/hgss4/FOUR.png"
+   "avatar": "https://assets.tcgdex.net/en/hgss/hgss4/FOUR/low.webp"
   },
   {
    "slug": "mina-nakai",
@@ -1968,9 +1841,8 @@
    "grafie": [
     "Mina Nakai"
    ],
-   "query": "artist:\"Mina Nakai\"",
-   "carte": 82,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/111.png"
+   "carte": 91,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/099/low.webp"
   },
   {
    "slug": "minahamu",
@@ -1978,9 +1850,8 @@
    "grafie": [
     "Minahamu"
    ],
-   "query": "artist:\"Minahamu\"",
-   "carte": 8,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/149.png"
+   "carte": 12,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/149/low.webp"
   },
   {
    "slug": "minaminami-take",
@@ -1988,9 +1859,8 @@
    "grafie": [
     "MINAMINAMI Take"
    ],
-   "query": "artist:\"MINAMINAMI Take\"",
-   "carte": 12,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/130.png"
+   "carte": 21,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/095/low.webp"
   },
   {
    "slug": "minato",
@@ -1998,9 +1868,8 @@
    "grafie": [
     "Minato"
    ],
-   "query": "artist:\"Minato\"",
    "carte": 2,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-115/small"
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/115/low.webp"
   },
   {
    "slug": "mingo",
@@ -2008,9 +1877,8 @@
    "grafie": [
     "mingo"
    ],
-   "query": "artist:\"mingo\"",
-   "carte": 11,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-231/small"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/231/low.webp"
   },
   {
    "slug": "miranda-branley",
@@ -2018,9 +1886,8 @@
    "grafie": [
     "Miranda Branley"
    ],
-   "query": "artist:\"Miranda Branley\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/svp/102.png"
+   "avatar": null
   },
   {
    "slug": "misa-tsutsui",
@@ -2028,9 +1895,8 @@
    "grafie": [
     "Misa Tsutsui"
    ],
-   "query": "artist:\"Misa Tsutsui\"",
-   "carte": 95,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-65/small"
+   "carte": 93,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/065/low.webp"
   },
   {
    "slug": "misaki-hashimoto",
@@ -2038,9 +1904,8 @@
    "grafie": [
     "Misaki Hashimoto"
    ],
-   "query": "artist:\"Misaki Hashimoto\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/sv3pt5/174.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv03.5/174/low.webp"
   },
   {
    "slug": "mitsuhiro-arita",
@@ -2048,9 +1913,8 @@
    "grafie": [
     "Mitsuhiro Arita"
    ],
-   "query": "artist:\"Mitsuhiro Arita\"",
-   "carte": 727,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-281/small"
+   "carte": 735,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/281/low.webp"
   },
   {
    "slug": "mizue",
@@ -2058,9 +1922,8 @@
    "grafie": [
     "Mizue"
    ],
-   "query": "artist:\"Mizue\"",
-   "carte": 185,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/117.png"
+   "carte": 186,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/117/low.webp"
   },
   {
    "slug": "mochipuyo",
@@ -2068,19 +1931,8 @@
    "grafie": [
     "Nobusawa/Mochipuyo"
    ],
-   "query": "artist:\"Mochipuyo\"",
-   "carte": 2,
-   "avatar": "https://images.scrydex.com/pokemon/me4-81/small"
-  },
-  {
-   "slug": "mori-you",
-   "nome": "Mori You",
-   "grafie": [
-    "Mori You"
-   ],
-   "query": "artist:\"Mori You\"",
-   "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me4-16/small"
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv08/246/low.webp"
   },
   {
    "slug": "mori-yuu",
@@ -2088,9 +1940,8 @@
    "grafie": [
     "Mori Yuu"
    ],
-   "query": "artist:\"Mori Yuu\"",
-   "carte": 3,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-219/small"
+   "carte": 10,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/219/low.webp"
   },
   {
    "slug": "motofumi-fujiwara",
@@ -2098,9 +1949,8 @@
    "grafie": [
     "Motofumi Fujiwara"
    ],
-   "query": "artist:\"Motofumi Fujiwara\"",
    "carte": 19,
-   "avatar": "https://images.pokemontcg.io/swsh6/55.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh6/55/low.webp"
   },
   {
    "slug": "mousho",
@@ -2108,9 +1958,8 @@
    "grafie": [
     "Mousho"
    ],
-   "query": "artist:\"Mousho\"",
-   "carte": 15,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/153.png"
+   "carte": 17,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/153/low.webp"
   },
   {
    "slug": "mpc-film",
@@ -2118,9 +1967,8 @@
    "grafie": [
     "MPC Film"
    ],
-   "query": "artist:\"MPC Film\"",
    "carte": 15,
-   "avatar": "https://images.pokemontcg.io/det1/9.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/det1/9/low.webp"
   },
   {
    "slug": "mt-tbt",
@@ -2128,9 +1976,8 @@
    "grafie": [
     "Mt. TBT"
    ],
-   "query": "artist:\"Mt. TBT\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/ex4/38.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex4/38/low.webp"
   },
   {
    "slug": "mugenup",
@@ -2138,9 +1985,8 @@
    "grafie": [
     "MUGENUP"
    ],
-   "query": "artist:\"MUGENUP\"",
-   "carte": 14,
-   "avatar": "https://images.pokemontcg.io/swsh12pt5/116.png"
+   "carte": 13,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh12.5/116/low.webp"
   },
   {
    "slug": "mugi-hamada",
@@ -2148,9 +1994,8 @@
    "grafie": [
     "Mugi Hamada"
    ],
-   "query": "artist:\"Mugi Hamada\"",
    "carte": 9,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/136.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/136/low.webp"
   },
   {
    "slug": "n-design-inc",
@@ -2158,9 +2003,8 @@
    "grafie": [
     "N-DESIGN Inc."
    ],
-   "query": "artist:\"N-DESIGN Inc.\"",
-   "carte": 73,
-   "avatar": "https://images.pokemontcg.io/sv5/168.png"
+   "carte": 77,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv08/202/low.webp"
   },
   {
    "slug": "nabana-kensaku",
@@ -2168,9 +2012,8 @@
    "grafie": [
     "Nabana Kensaku"
    ],
-   "query": "artist:\"Nabana Kensaku\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sm12/233.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm12/233/low.webp"
   },
   {
    "slug": "nabatame-kazutaka",
@@ -2178,9 +2021,8 @@
    "grafie": [
     "Nabatame Kazutaka"
    ],
-   "query": "artist:\"Nabatame Kazutaka\"",
-   "carte": 1,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/122.png"
+   "carte": 2,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/122/low.webp"
   },
   {
    "slug": "nagano",
@@ -2188,9 +2030,8 @@
    "grafie": [
     "nagano"
    ],
-   "query": "artist:\"nagano\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/swsh12pt5gg/GG37.png"
+   "avatar": null
   },
   {
    "slug": "nagimiso",
@@ -2198,9 +2039,8 @@
    "grafie": [
     "nagimiso"
    ],
-   "query": "artist:\"nagimiso\"",
-   "carte": 160,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-285/small"
+   "carte": 163,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/285/low.webp"
   },
   {
    "slug": "nagomi-nijo",
@@ -2208,9 +2048,8 @@
    "grafie": [
     "Nagomi Nijo"
    ],
-   "query": "artist:\"Nagomi Nijo\"",
    "carte": 18,
-   "avatar": "https://images.pokemontcg.io/sv4/131.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv04/131/low.webp"
   },
   {
    "slug": "nakamura-ippan",
@@ -2218,9 +2057,8 @@
    "grafie": [
     "Nakamura Ippan"
    ],
-   "query": "artist:\"Nakamura Ippan\"",
-   "carte": 6,
-   "avatar": "https://images.scrydex.com/pokemon/me5-91/small"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/091/low.webp"
   },
   {
    "slug": "nakaoka",
@@ -2228,9 +2066,8 @@
    "grafie": [
     "Nakaoka"
    ],
-   "query": "artist:\"Nakaoka\"",
    "carte": 47,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-19/small"
+   "avatar": "https://assets.tcgdex.net/en/dp/dp1/9/low.webp"
   },
   {
    "slug": "naoki-saito",
@@ -2238,9 +2075,8 @@
    "grafie": [
     "Naoki Saito"
    ],
-   "query": "artist:\"Naoki Saito\"",
-   "carte": 272,
-   "avatar": "https://images.scrydex.com/pokemon/me5-119/small"
+   "carte": 279,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/119/low.webp"
   },
   {
    "slug": "naoyo-kimura",
@@ -2248,9 +2084,8 @@
    "grafie": [
     "Naoyo Kimura"
    ],
-   "query": "artist:\"Naoyo Kimura\"",
-   "carte": 258,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/101.png"
+   "carte": 268,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/101/low.webp"
   },
   {
    "slug": "narano",
@@ -2258,9 +2093,8 @@
    "grafie": [
     "Narano"
    ],
-   "query": "artist:\"Narano\"",
-   "carte": 7,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-282/small"
+   "carte": 10,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/282/low.webp"
   },
   {
    "slug": "narumi-sato",
@@ -2268,9 +2102,8 @@
    "grafie": [
     "Narumi Sato"
    ],
-   "query": "artist:\"Narumi Sato\"",
-   "carte": 47,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/154.png"
+   "carte": 51,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/154/low.webp"
   },
   {
    "slug": "natsuko-shoji-ete",
@@ -2278,9 +2111,8 @@
    "grafie": [
     "Natsuko Shoji été"
    ],
-   "query": "artist:\"Natsuko Shoji *t*\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/svp/174.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/svp/174/low.webp"
   },
   {
    "slug": "natsumi-miyanose",
@@ -2288,9 +2120,17 @@
    "grafie": [
     "Natsumi Miyanose"
    ],
-   "query": "artist:\"Natsumi Miyanose\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/114.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/114/low.webp"
+  },
+  {
+   "slug": "natsumi-yashida",
+   "nome": "Natsumi Yashida",
+   "grafie": [
+    "Natsumi Yashida"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "natsumi-yoshida",
@@ -2298,9 +2138,8 @@
    "grafie": [
     "Natsumi Yoshida"
    ],
-   "query": "artist:\"Natsumi Yoshida\"",
-   "carte": 13,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/152.png"
+   "carte": 20,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/121/low.webp"
   },
   {
    "slug": "nc-empire",
@@ -2308,9 +2147,8 @@
    "grafie": [
     "NC Empire"
    ],
-   "query": "artist:\"NC Empire\"",
-   "carte": 37,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/98.png"
+   "carte": 40,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/117/low.webp"
   },
   {
    "slug": "nelnal",
@@ -2318,19 +2156,17 @@
    "grafie": [
     "Nelnal"
    ],
-   "query": "artist:\"Nelnal\"",
-   "carte": 20,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/138.png"
+   "carte": 22,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/138/low.webp"
   },
   {
-   "slug": "ng-empire",
-   "nome": "NG Empire",
+   "slug": "nisimana",
+   "nome": "nisimana",
    "grafie": [
-    "NG Empire"
+    "nisimana"
    ],
-   "query": "artist:\"NG Empire\"",
    "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me5-117/small"
+   "avatar": null
   },
   {
    "slug": "nisimono",
@@ -2338,9 +2174,8 @@
    "grafie": [
     "nisimono"
    ],
-   "query": "artist:\"nisimono\"",
-   "carte": 13,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/87.png"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/087/low.webp"
   },
   {
    "slug": "nisota-niso",
@@ -2348,9 +2183,8 @@
    "grafie": [
     "Nisota Niso"
    ],
-   "query": "artist:\"Nisota Niso\"",
-   "carte": 45,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/98.png"
+   "carte": 51,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/098/low.webp"
   },
   {
    "slug": "nobuhiro-imagawa",
@@ -2358,9 +2192,8 @@
    "grafie": [
     "Nobuhiro Imagawa"
    ],
-   "query": "artist:\"Nobuhiro Imagawa\"",
    "carte": 10,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/139.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/139/low.webp"
   },
   {
    "slug": "nobusawa",
@@ -2368,9 +2201,8 @@
    "grafie": [
     "Nobusawa/Mochipuyo"
    ],
-   "query": "artist:\"Nobusawa\"",
-   "carte": 2,
-   "avatar": "https://images.scrydex.com/pokemon/me4-81/small"
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv08/246/low.webp"
   },
   {
    "slug": "nobuyuki-fujimoto",
@@ -2378,9 +2210,8 @@
    "grafie": [
     "Nobuyuki Fujimoto"
    ],
-   "query": "artist:\"Nobuyuki Fujimoto\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/pl4/88.png"
+   "avatar": "https://assets.tcgdex.net/en/pl/pl4/88/low.webp"
   },
   {
    "slug": "noriko-hotta",
@@ -2388,20 +2219,18 @@
    "grafie": [
     "Noriko Hotta"
    ],
-   "query": "artist:\"Noriko Hotta\"",
-   "carte": 21,
-   "avatar": "https://images.pokemontcg.io/bw1/98.png"
+   "carte": 23,
+   "avatar": "https://assets.tcgdex.net/en/bw/bw1/98/low.webp"
   },
   {
    "slug": "noriko-takaya",
    "nome": "Noriko Takaya",
    "grafie": [
-    "Noriko Takaya,                   \n                    \n                      Shinji Higuchi",
-    "Shinji Higuchi + Noriko Takaya"
+    "Shinji Higuchi + Noriko Takaya",
+    "Shinji Higuchi + Noriko Takaya 樋口 真嗣 + 高屋 法子"
    ],
-   "query": "artist:\"Noriko Takaya\"",
-   "carte": 6,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-99/small"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/hgss/hgss4/99/low.webp"
   },
   {
    "slug": "noriko-uono",
@@ -2409,9 +2238,8 @@
    "grafie": [
     "Noriko Uono"
    ],
-   "query": "artist:\"Noriko Uono\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sm12/230.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm12/230/low.webp"
   },
   {
    "slug": "nurikabe",
@@ -2419,9 +2247,8 @@
    "grafie": [
     "Nurikabe"
    ],
-   "query": "artist:\"Nurikabe\"",
-   "carte": 18,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/148.png"
+   "carte": 24,
+   "avatar": "https://assets.tcgdex.net/en/me/me01/140/low.webp"
   },
   {
    "slug": "okacheke",
@@ -2429,9 +2256,17 @@
    "grafie": [
     "OKACHEKE"
    ],
-   "query": "artist:\"OKACHEKE\"",
-   "carte": 65,
-   "avatar": "https://images.scrydex.com/pokemon/me4-120/small"
+   "carte": 71,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/120/low.webp"
+  },
+  {
+   "slug": "okawamatakatoshi",
+   "nome": "okawamatakatoshi",
+   "grafie": [
+    "okawamatakatoshi"
+   ],
+   "carte": 1,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/140/low.webp"
   },
   {
    "slug": "okayamatakatoshi",
@@ -2439,9 +2274,8 @@
    "grafie": [
     "okayamatakatoshi"
    ],
-   "query": "artist:\"okayamatakatoshi\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/140.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/056/low.webp"
   },
   {
    "slug": "oku",
@@ -2449,9 +2283,8 @@
    "grafie": [
     "Oku"
    ],
-   "query": "artist:\"Oku\"",
    "carte": 13,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/134.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/134/low.webp"
   },
   {
    "slug": "okubo",
@@ -2459,9 +2292,8 @@
    "grafie": [
     "OKUBO"
    ],
-   "query": "artist:\"OKUBO\"",
-   "carte": 24,
-   "avatar": "https://images.scrydex.com/pokemon/me55-144/small"
+   "carte": 29,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/144/low.webp"
   },
   {
    "slug": "ooyama",
@@ -2469,9 +2301,8 @@
    "grafie": [
     "OOYAMA"
    ],
-   "query": "artist:\"OOYAMA\"",
-   "carte": 30,
-   "avatar": "https://images.scrydex.com/pokemon/me55-43/small"
+   "carte": 27,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/043/low.webp"
   },
   {
    "slug": "orbitallink-inc",
@@ -2479,9 +2310,8 @@
    "grafie": [
     "ORBITALLINK Inc."
    ],
-   "query": "artist:\"ORBITALLINK Inc.\"",
    "carte": 6,
-   "avatar": "https://images.pokemontcg.io/pgo/88.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh10.5/088/low.webp"
   },
   {
    "slug": "orca",
@@ -2489,9 +2319,8 @@
    "grafie": [
     "Orca"
    ],
-   "query": "artist:\"Orca\"",
-   "carte": 10,
-   "avatar": "https://images.pokemontcg.io/me2/104.png"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/me/me02/104/low.webp"
   },
   {
    "slug": "osare",
@@ -2499,9 +2328,8 @@
    "grafie": [
     "osare"
    ],
-   "query": "artist:\"osare\"",
-   "carte": 11,
-   "avatar": "https://images.scrydex.com/pokemon/me55-146/small"
+   "carte": 19,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/146/low.webp"
   },
   {
    "slug": "oswaldo-kato",
@@ -2509,9 +2337,8 @@
    "grafie": [
     "Oswaldo KATO"
    ],
-   "query": "artist:\"Oswaldo KATO\"",
-   "carte": 89,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/140.png"
+   "carte": 94,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/140/low.webp"
   },
   {
    "slug": "otumami",
@@ -2519,9 +2346,8 @@
    "grafie": [
     "otumami"
    ],
-   "query": "artist:\"otumami\"",
    "carte": 45,
-   "avatar": "https://images.pokemontcg.io/sv5/21.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv05/021/low.webp"
   },
   {
    "slug": "ounishi",
@@ -2529,9 +2355,8 @@
    "grafie": [
     "Ounishi"
    ],
-   "query": "artist:\"Ounishi\"",
-   "carte": 6,
-   "avatar": "https://images.pokemontcg.io/sv9/160.png"
+   "carte": 12,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/131/low.webp"
   },
   {
    "slug": "pani-kobayashi",
@@ -2539,9 +2364,8 @@
    "grafie": [
     "Pani Kobayashi"
    ],
-   "query": "artist:\"Pani Kobayashi\"",
-   "carte": 40,
-   "avatar": "https://images.pokemontcg.io/sv1/246.png"
+   "carte": 42,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv01/246/low.webp"
   },
   {
    "slug": "planeta",
@@ -2549,9 +2373,8 @@
    "grafie": [
     "PLANETA"
    ],
-   "query": "artist:\"PLANETA\"",
    "carte": 48,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-89/small"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm3/88/low.webp"
   },
   {
    "slug": "planeta-hiiragi",
@@ -2559,9 +2382,8 @@
    "grafie": [
     "PLANETA Hiiragi"
    ],
-   "query": "artist:\"PLANETA Hiiragi\"",
-   "carte": 8,
-   "avatar": "https://images.pokemontcg.io/sv6/197.png"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv06/197/low.webp"
   },
   {
    "slug": "planeta-igarashi",
@@ -2569,9 +2391,8 @@
    "grafie": [
     "PLANETA Igarashi"
    ],
-   "query": "artist:\"PLANETA Igarashi\"",
-   "carte": 45,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/3.png"
+   "carte": 51,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/045/low.webp"
   },
   {
    "slug": "planeta-mochizuki",
@@ -2579,9 +2400,8 @@
    "grafie": [
     "PLANETA Mochizuki"
    ],
-   "query": "artist:\"PLANETA Mochizuki\"",
-   "carte": 141,
-   "avatar": "https://images.pokemontcg.io/sv10/69.png"
+   "carte": 145,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10/214/low.webp"
   },
   {
    "slug": "planeta-otani",
@@ -2589,9 +2409,8 @@
    "grafie": [
     "PLANETA Otani"
    ],
-   "query": "artist:\"PLANETA Otani\"",
    "carte": 15,
-   "avatar": "https://images.pokemontcg.io/sm115/14.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm115/14/low.webp"
   },
   {
    "slug": "planeta-tsuji",
@@ -2599,9 +2418,8 @@
    "grafie": [
     "PLANETA Tsuji"
    ],
-   "query": "artist:\"PLANETA Tsuji\"",
-   "carte": 89,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/77.png"
+   "carte": 91,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/077/low.webp"
   },
   {
    "slug": "planeta-yamashita",
@@ -2609,9 +2427,8 @@
    "grafie": [
     "PLANETA Yamashita"
    ],
-   "query": "artist:\"PLANETA Yamashita\"",
-   "carte": 21,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/30.png"
+   "carte": 23,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/030/low.webp"
   },
   {
    "slug": "po-suzuki",
@@ -2619,19 +2436,8 @@
    "grafie": [
     "Po-Suzuki"
    ],
-   "query": "artist:\"Po-Suzuki\"",
-   "carte": 6,
-   "avatar": "https://images.pokemontcg.io/sv2/200.png"
-  },
-  {
-   "slug": "pokemon-rumble",
-   "nome": "Pokemon Rumble",
-   "grafie": [
-    "Pokemon Rumble"
-   ],
-   "query": "artist:\"Rumble\"",
-   "carte": 16,
-   "avatar": "https://images.pokemontcg.io/ru1/9.png"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv02/200/low.webp"
   },
   {
    "slug": "q-rais",
@@ -2639,9 +2445,8 @@
    "grafie": [
     "Q-rais"
    ],
-   "query": "artist:\"Q-rais\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/smp/SM233.png"
+   "avatar": null
   },
   {
    "slug": "raita-kazama",
@@ -2649,9 +2454,8 @@
    "grafie": [
     "Raita Kazama"
    ],
-   "query": "artist:\"Raita Kazama\"",
-   "carte": 3,
-   "avatar": "https://images.scrydex.com/pokemon/me55-138/small"
+   "carte": 4,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/138/low.webp"
   },
   {
    "slug": "reiko-tanoue",
@@ -2659,9 +2463,8 @@
    "grafie": [
     "Reiko Tanoue"
    ],
-   "query": "artist:\"Reiko Tanoue\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/bw4/28.png"
+   "avatar": "https://assets.tcgdex.net/en/bw/bw4/28/low.webp"
   },
   {
    "slug": "rend",
@@ -2669,9 +2472,8 @@
    "grafie": [
     "REND"
    ],
-   "query": "artist:\"REND\"",
-   "carte": 16,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-226/small"
+   "carte": 25,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/115/low.webp"
   },
   {
    "slug": "rianti-hidayat",
@@ -2679,9 +2481,8 @@
    "grafie": [
     "Rianti Hidayat"
    ],
-   "query": "artist:\"Rianti Hidayat\"",
-   "carte": 9,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/170.png"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/170/low.webp"
   },
   {
    "slug": "rika",
@@ -2689,9 +2490,8 @@
    "grafie": [
     "rika"
    ],
-   "query": "artist:\"rika\"",
-   "carte": 16,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/111.png"
+   "carte": 22,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/111/low.webp"
   },
   {
    "slug": "rond",
@@ -2699,9 +2499,17 @@
    "grafie": [
     "Rond"
    ],
-   "query": "artist:\"Rond\"",
-   "carte": 6,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-232/small"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/232/low.webp"
+  },
+  {
+   "slug": "rowan-laidlaw",
+   "nome": "Rowan Laidlaw",
+   "grafie": [
+    "Rowan Laidlaw"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "ryo-ueda",
@@ -2709,9 +2517,8 @@
    "grafie": [
     "Ryo Ueda"
    ],
-   "query": "artist:\"Ryo Ueda\"",
-   "carte": 464,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-106p/small"
+   "carte": 458,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh12.5/139/low.webp"
   },
   {
    "slug": "ryoma-uratsuka",
@@ -2719,9 +2526,8 @@
    "grafie": [
     "ryoma uratsuka"
    ],
-   "query": "artist:\"ryoma uratsuka\"",
-   "carte": 47,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/113.png"
+   "carte": 54,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/090/low.webp"
   },
   {
    "slug": "ryota-murayama",
@@ -2729,9 +2535,8 @@
    "grafie": [
     "Ryota Murayama"
    ],
-   "query": "artist:\"Ryota Murayama\"",
-   "carte": 57,
-   "avatar": "https://images.scrydex.com/pokemon/me55-156/small"
+   "carte": 60,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/156/low.webp"
   },
   {
    "slug": "ryota-saito",
@@ -2739,9 +2544,8 @@
    "grafie": [
     "Ryota Saito"
    ],
-   "query": "artist:\"Ryota Saito\"",
    "carte": 11,
-   "avatar": "https://images.pokemontcg.io/pl4/12.png"
+   "avatar": "https://assets.tcgdex.net/en/pl/pl4/12/low.webp"
   },
   {
    "slug": "ryuta-fuse",
@@ -2749,19 +2553,8 @@
    "grafie": [
     "Ryuta Fuse"
    ],
-   "query": "artist:\"Ryuta Fuse\"",
-   "carte": 102,
-   "avatar": "https://images.scrydex.com/pokemon/me55-99/small"
-  },
-  {
-   "slug": "ryuta-kusumi",
-   "nome": "Ryuta Kusumi",
-   "grafie": [
-    "Ryuta Kusumi, CR CG gangs"
-   ],
-   "query": "artist:\"Ryuta Kusumi\"",
-   "carte": 2,
-   "avatar": "https://images.pokemontcg.io/neo4/104.png"
+   "carte": 107,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/099/low.webp"
   },
   {
    "slug": "saboteri",
@@ -2769,9 +2562,8 @@
    "grafie": [
     "Saboteri"
    ],
-   "query": "artist:\"Saboteri\"",
-   "carte": 21,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/120.png"
+   "carte": 63,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/120/low.webp"
   },
   {
    "slug": "sachi-matoba",
@@ -2779,9 +2571,8 @@
    "grafie": [
     "Sachi Matoba"
    ],
-   "query": "artist:\"Sachi Matoba\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/ecard1/94.png"
+   "avatar": "https://assets.tcgdex.net/en/ecard/ecard1/94/low.webp"
   },
   {
    "slug": "sachiko-adachi",
@@ -2789,9 +2580,8 @@
    "grafie": [
     "Sachiko Adachi"
    ],
-   "query": "artist:\"Sachiko Adachi\"",
    "carte": 42,
-   "avatar": "https://images.pokemontcg.io/sm11/29.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm11/29/low.webp"
   },
   {
    "slug": "sachiko-eba",
@@ -2799,9 +2589,8 @@
    "grafie": [
     "Shinji Higuchi + Sachiko Eba"
    ],
-   "query": "artist:\"Sachiko Eba\"",
    "carte": 10,
-   "avatar": "https://images.pokemontcg.io/hgss4/102.png"
+   "avatar": "https://assets.tcgdex.net/en/hgss/hgss4/102/low.webp"
   },
   {
    "slug": "sadaji",
@@ -2809,19 +2598,18 @@
    "grafie": [
     "sadaji"
    ],
-   "query": "artist:\"sadaji\"",
-   "carte": 46,
-   "avatar": "https://images.pokemontcg.io/swsh12pt5/125.png"
+   "carte": 45,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh12.5/125/low.webp"
   },
   {
    "slug": "saino-misaki",
    "nome": "saino misaki",
    "grafie": [
+    "Saino Misaki",
     "saino misaki"
    ],
-   "query": "artist:\"saino misaki\"",
-   "carte": 38,
-   "avatar": "https://images.scrydex.com/pokemon/me4-90/small"
+   "carte": 43,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/090/low.webp"
   },
   {
    "slug": "saki-hayashiro",
@@ -2829,9 +2617,8 @@
    "grafie": [
     "Saki Hayashiro"
    ],
-   "query": "artist:\"Saki Hayashiro\"",
-   "carte": 41,
-   "avatar": "https://images.pokemontcg.io/sv4pt5/222.png"
+   "carte": 40,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv07/001/low.webp"
   },
   {
    "slug": "sakiko-maeda",
@@ -2839,9 +2626,8 @@
    "grafie": [
     "Sakiko Maeda"
    ],
-   "query": "artist:\"Sakiko Maeda\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/sm12/228.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm12/228/low.webp"
   },
   {
    "slug": "sanosuke-sakuma",
@@ -2849,9 +2635,8 @@
    "grafie": [
     "Sanosuke Sakuma"
    ],
-   "query": "artist:\"Sanosuke Sakuma\"",
-   "carte": 164,
-   "avatar": "https://images.pokemontcg.io/sv2/270.png"
+   "carte": 172,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv02/270/low.webp"
   },
   {
    "slug": "satoma",
@@ -2859,19 +2644,8 @@
    "grafie": [
     "satoma"
    ],
-   "query": "artist:\"satoma\"",
-   "carte": 21,
-   "avatar": "https://images.scrydex.com/pokemon/me5-88/small"
-  },
-  {
-   "slug": "satoshi-ito",
-   "nome": "Satoshi Ito",
-   "grafie": [
-    "Satoshi Ito"
-   ],
-   "query": "artist:\"Satoshi Ito\"",
-   "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me4-69/small"
+   "carte": 30,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/088/low.webp"
   },
   {
    "slug": "satoshi-nakai",
@@ -2879,9 +2653,8 @@
    "grafie": [
     "SATOSHI NAKAI"
    ],
-   "query": "artist:\"SATOSHI NAKAI\"",
    "carte": 59,
-   "avatar": "https://images.pokemontcg.io/sv4/128.png"
+   "avatar": "https://assets.tcgdex.net/en/sv/sv04/128/low.webp"
   },
   {
    "slug": "satoshi-ohta",
@@ -2889,9 +2662,8 @@
    "grafie": [
     "Satoshi Ohta"
    ],
-   "query": "artist:\"Satoshi Ohta\"",
-   "carte": 7,
-   "avatar": "https://images.pokemontcg.io/pl3/95.png"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/069/low.webp"
   },
   {
    "slug": "satoshi-shirai",
@@ -2899,9 +2671,8 @@
    "grafie": [
     "Satoshi Shirai"
    ],
-   "query": "artist:\"Satoshi Shirai\"",
-   "carte": 51,
-   "avatar": "https://images.pokemontcg.io/sv5/193.png"
+   "carte": 52,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv05/193/low.webp"
   },
   {
    "slug": "saya-tsuruta",
@@ -2909,9 +2680,8 @@
    "grafie": [
     "Saya Tsuruta"
    ],
-   "query": "artist:\"Saya Tsuruta\"",
-   "carte": 125,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/144.png"
+   "carte": 126,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/144/low.webp"
   },
   {
    "slug": "scav",
@@ -2919,9 +2689,8 @@
    "grafie": [
     "Scav"
    ],
-   "query": "artist:\"Scav\"",
-   "carte": 35,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/150.png"
+   "carte": 41,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/150/low.webp"
   },
   {
    "slug": "sekio",
@@ -2929,9 +2698,8 @@
    "grafie": [
     "Sekio"
    ],
-   "query": "artist:\"Sekio\"",
-   "carte": 73,
-   "avatar": "https://images.pokemontcg.io/sv5/75.png"
+   "carte": 74,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv08/093/low.webp"
   },
   {
    "slug": "shiburingaru",
@@ -2939,9 +2707,8 @@
    "grafie": [
     "Shiburingaru"
    ],
-   "query": "artist:\"Shiburingaru\"",
-   "carte": 39,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/135.png"
+   "carte": 45,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/135/low.webp"
   },
   {
    "slug": "shibuzoh",
@@ -2949,9 +2716,8 @@
    "grafie": [
     "Shibuzoh."
    ],
-   "query": "artist:\"Shibuzoh.\"",
-   "carte": 104,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/119.png"
+   "carte": 106,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/119/low.webp"
   },
   {
    "slug": "shigenori-negishi",
@@ -2959,9 +2725,8 @@
    "grafie": [
     "Shigenori Negishi"
    ],
-   "query": "artist:\"Shigenori Negishi\"",
-   "carte": 153,
-   "avatar": "https://images.pokemontcg.io/me2/107.png"
+   "carte": 156,
+   "avatar": "https://assets.tcgdex.net/en/me/me02/107/low.webp"
   },
   {
    "slug": "shimaris-yukichi",
@@ -2969,9 +2734,8 @@
    "grafie": [
     "Shimaris Yukichi"
    ],
-   "query": "artist:\"Shimaris Yukichi\"",
-   "carte": 14,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/129.png"
+   "carte": 25,
+   "avatar": "https://assets.tcgdex.net/en/me/me01/149/low.webp"
   },
   {
    "slug": "shin-ichi-yoshida",
@@ -2979,20 +2743,17 @@
    "grafie": [
     "Shin-ichi Yoshida"
    ],
-   "query": "artist:\"Shin-ichi Yoshida\"",
    "carte": 52,
-   "avatar": "https://images.pokemontcg.io/cel25c/15_C.png"
+   "avatar": "https://assets.tcgdex.net/en/ecard/ecard3/76/low.webp"
   },
   {
    "slug": "shin-ichi-yoshikawa",
    "nome": "Shin-ichi Yoshikawa",
    "grafie": [
-    "Shin-ichi Yoshikawa",
-    "Shin-ichi Yoshikawa, CR CG gangs"
+    "Shin-ichi Yoshikawa"
    ],
-   "query": "artist:\"Shin-ichi Yoshikawa\"",
-   "carte": 54,
-   "avatar": "https://images.pokemontcg.io/dp7/92.png"
+   "carte": 53,
+   "avatar": "https://assets.tcgdex.net/en/dp/dp7/92/low.webp"
   },
   {
    "slug": "shin-nagasawa",
@@ -3000,24 +2761,22 @@
    "grafie": [
     "Shin Nagasawa"
    ],
-   "query": "artist:\"Shin Nagasawa\"",
-   "carte": 306,
-   "avatar": "https://images.pokemontcg.io/sv1/220.png"
+   "carte": 304,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv01/220/low.webp"
   },
   {
    "slug": "shinji-higuchi",
    "nome": "Shinji Higuchi",
    "grafie": [
     "Kent Kanetsuna/Direc. Shinji Higuchi",
-    "Noriko Takaya,                   \n                    \n                      Shinji Higuchi",
     "Shinji Higuchi",
     "Shinji Higuchi + Noriko Takaya",
+    "Shinji Higuchi + Noriko Takaya 樋口 真嗣 + 高屋 法子",
     "Shinji Higuchi + Sachiko Eba",
     "Wataru Kawahara/Direc. Shinji Higuchi"
    ],
-   "query": "artist:\"Shinji Higuchi\"",
    "carte": 22,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-99/small"
+   "avatar": "https://assets.tcgdex.net/en/hgss/hgss4/99/low.webp"
   },
   {
    "slug": "shinji-kanda",
@@ -3025,9 +2784,8 @@
    "grafie": [
     "Shinji Kanda"
    ],
-   "query": "artist:\"Shinji Kanda\"",
-   "carte": 24,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-203/small"
+   "carte": 31,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/105/low.webp"
   },
   {
    "slug": "shinya-komatsu",
@@ -3035,9 +2793,8 @@
    "grafie": [
     "Shinya Komatsu"
    ],
-   "query": "artist:\"Shinya Komatsu\"",
-   "carte": 18,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/126.png"
+   "carte": 23,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/126/low.webp"
   },
   {
    "slug": "shinya-mizuno",
@@ -3045,9 +2802,8 @@
    "grafie": [
     "Shinya Mizuno"
    ],
-   "query": "artist:\"Shinya Mizuno\"",
-   "carte": 6,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/123.png"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/123/low.webp"
   },
   {
    "slug": "shizurow",
@@ -3055,9 +2811,8 @@
    "grafie": [
     "Shizurow"
    ],
-   "query": "artist:\"Shizurow\"",
-   "carte": 80,
-   "avatar": "https://images.pokemontcg.io/cel25c/54_A.png"
+   "carte": 81,
+   "avatar": "https://assets.tcgdex.net/en/bw/bw11/88/low.webp"
   },
   {
    "slug": "sie-nanahara",
@@ -3065,9 +2820,8 @@
    "grafie": [
     "SIE NANAHARA"
    ],
-   "query": "artist:\"SIE NANAHARA\"",
-   "carte": 13,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-288/small"
+   "carte": 16,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/288/low.webp"
   },
   {
    "slug": "so-taro",
@@ -3075,9 +2829,8 @@
    "grafie": [
     "so-taro"
    ],
-   "query": "artist:\"so-taro\"",
-   "carte": 19,
-   "avatar": "https://images.pokemontcg.io/swsh45/52.png"
+   "carte": 20,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh4.5/52/low.webp"
   },
   {
    "slug": "souchirou-gunjima",
@@ -3085,9 +2838,8 @@
    "grafie": [
     "Souchirou Gunjima"
    ],
-   "query": "artist:\"Souchirou Gunjima\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/swsh11/209.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh11/209/low.webp"
   },
   {
    "slug": "souichirou-gunjima",
@@ -3095,9 +2847,8 @@
    "grafie": [
     "Souichirou Gunjima"
    ],
-   "query": "artist:\"Souichirou Gunjima\"",
-   "carte": 89,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-274/small"
+   "carte": 102,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/122/low.webp"
   },
   {
    "slug": "sowsow",
@@ -3105,9 +2856,8 @@
    "grafie": [
     "sowsow"
    ],
-   "query": "artist:\"sowsow\"",
-   "carte": 109,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-246/small"
+   "carte": 112,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/246/low.webp"
   },
   {
    "slug": "studio-bora-inc",
@@ -3115,9 +2865,8 @@
    "grafie": [
     "Studio Bora Inc."
    ],
-   "query": "artist:\"Studio Bora Inc.\"",
-   "carte": 95,
-   "avatar": "https://images.scrydex.com/pokemon/me5-110/small"
+   "carte": 118,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/110/low.webp"
   },
   {
    "slug": "sui",
@@ -3125,19 +2874,18 @@
    "grafie": [
     "sui"
    ],
-   "query": "artist:\"sui\"",
-   "carte": 195,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-242/small"
+   "carte": 204,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/242/low.webp"
   },
   {
    "slug": "sumiyoshi-kizuki",
    "nome": "Sumiyoshi Kizuki",
    "grafie": [
-    "Sumiyoshi Kizuki"
+    "Sumiyoshi Kizuki",
+    "Sumiyoshi Kizuki\"Big Mama\" Tagawa"
    ],
-   "query": "artist:\"Sumiyoshi Kizuki\"",
    "carte": 213,
-   "avatar": "https://images.pokemontcg.io/sv4/110.png"
+   "avatar": "https://assets.tcgdex.net/en/me/me03/013/low.webp"
   },
   {
    "slug": "susumu-maeya",
@@ -3145,9 +2893,8 @@
    "grafie": [
     "Susumu Maeya"
    ],
-   "query": "artist:\"Susumu Maeya\"",
-   "carte": 15,
-   "avatar": "https://images.scrydex.com/pokemon/me4-89/small"
+   "carte": 18,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/116/low.webp"
   },
   {
    "slug": "suwama-chiaki",
@@ -3155,9 +2902,8 @@
    "grafie": [
     "Suwama Chiaki"
    ],
-   "query": "artist:\"Suwama Chiaki\"",
-   "carte": 103,
-   "avatar": "https://images.pokemontcg.io/swsh4/10.png"
+   "carte": 104,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh4/10/low.webp"
   },
   {
    "slug": "svlt",
@@ -3165,9 +2911,17 @@
    "grafie": [
     "svlt"
    ],
-   "query": "artist:\"svlt\"",
-   "carte": 7,
-   "avatar": "https://images.scrydex.com/pokemon/me55-46/small"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/046/low.webp"
+  },
+  {
+   "slug": "sylvia-forrest",
+   "nome": "Sylvia Forrest",
+   "grafie": [
+    "Sylvia Forrest"
+   ],
+   "carte": 1,
+   "avatar": null
   },
   {
    "slug": "t-honda",
@@ -3175,9 +2929,8 @@
    "grafie": [
     "T. Honda"
    ],
-   "query": "artist:\"T. Honda\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/ex4/31.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex4/31/low.webp"
   },
   {
    "slug": "taiga-kasai",
@@ -3185,9 +2938,8 @@
    "grafie": [
     "Taiga Kasai"
    ],
-   "query": "artist:\"Taiga Kasai\"",
-   "carte": 18,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/94.png"
+   "carte": 26,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/094/low.webp"
   },
   {
    "slug": "taiga-kayama",
@@ -3195,9 +2947,8 @@
    "grafie": [
     "Taiga Kayama"
    ],
-   "query": "artist:\"Taiga Kayama\"",
-   "carte": 11,
-   "avatar": "https://images.pokemontcg.io/sv10/197.png"
+   "carte": 12,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10/197/low.webp"
   },
   {
    "slug": "taira-akitsu",
@@ -3205,9 +2956,8 @@
    "grafie": [
     "Taira Akitsu"
    ],
-   "query": "artist:\"Taira Akitsu\"",
-   "carte": 58,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/106.png"
+   "carte": 66,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/106/low.webp"
   },
   {
    "slug": "takabon",
@@ -3215,9 +2965,8 @@
    "grafie": [
     "Takabon"
    ],
-   "query": "artist:\"Takabon\"",
    "carte": 2,
-   "avatar": "https://images.pokemontcg.io/dp1/2.png"
+   "avatar": "https://assets.tcgdex.net/en/dp/dp1/2/low.webp"
   },
   {
    "slug": "takao-unno",
@@ -3225,9 +2974,8 @@
    "grafie": [
     "Takao Unno"
    ],
-   "query": "artist:\"Takao Unno\"",
    "carte": 12,
-   "avatar": "https://images.pokemontcg.io/hgss3/78.png"
+   "avatar": "https://assets.tcgdex.net/en/hgss/hgss3/78/low.webp"
   },
   {
    "slug": "takashi-shiraishi",
@@ -3235,9 +2983,8 @@
    "grafie": [
     "takashi shiraishi"
    ],
-   "query": "artist:\"takashi shiraishi\"",
-   "carte": 7,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/91.png"
+   "carte": 10,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/091/low.webp"
   },
   {
    "slug": "takashi-yamaguchi",
@@ -3245,9 +2992,8 @@
    "grafie": [
     "Takashi Yamaguchi"
    ],
-   "query": "artist:\"Takashi Yamaguchi\"",
-   "carte": 19,
-   "avatar": "https://images.scrydex.com/pokemon/me55c-94/small"
+   "carte": 21,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/197/low.webp"
   },
   {
    "slug": "take",
@@ -3255,9 +3001,8 @@
    "grafie": [
     "take"
    ],
-   "query": "artist:\"take\"",
    "carte": 20,
-   "avatar": "https://images.pokemontcg.io/swsh12tg/TG27.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh7/152/low.webp"
   },
   {
    "slug": "takeshi-nakamura",
@@ -3265,9 +3010,8 @@
    "grafie": [
     "Takeshi Nakamura"
    ],
-   "query": "artist:\"Takeshi Nakamura\"",
-   "carte": 19,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-229/small"
+   "carte": 28,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/229/low.webp"
   },
   {
    "slug": "takumi-akabane",
@@ -3275,9 +3019,8 @@
    "grafie": [
     "Takumi Akabane"
    ],
-   "query": "artist:\"Takumi Akabane\"",
-   "carte": 52,
-   "avatar": "https://images.pokemontcg.io/pl2/99.png"
+   "carte": 50,
+   "avatar": "https://assets.tcgdex.net/en/pl/pl2/99/low.webp"
   },
   {
    "slug": "takumi-wada",
@@ -3285,19 +3028,18 @@
    "grafie": [
     "Takumi Wada"
    ],
-   "query": "artist:\"Takumi Wada\"",
-   "carte": 16,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/169.png"
+   "carte": 21,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/169/low.webp"
   },
   {
    "slug": "takuyoa",
    "nome": "takuyoa",
    "grafie": [
+    "Takuyoa",
     "takuyoa"
    ],
-   "query": "artist:\"takuyoa\"",
-   "carte": 69,
-   "avatar": "https://images.pokemontcg.io/sv2/257.png"
+   "carte": 84,
+   "avatar": "https://assets.tcgdex.net/en/me/me03/118/low.webp"
   },
   {
    "slug": "teeziro",
@@ -3305,9 +3047,8 @@
    "grafie": [
     "Teeziro"
    ],
-   "query": "artist:\"Teeziro\"",
-   "carte": 74,
-   "avatar": "https://images.scrydex.com/pokemon/me4-117/small"
+   "carte": 93,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/117/low.webp"
   },
   {
    "slug": "terada-tera",
@@ -3315,9 +3056,8 @@
    "grafie": [
     "Terada Tera"
    ],
-   "query": "artist:\"Terada Tera\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/me2/103.png"
+   "carte": 6,
+   "avatar": "https://assets.tcgdex.net/en/me/me02/103/low.webp"
   },
   {
    "slug": "tetsu-kayama",
@@ -3325,9 +3065,17 @@
    "grafie": [
     "Tetsu Kayama"
    ],
-   "query": "artist:\"Tetsu Kayama\"",
-   "carte": 21,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/139.png"
+   "carte": 28,
+   "avatar": "https://assets.tcgdex.net/en/me/me01/144/low.webp"
+  },
+  {
+   "slug": "tetsuo-hara",
+   "nome": "Tetsuo Hara",
+   "grafie": [
+    "Tetsuo Hara"
+   ],
+   "carte": 1,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv08.5/151/low.webp"
   },
   {
    "slug": "tetsuya-koizumi",
@@ -3335,19 +3083,17 @@
    "grafie": [
     "tetsuya koizumi"
    ],
-   "query": "artist:\"tetsuya koizumi\"",
    "carte": 63,
-   "avatar": "https://images.pokemontcg.io/swsh8/75.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh8/75/low.webp"
   },
   {
    "slug": "the-pokemon-company-art-team",
    "nome": "The Pokémon Company Art Team",
    "grafie": [
-    "The Pokémon Company Art Team"
+    "Illus. & Direc. The Pokémon Company Art Team"
    ],
-   "query": "artist:\"The Pok*mon Company Art Team\"",
    "carte": 16,
-   "avatar": "https://images.pokemontcg.io/fut20/5.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/fut2020/5/low.webp"
   },
   {
    "slug": "tika-matsuno",
@@ -3355,9 +3101,8 @@
    "grafie": [
     "Tika Matsuno"
    ],
-   "query": "artist:\"Tika Matsuno\"",
-   "carte": 50,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-272/small"
+   "carte": 49,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/272/low.webp"
   },
   {
    "slug": "toi8",
@@ -3365,9 +3110,8 @@
    "grafie": [
     "toi8"
    ],
-   "query": "artist:\"toi8\"",
-   "carte": 5,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/129.png"
+   "carte": 8,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/129/low.webp"
   },
   {
    "slug": "tokiya",
@@ -3375,9 +3119,17 @@
    "grafie": [
     "TOKIYA"
    ],
-   "query": "artist:\"TOKIYA\"",
    "carte": 94,
-   "avatar": "https://images.pokemontcg.io/swsh2/69.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh2/69/low.webp"
+  },
+  {
+   "slug": "tokumi-akabane",
+   "nome": "Tokumi Akabane",
+   "grafie": [
+    "Tokumi Akabane"
+   ],
+   "carte": 1,
+   "avatar": "https://assets.tcgdex.net/en/ex/ex6/103/low.webp"
   },
   {
    "slug": "tomoaki-imakuni",
@@ -3385,9 +3137,8 @@
    "grafie": [
     "Tomoaki Imakuni"
    ],
-   "query": "artist:\"Tomoaki Imakuni\"",
    "carte": 14,
-   "avatar": "https://images.pokemontcg.io/xy12/71.png"
+   "avatar": "https://assets.tcgdex.net/en/xy/xy12/71/low.webp"
   },
   {
    "slug": "tomohiro-kitakaze",
@@ -3395,9 +3146,8 @@
    "grafie": [
     "Tomohiro Kitakaze"
    ],
-   "query": "artist:\"Tomohiro Kitakaze\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/bw4/84.png"
+   "avatar": "https://assets.tcgdex.net/en/bw/bw4/84/low.webp"
   },
   {
    "slug": "tomokazu-komiya",
@@ -3405,19 +3155,8 @@
    "grafie": [
     "Tomokazu Komiya"
    ],
-   "query": "artist:\"Tomokazu Komiya\"",
-   "carte": 251,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/94.png"
-  },
-  {
-   "slug": "tomoki-sone",
-   "nome": "Tomoki Sone",
-   "grafie": [
-    "Tomoki Sone"
-   ],
-   "query": "artist:\"Tomoki Sone\"",
-   "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me4-24/small"
+   "carte": 253,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/094/low.webp"
   },
   {
    "slug": "tomoko-wakai",
@@ -3425,9 +3164,8 @@
    "grafie": [
     "Tomoko Wakai"
    ],
-   "query": "artist:\"Tomoko Wakai\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/ex8/7.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex8/7/low.webp"
   },
   {
    "slug": "tomomi-kaneko",
@@ -3435,9 +3173,8 @@
    "grafie": [
     "Tomomi Kaneko"
    ],
-   "query": "artist:\"Tomomi Kaneko\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/sv5/8.png"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/024/low.webp"
   },
   {
    "slug": "tomomi-ozaki",
@@ -3445,9 +3182,8 @@
    "grafie": [
     "Tomomi Ozaki"
    ],
-   "query": "artist:\"Tomomi Ozaki\"",
-   "carte": 13,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/112.png"
+   "carte": 17,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/112/low.webp"
   },
   {
    "slug": "tomowaka",
@@ -3455,9 +3191,8 @@
    "grafie": [
     "Tomowaka"
    ],
-   "query": "artist:\"Tomowaka\"",
-   "carte": 5,
-   "avatar": "https://images.scrydex.com/pokemon/me4-121/small"
+   "carte": 10,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/121/low.webp"
   },
   {
    "slug": "tonji-matsuno",
@@ -3465,9 +3200,8 @@
    "grafie": [
     "Tonji Matsuno"
    ],
-   "query": "artist:\"Tonji Matsuno\"",
-   "carte": 18,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-230/small"
+   "carte": 22,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/230/low.webp"
   },
   {
    "slug": "tono",
@@ -3475,9 +3209,8 @@
    "grafie": [
     "tono"
    ],
-   "query": "artist:\"tono\"",
-   "carte": 6,
-   "avatar": "https://images.pokemontcg.io/me2/99.png"
+   "carte": 9,
+   "avatar": "https://assets.tcgdex.net/en/me/me02/099/low.webp"
   },
   {
    "slug": "toriyufu",
@@ -3485,9 +3218,8 @@
    "grafie": [
     "toriyufu"
    ],
-   "query": "artist:\"toriyufu\"",
-   "carte": 12,
-   "avatar": "https://images.scrydex.com/pokemon/me55-142/small"
+   "carte": 15,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/142/low.webp"
   },
   {
    "slug": "toshinao-aoki",
@@ -3495,9 +3227,8 @@
    "grafie": [
     "Toshinao Aoki"
    ],
-   "query": "artist:\"Toshinao Aoki\"",
-   "carte": 61,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/118.png"
+   "carte": 64,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/118/low.webp"
   },
   {
    "slug": "toyste-beach",
@@ -3505,9 +3236,8 @@
    "grafie": [
     "Toyste Beach"
    ],
-   "query": "artist:\"Toyste Beach\"",
-   "carte": 289,
-   "avatar": "https://images.scrydex.com/pokemon/me5-75/small"
+   "carte": 316,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/106/low.webp"
   },
   {
    "slug": "tsuyoshi-nagano",
@@ -3515,19 +3245,17 @@
    "grafie": [
     "Tsuyoshi Nagano"
    ],
-   "query": "artist:\"Tsuyoshi Nagano\"",
-   "carte": 3,
-   "avatar": "https://images.scrydex.com/pokemon/me4-96/small"
+   "carte": 4,
+   "avatar": "https://assets.tcgdex.net/en/me/me04/096/low.webp"
   },
   {
-   "slug": "ukumo-viti",
-   "nome": "UKUMO viti",
+   "slug": "ukumo-uiti",
+   "nome": "UKUMO uiti",
    "grafie": [
-    "UKUMO viti"
+    "UKUMO uiti"
    ],
-   "query": "artist:\"UKUMO viti\"",
    "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me4-27/small"
+   "avatar": "https://assets.tcgdex.net/en/me/me04/027/low.webp"
   },
   {
    "slug": "ultimateinudog",
@@ -3535,9 +3263,8 @@
    "grafie": [
     "Ultimateinudog"
    ],
-   "query": "artist:\"Ultimateinudog\"",
-   "carte": 1,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-139/small"
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/139/low.webp"
   },
   {
    "slug": "uninori",
@@ -3545,9 +3272,8 @@
    "grafie": [
     "Uninori"
    ],
-   "query": "artist:\"Uninori\"",
-   "carte": 15,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-228/small"
+   "carte": 25,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/228/low.webp"
   },
   {
    "slug": "usgmen",
@@ -3555,9 +3281,8 @@
    "grafie": [
     "USGMEN"
    ],
-   "query": "artist:\"USGMEN\"",
-   "carte": 4,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/118.png"
+   "carte": 6,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/118/low.webp"
   },
   {
    "slug": "uta",
@@ -3565,9 +3290,8 @@
    "grafie": [
     "Uta"
    ],
-   "query": "artist:\"Uta\"",
-   "carte": 56,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/138.png"
+   "carte": 59,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/138/low.webp"
   },
   {
    "slug": "wataru-kawahara",
@@ -3576,9 +3300,8 @@
     "Wataru Kawahara",
     "Wataru Kawahara/Direc. Shinji Higuchi"
    ],
-   "query": "artist:\"Wataru Kawahara\"",
-   "carte": 37,
-   "avatar": "https://images.pokemontcg.io/col1/80.png"
+   "carte": 39,
+   "avatar": "https://assets.tcgdex.net/en/col/col1/80/low.webp"
   },
   {
    "slug": "whisker",
@@ -3586,9 +3309,8 @@
    "grafie": [
     "Whisker"
    ],
-   "query": "artist:\"Whisker\"",
-   "carte": 8,
-   "avatar": "https://images.scrydex.com/pokemon/me55-136/small"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/136/low.webp"
   },
   {
    "slug": "wintr-wandr",
@@ -3596,9 +3318,17 @@
    "grafie": [
     "Wintr Wandr"
    ],
-   "query": "artist:\"Wintr Wandr\"",
-   "carte": 7,
-   "avatar": "https://images.scrydex.com/pokemon/me55-116/small"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/116/low.webp"
+  },
+  {
+   "slug": "yamazaki-rei",
+   "nome": "Yamazaki Rei",
+   "grafie": [
+    "Yamazaki Rei"
+   ],
+   "carte": 2,
+   "avatar": null
   },
   {
    "slug": "yano-keiji",
@@ -3606,9 +3336,8 @@
    "grafie": [
     "Yano Keiji"
    ],
-   "query": "artist:\"Yano Keiji\"",
-   "carte": 9,
-   "avatar": "https://images.scrydex.com/pokemon/me55-151/small"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/151/low.webp"
   },
   {
    "slug": "yashiro-nanaco",
@@ -3616,9 +3345,8 @@
    "grafie": [
     "YASHIRO Nanaco"
    ],
-   "query": "artist:\"YASHIRO Nanaco\"",
-   "carte": 5,
-   "avatar": "https://images.scrydex.com/pokemon/me55-137/small"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/137/low.webp"
   },
   {
    "slug": "yasuki-watanabe",
@@ -3626,9 +3354,8 @@
    "grafie": [
     "Yasuki Watanabe"
    ],
-   "query": "artist:\"Yasuki Watanabe\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/ex14/95.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex14/95/low.webp"
   },
   {
    "slug": "yoko-hishida",
@@ -3636,9 +3363,8 @@
    "grafie": [
     "Yoko Hishida"
    ],
-   "query": "artist:\"Yoko Hishida\"",
-   "carte": 4,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-221/small"
+   "carte": 5,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/221/low.webp"
   },
   {
    "slug": "yoriyuki-ikegami",
@@ -3646,9 +3372,8 @@
    "grafie": [
     "Yoriyuki Ikegami"
    ],
-   "query": "artist:\"Yoriyuki Ikegami\"",
-   "carte": 20,
-   "avatar": "https://images.scrydex.com/pokemon/me5-93/small"
+   "carte": 25,
+   "avatar": "https://assets.tcgdex.net/en/me/me05/093/low.webp"
   },
   {
    "slug": "yoshimi-miyoshi",
@@ -3656,9 +3381,8 @@
    "grafie": [
     "Yoshimi Miyoshi"
    ],
-   "query": "artist:\"Yoshimi Miyoshi\"",
-   "carte": 6,
-   "avatar": "https://images.scrydex.com/pokemon/me55-135/small"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/135/low.webp"
   },
   {
    "slug": "yoshimoto-yoshimon",
@@ -3666,9 +3390,8 @@
    "grafie": [
     "Yoshimoto Yoshimon"
    ],
-   "query": "artist:\"Yoshimoto Yoshimon\"",
    "carte": 4,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-236/small"
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/236/low.webp"
   },
   {
    "slug": "yoshinobu-saito",
@@ -3676,9 +3399,8 @@
    "grafie": [
     "Yoshinobu Saito"
    ],
-   "query": "artist:\"Yoshinobu Saito\"",
-   "carte": 62,
-   "avatar": "https://images.pokemontcg.io/swsh12pt5/141.png"
+   "carte": 61,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh12.5/141/low.webp"
   },
   {
    "slug": "yoshioka",
@@ -3686,9 +3408,8 @@
    "grafie": [
     "Yoshioka"
    ],
-   "query": "artist:\"Yoshioka\"",
-   "carte": 6,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/150.png"
+   "carte": 7,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/150/low.webp"
   },
   {
    "slug": "yoshirotten",
@@ -3696,9 +3417,8 @@
    "grafie": [
     "YOSHIROTTEN"
    ],
-   "query": "artist:\"YOSHIROTTEN\"",
-   "carte": 5,
-   "avatar": "https://images.scrydex.com/pokemon/me55-R/small"
+   "carte": 15,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/R/low.webp"
   },
   {
    "slug": "yosuke-da-silva",
@@ -3706,9 +3426,8 @@
    "grafie": [
     "Yosuke Da Silva"
    ],
-   "query": "artist:\"Yosuke Da Silva\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/ex4/68.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex4/68/low.webp"
   },
   {
    "slug": "you-iribi",
@@ -3716,19 +3435,8 @@
    "grafie": [
     "You Iribi"
    ],
-   "query": "artist:\"You Iribi\"",
-   "carte": 52,
-   "avatar": "https://images.scrydex.com/pokemon/me55-153/small"
-  },
-  {
-   "slug": "yousuke-hirata",
-   "nome": "Yousuke Hirata",
-   "grafie": [
-    "Yousuke Hirata, CR CG gangs"
-   ],
-   "query": "artist:\"Yousuke Hirata\"",
-   "carte": 3,
-   "avatar": "https://images.pokemontcg.io/neo4/95.png"
+   "carte": 54,
+   "avatar": "https://assets.tcgdex.net/en/me/30th/153/low.webp"
   },
   {
    "slug": "yuichi-sawayama",
@@ -3736,9 +3444,8 @@
    "grafie": [
     "Yuichi Sawayama"
    ],
-   "query": "artist:\"Yuichi Sawayama\"",
    "carte": 4,
-   "avatar": "https://images.pokemontcg.io/ecard1/98.png"
+   "avatar": "https://assets.tcgdex.net/en/ecard/ecard1/98/low.webp"
   },
   {
    "slug": "yuka-morii",
@@ -3746,9 +3453,8 @@
    "grafie": [
     "Yuka Morii"
    ],
-   "query": "artist:\"Yuka Morii\"",
-   "carte": 207,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/141.png"
+   "carte": 212,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/141/low.webp"
   },
   {
    "slug": "yuka-tanaka",
@@ -3756,9 +3462,8 @@
    "grafie": [
     "Yuka Tanaka"
    ],
-   "query": "artist:\"Yuka Tanaka\"",
-   "carte": 1,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/90.png"
+   "carte": 3,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/090/low.webp"
   },
   {
    "slug": "yukihiro-tada",
@@ -3766,9 +3471,8 @@
    "grafie": [
     "Yukihiro Tada"
    ],
-   "query": "artist:\"Yukihiro Tada\"",
-   "carte": 7,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-250/small"
+   "carte": 17,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/250/low.webp"
   },
   {
    "slug": "yukiko-baba",
@@ -3776,9 +3480,8 @@
    "grafie": [
     "Yukiko Baba"
    ],
-   "query": "artist:\"Yukiko Baba\"",
-   "carte": 152,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/115.png"
+   "carte": 156,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/115/low.webp"
   },
   {
    "slug": "yumi",
@@ -3786,9 +3489,8 @@
    "grafie": [
     "Yumi"
    ],
-   "query": "artist:\"Yumi\"",
    "carte": 25,
-   "avatar": "https://images.pokemontcg.io/swsh45sv/SV076.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh3/58/low.webp"
   },
   {
    "slug": "yuri-umemura",
@@ -3796,9 +3498,8 @@
    "grafie": [
     "Yuri Umemura"
    ],
-   "query": "artist:\"Yuri Umemura\"",
    "carte": 6,
-   "avatar": "https://images.pokemontcg.io/bw7/131.png"
+   "avatar": "https://assets.tcgdex.net/en/bw/bw7/131/low.webp"
   },
   {
    "slug": "yuriko-akase",
@@ -3806,9 +3507,8 @@
    "grafie": [
     "Yuriko Akase"
    ],
-   "query": "artist:\"Yuriko Akase\"",
-   "carte": 8,
-   "avatar": "https://images.pokemontcg.io/rsv10pt5/127.png"
+   "carte": 14,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5w/127/low.webp"
   },
   {
    "slug": "yusuke-ishikawa",
@@ -3816,9 +3516,8 @@
    "grafie": [
     "Yusuke Ishikawa"
    ],
-   "query": "artist:\"Yusuke Ishikawa\"",
    "carte": 15,
-   "avatar": "https://images.pokemontcg.io/pl4/91.png"
+   "avatar": "https://assets.tcgdex.net/en/pl/pl4/91/low.webp"
   },
   {
    "slug": "yusuke-kozaki",
@@ -3826,20 +3525,18 @@
    "grafie": [
     "Yusuke Kozaki"
    ],
-   "query": "artist:\"Yusuke Kozaki\"",
    "carte": 3,
-   "avatar": "https://images.pokemontcg.io/pgo/84.png"
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh10.5/084/low.webp"
   },
   {
    "slug": "yusuke-ohmura",
    "nome": "Yusuke Ohmura",
    "grafie": [
-    "Ken Sugimori/Yusuke Ohmura",
+    "Ken Sugimori Yusuke Ohmura",
     "Yusuke Ohmura"
    ],
-   "query": "artist:\"Yusuke Ohmura\"",
-   "carte": 62,
-   "avatar": "https://images.pokemontcg.io/swsh12/157.png"
+   "carte": 64,
+   "avatar": "https://assets.tcgdex.net/en/swsh/swsh12/157/low.webp"
   },
   {
    "slug": "yusuke-shimada",
@@ -3847,9 +3544,8 @@
    "grafie": [
     "Yusuke Shimada"
    ],
-   "query": "artist:\"Yusuke Shimada\"",
    "carte": 1,
-   "avatar": "https://images.pokemontcg.io/ex15/99.png"
+   "avatar": "https://assets.tcgdex.net/en/ex/ex15/99/low.webp"
   },
   {
    "slug": "yuu",
@@ -3857,9 +3553,8 @@
    "grafie": [
     "yuu"
    ],
-   "query": "artist:\"yuu\"",
-   "carte": 33,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-49/small"
+   "carte": 35,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/190/low.webp"
   },
   {
    "slug": "yuu-nishida",
@@ -3867,9 +3562,8 @@
    "grafie": [
     "Yuu Nishida"
    ],
-   "query": "artist:\"Yuu Nishida\"",
-   "carte": 67,
-   "avatar": "https://images.scrydex.com/pokemon/me2pt5-225/small"
+   "carte": 75,
+   "avatar": "https://assets.tcgdex.net/en/me/me02.5/225/low.webp"
   },
   {
    "slug": "yuya-oka",
@@ -3877,9 +3571,8 @@
    "grafie": [
     "Yuya Oka"
    ],
-   "query": "artist:\"Yuya Oka\"",
-   "carte": 39,
-   "avatar": "https://images.pokemontcg.io/zsv10pt5/146.png"
+   "carte": 42,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv10.5b/146/low.webp"
   },
   {
    "slug": "zig",
@@ -3887,9 +3580,8 @@
    "grafie": [
     "zig"
    ],
-   "query": "artist:\"zig\"",
-   "carte": 12,
-   "avatar": "https://images.pokemontcg.io/sv1/208.png"
+   "carte": 11,
+   "avatar": "https://assets.tcgdex.net/en/sv/sv01/208/low.webp"
   },
   {
    "slug": "zu-ka",
@@ -3897,9 +3589,8 @@
    "grafie": [
     "Zu-Ka"
    ],
-   "query": "artist:\"Zu-Ka\"",
    "carte": 7,
-   "avatar": "https://images.pokemontcg.io/sm7/128.png"
+   "avatar": "https://assets.tcgdex.net/en/sm/sm7/128/low.webp"
   }
  ]
 }
