@@ -86,8 +86,12 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
 - **Passaggio da pokemontcg.io** (che si spegne il 1° marzo 2027): `be/src/main/resources/abbinamento-id.json`,
   generato una volta con `node scripts/genera-abbinamento.mjs`, dice per ogni set e carta l'id di TCGdex. La
   migrazione `V9__tcgdex` (Java) riscrive gli id nel database, e `DatiInizialiSeeder` fa lo stesso con un
-  export fatto prima del passaggio. Per le carte che su TCGdex non hanno immagine il file tiene quella di
-  pokemontcg.io come riserva; se non si carica compare il segnaposto.
+  export fatto prima del passaggio.
+- **Immagini che TCGdex non ha** (885 carte, i simboli di tutti i set, 30 loghi): copie in webp in
+  `fe/public/immagini/` (circa 45 MB), fatte una volta con `node scripts/scarica-immagini.mjs` dai server di
+  pokemontcg.io e Scrydex, che si spengono con la loro API. La migrazione `V10__immagini_locali` sostituisce nel
+  database gli indirizzi di quei server con le copie; un'immagine già sparita diventa il segnaposto. Il sito non
+  dipende più da pokemontcg.io in nessun punto.
 
 ## Pokédex
 
