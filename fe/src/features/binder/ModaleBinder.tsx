@@ -29,7 +29,8 @@ import {
 } from './binderApi'
 import { CopertinaBinder } from './CopertinaBinder'
 import { ElencoCarte } from './ElencoCarte'
-import { comprimiImmagine, useImmagineBinder } from './immagine'
+import { comprimiImmagine } from '../../utils/immagini'
+import { useImmagineBinder } from './immagine'
 
 interface Props {
   aperta: boolean

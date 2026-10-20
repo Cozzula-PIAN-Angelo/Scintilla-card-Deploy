@@ -19,6 +19,8 @@ export interface Utente {
   username: string
   email: string
   ruoli: string[]
+  // versione dell'immagine profilo (null se non c'è): finisce nell'URL, vedi avatarUrl
+  avatarAggiornatoIl: string | null
 }
 
 // varianti di stampa di una carta (stessi valori dell'enum del backend)
@@ -237,4 +239,24 @@ export interface Statistiche {
   set: AvanzamentoSet[]
   // numeri di Pokédex presenti in almeno una carta posseduta
   pokemon: number[]
+}
+
+// profilo dell'utente, senza email: la forma della futura pagina pubblica.
+// iscrittoIl null per gli account creati prima che si salvasse; squadra[0] è il compagno
+export interface Profilo {
+  id: string
+  username: string
+  iscrittoIl: string | null
+  avatarAggiornatoIl: string | null
+  bio: string | null
+  colore: string | null
+  squadra: number[]
+  vetrina: Oggetto[]
+  binder: Binder[]
+  riepilogo: {
+    carteDiverse: number
+    setCompletati: number
+    pokemonPosseduti: number
+    binder: number
+  }
 }
