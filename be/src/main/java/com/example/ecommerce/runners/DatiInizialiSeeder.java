@@ -43,7 +43,8 @@ public class DatiInizialiSeeder implements CommandLineRunner {
     static final List<String> TABELLE = List.of(
             "ruoli", "utenti", "ruoli_utenti", "espansioni", "oggetti", "oggetti_pokedex", "pokemon_importati",
             "artisti_importati", "utenti_oggetti_preferiti", "binder", "binder_slot", "binder_immagini",
-            "collezione", "token_revocati");
+            "collezione", "token_revocati", "profili", "profili_avatar", "profili_squadra", "profili_vetrina",
+            "profili_binder");
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transazione;

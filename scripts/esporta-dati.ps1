@@ -21,7 +21,7 @@ $ErrorActionPreference = 'Stop'
 $tabelle = @(
     'ruoli', 'utenti', 'ruoli_utenti', 'espansioni', 'oggetti', 'oggetti_pokedex', 'pokemon_importati',
     'artisti_importati', 'utenti_oggetti_preferiti', 'binder', 'binder_slot', 'binder_immagini', 'collezione',
-    'token_revocati'
+    'token_revocati', 'profili', 'profili_avatar', 'profili_squadra', 'profili_vetrina', 'profili_binder'
 )
 $limite = 500 * 1024    # 500 KiB: limite di Render per un Secret File (oltre, il deploy fallisce)
 $soglia = 450 * 1024

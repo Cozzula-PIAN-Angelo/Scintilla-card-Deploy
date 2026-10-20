@@ -44,6 +44,16 @@ class JWTToolsTest {
         assertThat(verificato.scadenza()).isAfter(Instant.now()).isBefore(Instant.now().plusMillis(UN_GIORNO + 1000));
     }
 
+    // serve al JWTFilter per rifiutare i token emessi prima di un cambio password
+    @Test
+    void verificaRestituisceLEmissione() {
+        JWTTools tools = new JWTTools(SECRET, UN_GIORNO);
+
+        TokenVerificato verificato = tools.verifica(tools.generaToken(utente));
+
+        assertThat(verificato.emessoIl()).isBetween(Instant.now().minusSeconds(2), Instant.now());
+    }
+
     @Test
     void tokenScadutoVieneRifiutato() {
         JWTTools tools = new JWTTools(SECRET, -1000);

@@ -45,17 +45,8 @@ public class UtenteService {
 
     @Transactional
     public UtenteResponseDTO registra(RegistrazioneDTO body, String ip) {
-        // oltre i 72 byte BCryptPasswordEncoder.encode lancia IllegalArgumentException (500)
-        if (body.password().getBytes(StandardCharsets.UTF_8).length > MASSIMO_BYTE_PASSWORD) {
-            throw new BadRequestException("La password è troppo lunga: lettere accentate ed emoji occupano più spazio, "
-                    + "accorciala o usa meno caratteri speciali");
-        }
-        // senza spazi ai bordi, come l'identificativo al login (che li toglie): " mario" non entrerebbe più.
-        // @Size li conta, quindi la lunghezza si ricontrolla qui
-        String username = body.username().trim();
-        if (username.length() < LUNGHEZZA_MINIMA_USERNAME) {
-            throw new BadRequestException("Lo username deve avere tra 3 e 30 caratteri, spazi esclusi");
-        }
+        controllaBytePassword(body.password());
+        String username = usernamePulito(body.username());
         // IgnoreCase: "Mario" e "mario" sarebbero due account indistinguibili. Si salva com'è scritto
         // dopo i controlli che non rivelano niente: solo username ed email già usati consumano il limite
         limitatoreRegistrazione.controlla(ip);
@@ -77,6 +68,25 @@ public class UtenteService {
         ruoloUtenteRepository.save(new RuoloUtente(utente, ruoloService.findByNome(NomiRuolo.UTENTE)));
 
         return new UtenteResponseDTO(utente.getId(), utente.getUsername(), utente.getEmail(), List.of(NomiRuolo.UTENTE), null);
+    }
+
+    // oltre i 72 byte BCryptPasswordEncoder.encode lancia IllegalArgumentException (500).
+    // Usato anche dal cambio password (AccountService)
+    static void controllaBytePassword(String password) {
+        if (password.getBytes(StandardCharsets.UTF_8).length > MASSIMO_BYTE_PASSWORD) {
+            throw new BadRequestException("La password è troppo lunga: lettere accentate ed emoji occupano più spazio, "
+                    + "accorciala o usa meno caratteri speciali");
+        }
+    }
+
+    // senza spazi ai bordi, come l'identificativo al login (che li toglie): " mario" non entrerebbe più.
+    // @Size li conta, quindi la lunghezza si ricontrolla qui. Usato anche dal cambio username (AccountService)
+    static String usernamePulito(String username) {
+        String pulito = username.trim();
+        if (pulito.length() < LUNGHEZZA_MINIMA_USERNAME) {
+            throw new BadRequestException("Lo username deve avere tra 3 e 30 caratteri, spazi esclusi");
+        }
+        return pulito;
     }
 
     // uso interno

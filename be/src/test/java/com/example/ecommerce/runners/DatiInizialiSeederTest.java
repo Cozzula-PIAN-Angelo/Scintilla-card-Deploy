@@ -281,6 +281,12 @@ class DatiInizialiSeederTest {
         dati.put("collezione", lista(riga("id", "88888888-8888-8888-8888-888888888888", "id_utente", UTENTE,
                 "id_oggetto", CARTA, "variante", "NORMALE", "quantita", 2, "aggiornata_il", QUANDO)));
         dati.put("token_revocati", lista(riga("jti", "99999999-0000-0000-0000-000000000000", "scadenza", QUANDO)));
+        dati.put("profili", lista(riga("id_utente", UTENTE, "bio", "Ciao", "colore", "#2a75bb",
+                "avatar_aggiornato_il", QUANDO)));
+        dati.put("profili_avatar", lista(riga("id_utente", UTENTE, "contenuto", "\\x0102ff", "content_type", "image/webp")));
+        dati.put("profili_squadra", lista(riga("id_utente", UTENTE, "posizione", 0, "numero", 25)));
+        dati.put("profili_vetrina", lista(riga("id_utente", UTENTE, "posizione", 0, "id_oggetto", CARTA)));
+        dati.put("profili_binder", lista(riga("id_utente", UTENTE, "posizione", 0, "id_binder", BINDER)));
         return dati;
     }
 
