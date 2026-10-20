@@ -53,7 +53,8 @@ I test delle migrazioni (`MigrazioniTest`) girano su un PostgreSQL vero scaricat
 
 ## Vetrina ed espansioni
 
-La vetrina mostra tutte le espansioni di pokemontcg.io (circa 180), raggruppate per
+Le carte arrivano da [TCGdex](https://tcgdex.dev) (API gratuita, senza chiave), in inglese.
+La vetrina mostra tutte le sue espansioni (circa 200, senza quelle di TCG Pocket), raggruppate per
 serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le sue carte.
 
 - **Elenco espansioni**: si sincronizza all'avvio e ogni notte (`GET /espansioni`, pubblico).
@@ -63,9 +64,9 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
 - **Import a mano** (admin): `POST /carte/importa-set/{setId}` importa un set intero e
   completa le carte mancanti di un set già importato. Risponde con `trovate`,
   `importate`, `saltate` (già nel catalogo), `scartate` (prezzo oltre il massimo) e
-  `rinominate`: carte il cui nome composto era già usato, importate con l'id di pokemontcg.io
+  `rinominate`: carte il cui nome composto era già usato, importate con l'id di TCGdex
   tra parentesi quadre invece di essere scartate.
-- **Limite sugli import pubblici**: le prime aperture di set e Pokémon scaricano da pokemontcg.io,
+- **Limite sugli import pubblici**: le prime aperture di set e Pokémon scaricano da TCGdex,
   quindi sono limitate a `IMPORT_LIMITE_CLIENT` (default 30) all'ora per indirizzo IP e a
   `IMPORT_LIMITE_GIORNALIERO` (default 400) al giorno per tutto il sito; oltre, `429`. Quello che è
   già nel catalogo si consulta senza limiti, e gli import dell'admin non contano.
@@ -80,9 +81,13 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
 - **Primo avvio**: se il catalogo è vuoto si importano i set di `SEED_SET` (default `base1`),
   così l'hero ha subito delle carte.
 - Le carte senza prezzo Cardmarket (tipico dei set appena usciti) entrano a 1,00 €.
-- pokemontcg.io risponde spesso 500/502 a caso: le chiamate ritentano da sole fino a 6
-  volte. `POKEMONTCG_API_KEY` (gratuita su dev.pokemontcg.io) alza il limite di richieste
-  da circa 1.000 a 20.000 al giorno, ma non elimina quegli errori.
+- Gli errori temporanei di TCGdex (5xx, 429, timeout) si ritentano da soli fino a 3 volte. Le carte
+  di una pagina arrivano con un dettaglio per carta, 8 alla volta.
+- **Passaggio da pokemontcg.io** (che si spegne il 1° marzo 2027): `be/src/main/resources/abbinamento-id.json`,
+  generato una volta con `node scripts/genera-abbinamento.mjs`, dice per ogni set e carta l'id di TCGdex. La
+  migrazione `V9__tcgdex` (Java) riscrive gli id nel database, e `DatiInizialiSeeder` fa lo stesso con un
+  export fatto prima del passaggio. Per le carte che su TCGdex non hanno immagine il file tiene quella di
+  pokemontcg.io come riserva; se non si carica compare il segnaposto.
 
 ## Pokédex
 
@@ -91,7 +96,7 @@ art di PokeAPI e una ricerca per nome (italiano o inglese) o numero. Cliccando u
 aprono tutte le carte in cui compare, dalla più recente.
 
 - `GET /pokedex/{numero}/carte` (pubblico): alla prima apertura il backend importa da
-  pokemontcg.io tutte le carte del Pokémon (`nationalPokedexNumbers`), poi legge dal database;
+  TCGdex tutte le carte del Pokémon (`dexId`), poi legge dal database;
   dopo 7 giorni le riscarica, così compaiono le carte dei set nuovi. Il numero massimo è
   `POKEDEX_NUMERO_MASSIMO` (default 1025); se il limite sugli import è raggiunto, il
   riaggiornamento settimanale si rinvia e si mostrano le carte già scaricate.
@@ -108,11 +113,12 @@ le mancanti si possono mostrare in grigio (impostazione del binder) e il menu de
 
 - `GET /me/collezione?espansione=` o `?pokemon=` restituisce le copie possedute; `PATCH /me/collezione`
   (`oggettoId`, `variante`, `delta`) le aggiunge o le toglie. Solo per utenti autenticati.
-- Le varianti di una carta si leggono dai prezzi TCGplayer di pokemontcg.io e si salvano insieme
-  alla carta: decidono l'effetto holo e la variante registrata dal «+». Per i set già importati
-  prima di questa funzione le riempie il job orario, **5 set per giro e solo mentre il backend è
-  sveglio** (su Render gratuito si addormenta): finché un set non è stato riempito non ha l'effetto
-  holo e il «+» registra «Normale». Le carte create a mano non hanno varianti suggerite.
+- Le varianti di una carta si leggono da TCGdex (`variants`) e si salvano insieme alla carta:
+  decidono l'effetto holo, la variante registrata dal «+» e le voci del master set. Le carte ancora
+  da leggere le riempie il job orario: al primo giro dopo l'avvio tutti i set, poi **5 set per giro e
+  solo mentre il backend è sveglio** (su Render gratuito si addormenta). Finché un set non è stato
+  riempito non ha l'effetto holo e il «+» registra «Normale». Le carte create a mano non hanno
+  varianti suggerite.
 
 ## Deploy su Render
 
@@ -127,7 +133,6 @@ le mancanti si possono mostrare in grigio (impostazione del binder) e il menu de
    | `scintilla-be` | `ADMIN_PASSWORD` | password dell'admin (obbligatoria) |
    | `scintilla-be` | `ADMIN_EMAIL` | email dell'admin |
    | `scintilla-be` | `ALLOWED_ORIGIN` | `https://scintilla-fe.onrender.com` |
-   | `scintilla-be` | `POKEMONTCG_API_KEY` | facoltativa, può restare vuota |
    | `scintilla-fe` | `VITE_API_URL` | `https://scintilla-be.onrender.com` |
 
 4. **Manual Deploy** di entrambi (`VITE_API_URL` è letta in fase di build).

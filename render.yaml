@@ -42,9 +42,6 @@ services:
       # Origine del FE per il CORS, es. https://scintilla-fe.onrender.com
       - key: ALLOWED_ORIGIN
         sync: false
-      # Facoltativa: senza chiave l'API Pokémon TCG ha un limite di richieste più basso
-      - key: POKEMONTCG_API_KEY
-        sync: false
 
   # ---------- Frontend: build Vite statica ----------
   - type: web
@@ -63,9 +60,9 @@ services:
         sync: false
     # Header di sicurezza (HSTS e nosniff li mette già Render). La CSP ammette solo gli script del sito:
     # se un giorno passasse una falla XSS, uno script iniettato non partirebbe e non potrebbe mandare
-    # il token altrove. Le immagini arrivano da host che decide pokemontcg.io (images.pokemontcg.io,
-    # images.scrydex.com...), quindi qualunque https. connect-src DEVE contenere l'indirizzo di VITE_API_URL:
-    # se il backend cambia indirizzo va cambiato anche qui, altrimenti il sito non parla più con le API
+    # il token altrove. Le immagini arrivano da assets.tcgdex.net e, come riserva salvata nel catalogo,
+    # da images.pokemontcg.io e images.scrydex.com, quindi qualunque https. connect-src DEVE contenere
+    # l'indirizzo di VITE_API_URL: se il backend cambia indirizzo va cambiato anche qui, altrimenti il sito non parla più con le API
     headers:
       - path: /*
         name: Content-Security-Policy
