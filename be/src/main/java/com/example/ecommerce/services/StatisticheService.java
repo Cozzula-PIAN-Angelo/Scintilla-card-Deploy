@@ -36,7 +36,6 @@ public class StatisticheService {
 
     private final JdbcTemplate jdbc;
     private final OggettoRepository oggettoRepository;
-    private final VariantiMaster variantiMaster;
     private final ConvertitoreVarianti convertitoreVarianti = new ConvertitoreVarianti();
 
     @Transactional(readOnly = true)
@@ -120,14 +119,12 @@ public class StatisticheService {
         jdbc.query("SELECT id_oggetto, variante FROM collezione WHERE id_utente = ? AND quantita > 0",
                 (RowCallbackHandler) riga -> copie.computeIfAbsent(riga.getObject(1, UUID.class), k -> EnumSet.noneOf(Variante.class))
                         .add(Variante.valueOf(riga.getString(2))), id);
-        Set<String> senzaDati = variantiMaster.setSenzaDati();
         Map<String, int[]> master = new HashMap<>();
         setImportati.forEach(s -> master.put(s, new int[2]));
-        jdbc.query("SELECT id, espansione_id, varianti, rarita FROM oggetti WHERE espansione_id = ANY(?)",
+        jdbc.query("SELECT id, espansione_id, varianti FROM oggetti WHERE espansione_id = ANY(?)",
                 (RowCallbackHandler) riga -> {
                     String set = riga.getString("espansione_id");
-                    List<Variante> voci = VariantiMaster.effettive(convertitoreVarianti.convertToEntityAttribute(riga.getString("varianti")),
-                            riga.getString("rarita"), senzaDati.contains(set));
+                    List<Variante> voci = VariantiMaster.effettive(convertitoreVarianti.convertToEntityAttribute(riga.getString("varianti")));
                     Set<Variante> mie = copie.getOrDefault(riga.getObject("id", UUID.class), Set.of());
                     int[] conti = master.get(set);
                     conti[0] += (int) voci.stream().filter(mie::contains).count();

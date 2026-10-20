@@ -9,7 +9,6 @@ import { useCartaSelezionata } from '../../hooks/useCartaSelezionata'
 import { ModaleBinder } from '../binder/ModaleBinder'
 import { BarraCollezione } from '../collezione/BarraCollezione'
 import { conteggioMaster } from '../collezione/conteggi'
-import { senzaDatiDelSet } from '../collezione/varianti'
 import { AvvisoCarteInArrivo } from '../collezione/AvvisoCarteInArrivo'
 import { useCollezionePagina } from '../collezione/useCollezionePagina'
 import { useCarteProgressive } from '../oggetti/useCarteProgressive'
@@ -29,9 +28,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
   // lista intera solo a set completo: barra, filtri, master set e binder hanno bisogno di tutte le carte
   const data = risposta.aPezzi ? undefined : risposta.carte
   const filtroPagina = useMemo(() => ({ espansione: espansione.id }), [espansione.id])
-  const senzaDati = useMemo(() => senzaDatiDelSet(espansione.id, data ?? []), [espansione.id, data])
-  const masterSet = useMemo(() => ({ senzaDati }), [senzaDati])
-  const { collezione, carte, barra, vuotoFiltro, master } = useCollezionePagina(filtroPagina, data, masterSet)
+  const { collezione, carte, barra, vuotoFiltro, master } = useCollezionePagina(filtroPagina, data, true)
   const carteGriglia = risposta.aPezzi ? risposta.carte : carte
   const { apri, aperta, modale } = useCartaSelezionata({ isPreferito, toggle: onTogglePreferito }, collezione, carteGriglia)
   const anno = espansione.dataUscita?.slice(0, 4)
@@ -88,7 +85,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
               ? {
                   espansioneId: espansione.id,
                   nome: `${espansione.nome} · Master`,
-                  carte: conteggioMaster(data, collezione.mappa, senzaDati).totale,
+                  carte: conteggioMaster(data, collezione.mappa).totale,
                   master: true,
                 }
               : { espansioneId: espansione.id, nome: espansione.nome, carte: data.length }

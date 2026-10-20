@@ -14,7 +14,7 @@ const CARTE = [A, B, C]
 describe('conteggioMaster', () => {
   it('conta le voci possedute, non le reverse fuori regola', () => {
     const mappa = creaMappa([copia('A', 'REVERSE_HOLO'), copia('C', 'REVERSE_HOLO')])
-    expect(conteggioMaster(CARTE, mappa, false)).toEqual({ possedute: 1, totale: 4 })
+    expect(conteggioMaster(CARTE, mappa)).toEqual({ possedute: 1, totale: 4 })
   })
 })
 
@@ -23,14 +23,14 @@ describe('filtra con il master', () => {
 
   it('mancanti: almeno una voce mancante', () => {
     const mappa = creaMappa([copia('A', 'REVERSE_HOLO'), copia('C', 'REVERSE_HOLO')])
-    expect(ids(filtra(CARTE, mappa, 'mancanti', { senzaDati: false }))).toEqual(['A', 'B', 'C'])
-    expect(ids(filtra(CARTE, mappa, 'possedute', { senzaDati: false }))).toEqual([])
+    expect(ids(filtra(CARTE, mappa, 'mancanti', true))).toEqual(['A', 'B', 'C'])
+    expect(ids(filtra(CARTE, mappa, 'possedute', true))).toEqual([])
   })
 
   it('possedute: tutte le voci', () => {
     const mappa = creaMappa([copia('A', 'REVERSE_HOLO'), copia('A', 'NORMALE')])
-    expect(ids(filtra(CARTE, mappa, 'possedute', { senzaDati: false }))).toEqual(['A'])
-    expect(ids(filtra(CARTE, mappa, 'mancanti', { senzaDati: false }))).toEqual(['B', 'C'])
+    expect(ids(filtra(CARTE, mappa, 'possedute', true))).toEqual(['A'])
+    expect(ids(filtra(CARTE, mappa, 'mancanti', true))).toEqual(['B', 'C'])
   })
 
   it('senza master resta una copia qualsiasi', () => {
