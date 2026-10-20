@@ -20,7 +20,7 @@ const VENTAGLIO = [
 
 export function Hero({ vetrina, sfondo, onEsplora }: Props) {
   return (
-    <section className="sfondo-hero relative overflow-hidden text-white">
+    <section className="sfondo-hero relative animate-gradiente overflow-hidden text-white">
       <CarteSfondo carte={sfondo} />
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-[1.15fr_1fr]">
         <div>
