@@ -44,6 +44,12 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni")
     Set<String> findIdEsterniPresenti(@Param("idEsterni") Collection<String> idEsterni);
 
+    // tra gli id dati, le carte del catalogo con espansione, varianti, rarità e artista già letti: lo scaricamento
+    // da TCGdex non chiede di nuovo il loro dettaglio
+    @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni AND o.espansione IS NOT NULL "
+            + "AND o.varianti IS NOT NULL AND o.rarita IS NOT NULL AND o.artista IS NOT NULL")
+    Set<String> findIdEsterniCompleti(@Param("idEsterni") Collection<String> idEsterni);
+
     // set già importati con almeno una carta di pokemontcg.io di cui varianti, rarità o artista non sono mai stati letti.
     // Ordine casuale: i set che falliscono sempre (es. 404) non occupano ogni giro a danno degli altri
     @Query(value = "SELECT o.espansione_id FROM oggetti o JOIN espansioni e ON e.id = o.espansione_id "
