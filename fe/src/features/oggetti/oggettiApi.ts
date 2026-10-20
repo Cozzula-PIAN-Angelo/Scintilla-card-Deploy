@@ -3,7 +3,8 @@ import type { DatiOggetto, Oggetto, Pagina, ParametriPagina } from '../../types/
 
 export const oggettiApi = api.injectEndpoints({
   endpoints: (build) => ({
-    getOggetti: build.query<Pagina<Oggetto>, ParametriPagina>({
+    // conImmagine: solo carte con un'immagine (hero e pagine di accesso)
+    getOggetti: build.query<Pagina<Oggetto>, ParametriPagina & { conImmagine?: boolean }>({
       query: (params) => ({ url: '/oggetti', params }),
       providesTags: ['Oggetti'],
     }),

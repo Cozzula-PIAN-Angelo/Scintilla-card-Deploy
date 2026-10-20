@@ -41,8 +41,10 @@ public class OggettoController {
                                                     @RequestParam(required = false) Integer size,
                                                     @RequestParam(required = false) String sort,
                                                     // ricerca per nome, facoltativa
-                                                    @RequestParam(required = false) String q) {
-        return oggettoService.findAll(q, paginationHelper.perOggetti(page, size, sort));
+                                                    @RequestParam(required = false) String q,
+                                                    // solo carte con un'immagine (hero della home)
+                                                    @RequestParam(defaultValue = "false") boolean conImmagine) {
+        return oggettoService.findAll(q, conImmagine, paginationHelper.perOggetti(page, size, sort));
     }
 
     @PostMapping

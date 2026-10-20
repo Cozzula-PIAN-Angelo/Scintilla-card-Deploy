@@ -26,6 +26,10 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     // ricerca per nome nel catalogo (cassetto delle carte del binder)
     Page<Oggetto> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
+    Page<Oggetto> findByImmagineUrlIsNotNull(Pageable pageable);
+
+    Page<Oggetto> findByNomeContainingIgnoreCaseAndImmagineUrlIsNotNull(String nome, Pageable pageable);
+
     List<Oggetto> findByIdEsternoIn(Collection<String> idEsterni);
 
     // carte della pagina al volo, con l'espansione già caricata: si ordinano per data d'uscita fuori dalla sessione

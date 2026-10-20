@@ -23,10 +23,17 @@ public class OggettoService {
     private final OggettoRepository oggettoRepository;
 
     @Transactional(readOnly = true)
-    public PageResponse<OggettoResponseDTO> findAll(String q, Pageable pageable) {
-        Page<Oggetto> pagina = q == null || q.isBlank()
-                ? oggettoRepository.findAll(pageable)
-                : oggettoRepository.findByNomeContainingIgnoreCase(q.trim(), pageable);
+    // conImmagine: solo le carte con un'immagine (l'hero della home: le ultime importate possono non averla)
+    public PageResponse<OggettoResponseDTO> findAll(String q, boolean conImmagine, Pageable pageable) {
+        boolean senzaRicerca = q == null || q.isBlank();
+        Page<Oggetto> pagina;
+        if (senzaRicerca) {
+            pagina = conImmagine ? oggettoRepository.findByImmagineUrlIsNotNull(pageable) : oggettoRepository.findAll(pageable);
+        } else {
+            pagina = conImmagine
+                    ? oggettoRepository.findByNomeContainingIgnoreCaseAndImmagineUrlIsNotNull(q.trim(), pageable)
+                    : oggettoRepository.findByNomeContainingIgnoreCase(q.trim(), pageable);
+        }
         return PageResponse.from(pagina.map(OggettoResponseDTO::from));
     }
 
