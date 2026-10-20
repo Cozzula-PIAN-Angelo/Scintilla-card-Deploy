@@ -51,7 +51,7 @@ export function LoginPage() {
 
     try {
       await login({ identificativo: dati.identificativo.trim(), password: dati.password }).unwrap()
-      toast.successo('Bentornato su CeloManca!')
+      toast.successo('Accesso effettuato')
       navigate(stato.da ?? '/', { replace: true })
     } catch (errore) {
       setErrori(erroriCampi(errore))
@@ -62,7 +62,7 @@ export function LoginPage() {
   }
 
   return (
-    <LayoutAuth titolo="Bentornato!" sottotitolo="Accedi per salvare le tue carte preferite.">
+    <LayoutAuth titolo="Accedi" sottotitolo="Con l'email o lo username del tuo account.">
       <form onSubmit={invia} noValidate className="space-y-5">
         <Campo
           etichetta="Email o username"

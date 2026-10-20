@@ -20,7 +20,7 @@ export function useLogout() {
     }
     dispatch(logoutLocale())
     dispatch(api.util.resetApiState())
-    toast.info('Sei uscito. A presto!')
+    toast.info('Disconnessione effettuata')
     navigate('/')
   }, [logout, dispatch, navigate, toast])
 

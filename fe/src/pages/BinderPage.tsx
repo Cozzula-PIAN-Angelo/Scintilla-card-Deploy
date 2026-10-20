@@ -39,7 +39,6 @@ export function BinderPage() {
               <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-12 sm:flex-row sm:items-end sm:justify-between sm:px-6">
                 <div>
                   <h1 className="text-4xl font-bold sm:text-5xl">I miei binder</h1>
-                  <p className="mt-2 text-white">Album da riempire come vuoi: ogni carta nella tasca che preferisci.</p>
                 </div>
                 <Button variante="secondario" onClick={() => apriImpostazioni(null)}>
                   <Plus aria-hidden className="size-4" />

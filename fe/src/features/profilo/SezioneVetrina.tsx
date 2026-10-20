@@ -14,7 +14,7 @@ interface Props {
 // sei carte scelte a mano, separate dai preferiti col cuore; un clic apre il dettaglio
 export function SezioneVetrina({ vetrina, onApri, onModifica }: Props) {
   return (
-    <SezioneProfilo titolo="Vetrina" sottotitolo="Le carte che vuoi mettere in mostra" onModifica={onModifica}>
+    <SezioneProfilo titolo="Vetrina" sottotitolo="Fino a sei carte da mostrare, anche se non le hai" onModifica={onModifica}>
       <ul className="grid grid-cols-3 gap-3 sm:grid-cols-6">
         {Array.from({ length: POSTI }, (_, posto) => {
           const carta = vetrina[posto]

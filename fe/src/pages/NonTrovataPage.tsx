@@ -10,8 +10,8 @@ export function NonTrovataPage() {
     <PaginaAnimata className="min-h-[70vh] px-4">
       <StatoVuoto
         icona={<SearchX aria-hidden className="size-16" />}
-        titolo="Questa pagina è introvabile"
-        testo="Più rara di una carta segreta: forse il link non è corretto."
+        titolo="Pagina non trovata"
+        testo="L'indirizzo non corrisponde a nessuna pagina: controlla il link o riparti dal catalogo."
         azione={
           <LinkBottone to="/" variante="primario" dimensione="lg">
             Torna al catalogo

@@ -36,7 +36,7 @@ export function PokedexPage() {
     <PaginaAnimata className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-testo">Pokédex</h1>
-        <p className="mt-1 text-testo/70">Scegli un Pokémon per vedere tutte le carte in cui compare.</p>
+        <p className="mt-1 text-testo/70">1025 Pokémon in nove generazioni. Per ognuno, tutte le carte in cui compare.</p>
       </div>
 
       {/* top-15: attaccata alla navbar ridotta dallo scorrimento (pulsanti da 44px + py-2 = 60px) */}

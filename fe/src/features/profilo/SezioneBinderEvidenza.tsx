@@ -32,7 +32,7 @@ function BinderInEvidenza({ binder }: { binder: Binder }) {
 // fino a tre binder da mostrare; un clic apre il binder
 export function SezioneBinderEvidenza({ binder, onModifica }: { binder: Binder[]; onModifica: () => void }) {
   return (
-    <SezioneProfilo titolo="Binder in evidenza" sottotitolo="I tuoi album più belli" onModifica={onModifica}>
+    <SezioneProfilo titolo="Binder in evidenza" sottotitolo="Fino a tre dei tuoi binder" onModifica={onModifica}>
       <ul className="grid grid-cols-3 gap-4 sm:gap-6">
         {Array.from({ length: POSTI }, (_, posto) => {
           const scelto = binder[posto]

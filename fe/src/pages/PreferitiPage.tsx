@@ -49,7 +49,7 @@ export function PreferitiPage() {
       <section className="bg-notte-2 text-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-12 sm:px-6">
           <h1 className="text-4xl font-bold sm:text-5xl">I miei preferiti</h1>
-          <p className="text-white">Le carte che hai salvato, pronte da ammirare.</p>
+          <p className="text-white">Le carte segnate col cuore: quelle che ti piacciono, non per forza quelle che hai.</p>
         </div>
       </section>
 
