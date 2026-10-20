@@ -4,6 +4,7 @@ import { Button, LinkBottone } from '../../components/Button'
 import type { Profilo } from '../../types/api'
 import { scuro } from '../binder/aspetto'
 import { numeroFormattato, spriteUrl, trovaPokemon } from '../pokedex/pokedex'
+import { inizioFascia } from './colore'
 
 // senza colore scelto: il blu delle fasce d'intestazione delle altre pagine (blu-700)
 const COLORE_PREDEFINITO = '#1b4f8a'
@@ -19,8 +20,8 @@ export function IntestazioneProfilo({ profilo, onModifica }: { profilo: Profilo;
 
   return (
     <section
-      // il colore scelto sfuma verso uno più scuro: il testo bianco resta leggibile su qualsiasi colore
-      style={{ backgroundImage: `linear-gradient(135deg, ${colore}, ${scuro(colore, 55)})` }}
+      // il colore scelto sfuma verso uno più scuro; se è chiaro parte già scurito, per il testo bianco (vedi inizioFascia)
+      style={{ backgroundImage: `linear-gradient(135deg, ${inizioFascia(colore)}, ${scuro(colore, 55)})` }}
       className="text-white"
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:px-6">
