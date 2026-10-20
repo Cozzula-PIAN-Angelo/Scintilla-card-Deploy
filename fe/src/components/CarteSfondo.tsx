@@ -54,7 +54,7 @@ export function CarteSfondo({ carte, className }: { carte: Oggetto[]; className?
             decoding="async"
             // un'immagine che non arriva sparisce invece di mostrare l'icona rotta
             onError={(e) => (e.currentTarget.style.display = 'none')}
-            className={cn('absolute animate-deriva rounded-[6%] shadow-xl shadow-ombra/40', posto.soloLarghi && 'hidden md:block')}
+            className={cn('absolute animate-deriva rounded-[3%/2.1%] shadow-xl shadow-ombra/40', posto.soloLarghi && 'hidden md:block')}
             style={{
               left: posto.x,
               top: posto.y,

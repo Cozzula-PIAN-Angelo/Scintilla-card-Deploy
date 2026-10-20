@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Eye, Move, Plus, Trash2 } from 'lucide-react'
 import { useState, type DragEvent, type PointerEvent, type ReactNode } from 'react'
+import { ImmagineOPlaceholder } from '../../components/ImmagineCarta'
 import type { Oggetto, Variante } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { stessaPosizione, TIPO_TRASCINAMENTO, useContestoBinder } from './contesto'
@@ -93,7 +94,7 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
         aria-label={etichetta}
         aria-expanded={oggetto ? menuAperto : undefined}
         className={cn(
-          'tasca-holo group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[6%/4.3%] transition',
+          'tasca-holo group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[3%/2.1%] transition',
           // busta di plastica trasparente sulla tela scura: appena più chiara, bordo sottile e riflesso
           'bg-white/[0.04] ring-1 ring-white/12',
           oggetto ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
@@ -103,12 +104,13 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
         )}
       >
         {oggetto ? (
-          <img
-            src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl ?? ''}
+          <ImmagineOPlaceholder
+            src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}
+            nome={oggetto.nome}
             alt=""
             draggable={false}
             loading="lazy"
-            className={cn('h-full w-full object-cover transition', mancante && 'grayscale')}
+            className={cn('h-full w-full object-fill transition', mancante && 'grayscale')}
           />
         ) : null}
         {effetto && (
@@ -147,7 +149,7 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.85 }}
             transition={{ duration: 0.15 }}
-            className="absolute inset-0 z-10 m-auto flex aspect-[63/88] h-full max-w-full flex-col items-center justify-center gap-[6%] rounded-[6%/4.3%] bg-ombra/60 backdrop-blur-[2px]"
+            className="absolute inset-0 z-10 m-auto flex aspect-[63/88] h-full max-w-full flex-col items-center justify-center gap-[6%] rounded-[3%/2.1%] bg-ombra/60 backdrop-blur-[2px]"
           >
             <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda({ oggetto, variante, pagina, posizione })}>
               <Eye className="size-full" />

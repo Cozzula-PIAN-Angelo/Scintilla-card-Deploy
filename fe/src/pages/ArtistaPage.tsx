@@ -97,7 +97,7 @@ export function ArtistaPage() {
           )}
           {slug === SLUG_SCONOSCIUTO && (
             <p className="mt-2 max-w-xl text-sm text-testo/70">
-              Soprattutto carte recenti a cui pokemontcg.io non ha ancora assegnato un artista, più Energie e Allenatori.
+              Carte a cui TCGdex non assegna un artista: soprattutto Energie, Allenatori e alcune serie speciali.
             </p>
           )}
         </div>

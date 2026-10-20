@@ -1,5 +1,8 @@
 package com.example.ecommerce.runners;
 
+import com.example.ecommerce.services.AbbinamentoTcgdex;
+import com.example.ecommerce.services.ConversioneIdTcgdex;
+import com.example.ecommerce.services.ConversioneImmaginiLocali;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -107,6 +110,10 @@ public class DatiInizialiSeeder implements CommandLineRunner {
                     + " FROM json_populate_recordset(NULL::" + tabella + ", ?::json)", righe.toString());
             inserite.put(tabella, n);
         }
+        // un export fatto prima del passaggio a TCGdex ha ancora gli id e le immagini di pokemontcg.io: si convertono
+        // come nella V9 e nella V10
+        ConversioneIdTcgdex.converti(jdbc, AbbinamentoTcgdex.get());
+        ConversioneImmaginiLocali.converti(jdbc, AbbinamentoTcgdex.get());
         return inserite;
     }
 

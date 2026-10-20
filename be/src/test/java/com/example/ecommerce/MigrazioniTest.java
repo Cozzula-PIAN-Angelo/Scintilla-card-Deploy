@@ -74,7 +74,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7", "8");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti
@@ -128,7 +128,7 @@ class MigrazioniTest {
         assertThat(oggettoRepository.findSenzaArtista()).extracting(Oggetto::getNome).containsExactly("Carta senza artista");
     }
 
-    // uscita da Sconosciuto: solo le carte '' che pokemontcg.io non restituisce più tra quelle senza artista
+    // uscita da Sconosciuto: solo le carte '' che TCGdex non restituisce più tra quelle senza artista
     @Test
     void liberaSenzaArtistaToccaSoloQuelleNonPiuSenza(@Autowired OggettoRepository oggettoRepository) {
         inserisciCartaConArtista("Ancora senza", "a-1", "");

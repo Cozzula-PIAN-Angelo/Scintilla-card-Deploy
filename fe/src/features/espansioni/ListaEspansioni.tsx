@@ -110,7 +110,7 @@ export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, class
                           >
                             <span className="grid size-5 shrink-0 place-items-center">
                               {espansione.simboloUrl && (
-                                <img src={espansione.simboloUrl} alt="" loading="lazy" className="max-h-5 max-w-5 object-contain" />
+                                <img src={espansione.simboloUrl} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.display = 'none')} className="max-h-5 max-w-5 object-contain" />
                               )}
                             </span>
                             <span className="min-w-0 flex-1 truncate">{espansione.nome}</span>

@@ -6,7 +6,6 @@
    "slug": "mitsuhiro-arita",
    "nome": "Mitsuhiro Arita",
    "grafie": ["Mitsuhiro Arita"],
-   "query": "artist:\"Mitsuhiro Arita\"",
    "carte": 727,
    "avatar": "https://images.pokemontcg.io/base1/4.png"
   },
@@ -14,7 +13,6 @@
    "slug": "sachiko-eba",
    "nome": "Sachiko Eba",
    "grafie": ["Shinji Higuchi + Sachiko Eba"],
-   "query": "artist:\"Sachiko Eba\"",
    "carte": 10,
    "avatar": "https://images.pokemontcg.io/pop5/1.png"
   },
@@ -22,7 +20,6 @@
    "slug": "shinji-higuchi",
    "nome": "Shinji Higuchi",
    "grafie": ["Kent Kanetsuna/Direc. Shinji Higuchi", "Shinji Higuchi + Sachiko Eba"],
-   "query": "artist:\"Shinji Higuchi\"",
    "carte": 22,
    "avatar": "https://images.pokemontcg.io/pop5/2.png"
   }

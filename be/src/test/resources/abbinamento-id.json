@@ -1,0 +1,30 @@
+{
+ "generatoIl": "2026-10-20",
+ "set": {
+  "base1": "base1",
+  "sm75": "sm7.5",
+  "sv3pt5": "sv03.5"
+ },
+ "carte": {
+  "base1-4": "base1-4",
+  "sm75-1": "sm7.5-1",
+  "sv3pt5-6": "sv03.5-006"
+ },
+ "immagini": {
+  "base1-4": "https://assets.tcgdex.net/en/base/base1/4",
+  "sv03.5-006": "https://assets.tcgdex.net/en/sv/sv03.5/006"
+ },
+ "riserve": {
+  "sm7.5-1": "/immagini/carte/sm7.5-1.webp"
+ },
+ "riserveVecchie": {
+  "sm2-121a": "/immagini/carte/sm2-121a.webp"
+ },
+ "simboli": {
+  "base1": "/immagini/set/base1-simbolo.webp",
+  "sv03.5": "/immagini/set/sv03.5-simbolo.webp"
+ },
+ "loghi": {
+  "30th": "/immagini/set/30th-logo.webp"
+ }
+}

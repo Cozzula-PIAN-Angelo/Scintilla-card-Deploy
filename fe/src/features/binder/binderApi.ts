@@ -152,7 +152,7 @@ export const binderApi = api.injectEndpoints({
     }),
 
     // ricerca per nome nel catalogo, per il cassetto delle carte. Non chiamarlo cercaCarte: quel nome
-    // è già di carteApi (ricerca admin su pokemontcg.io) e RTK Query terrebbe solo il primo registrato
+    // è già di carteApi (ricerca admin su TCGdex) e RTK Query terrebbe solo il primo registrato
     cercaCatalogo: build.query<Pagina<Oggetto>, { q: string; page: number }>({
       query: ({ q, page }) => ({ url: '/oggetti', params: { q, page, size: 24, sort: 'nome,asc' } }),
       providesTags: ['Oggetti'],

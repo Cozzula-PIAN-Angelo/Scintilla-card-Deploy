@@ -9,23 +9,22 @@ import { useFiltroCollezione } from './useFiltroCollezione'
 // Collezione per la pagina di un set, di un Pokémon o di un artista: filtro nell'URL, carte filtrate, props della barra
 // e messaggio del filtro vuoto. Finché la collezione non è pronta (ospite, caricamento, errore) la pagina
 // resta come per un ospite: carte non filtrate, niente barra, collezione undefined per griglia e dettaglio.
-// masterSet solo dalla pagina del set: aggiunge l'interruttore Master set (?master=1) alla barra
-export function useCollezionePagina(filtroPagina: FiltroPagina | null, data: Oggetto[] | undefined, masterSet?: { senzaDati: boolean }) {
+// conMaster solo dalla pagina del set: aggiunge l'interruttore Master set (?master=1) alla barra
+export function useCollezionePagina(filtroPagina: FiltroPagina | null, data: Oggetto[] | undefined, conMaster = false) {
   const { filtro, setFiltro, master: masterUrl, setMaster } = useFiltroCollezione()
-  const master = masterSet !== undefined && masterUrl
-  const senzaDati = masterSet?.senzaDati ?? false
+  const master = conMaster && masterUrl
   const tutta = useCollezione(filtroPagina)
   const collezione = tutta.pronta ? tutta : undefined
   const carte = useMemo(
-    () => (data && tutta.pronta ? filtra(data, tutta.mappa, filtro, master ? { senzaDati } : undefined) : data),
-    [data, tutta.pronta, tutta.mappa, filtro, master, senzaDati],
+    () => (data && tutta.pronta ? filtra(data, tutta.mappa, filtro, master) : data),
+    [data, tutta.pronta, tutta.mappa, filtro, master],
   )
 
   const barra: ComponentProps<typeof BarraCollezione> | null =
     collezione && data
       ? {
-          ...(master ? conteggioMaster(data, collezione.mappa, senzaDati) : conteggio(data, collezione.mappa)),
-          master: masterSet && { attivo: master, onAlterna: () => setMaster(!master) },
+          ...(master ? conteggioMaster(data, collezione.mappa) : conteggio(data, collezione.mappa)),
+          master: conMaster ? { attivo: master, onAlterna: () => setMaster(!master) } : undefined,
           filtro,
           onFiltro: setFiltro,
           aColori: collezione.aColori,

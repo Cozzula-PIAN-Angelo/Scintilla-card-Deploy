@@ -40,11 +40,11 @@ export function conteggio(carte: Oggetto[], mappa: MappaCopie): { possedute: num
 
 // voci del master set (carta, variante) con almeno una copia di quella variante / voci. Le copie di una variante
 // che la carta non ha nel master (es. una reverse su una Double Rare) non contano
-export function conteggioMaster(carte: Oggetto[], mappa: MappaCopie, senzaDati: boolean): { possedute: number; totale: number } {
+export function conteggioMaster(carte: Oggetto[], mappa: MappaCopie): { possedute: number; totale: number } {
   let possedute = 0
   let totale = 0
   for (const carta of carte) {
-    const voci = variantiMaster(carta, senzaDati)
+    const voci = variantiMaster(carta)
     totale += voci.length
     possedute += voci.filter((v) => (mappa.get(carta.id)?.get(v) ?? 0) > 0).length
   }
@@ -52,10 +52,10 @@ export function conteggioMaster(carte: Oggetto[], mappa: MappaCopie, senzaDati: 
 }
 
 // col master una carta è posseduta solo con tutte le sue voci, mancante se ne manca almeno una
-export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro, master?: { senzaDati: boolean }): Oggetto[] {
+export function filtra(carte: Oggetto[], mappa: MappaCopie, filtro: Filtro, master = false): Oggetto[] {
   if (filtro === 'tutte') return carte
   const completa = master
-    ? (c: Oggetto) => variantiMaster(c, master.senzaDati).every((v) => (mappa.get(c.id)?.get(v) ?? 0) > 0)
+    ? (c: Oggetto) => variantiMaster(c).every((v) => (mappa.get(c.id)?.get(v) ?? 0) > 0)
     : (c: Oggetto) => copieTotali(mappa, c.id) > 0
   return carte.filter((c) => completa(c) === (filtro === 'possedute'))
 }

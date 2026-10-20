@@ -17,7 +17,7 @@ export function AvvisoInMano({ sorgente, onAnnulla }: { sorgente: Sorgente; onAn
       <img
         src={sorgente.oggetto.immagineUrlPiccola ?? sorgente.oggetto.immagineUrl ?? ''}
         alt=""
-        className="aspect-[63/88] w-10 shrink-0 rounded-md object-cover"
+        className="aspect-[63/88] w-10 shrink-0 rounded-md object-fill"
       />
       <p className="min-w-0 flex-1 text-sm">
         {sorgente.tipo === 'carta' ? 'Tocca una tasca per inserire ' : 'Tocca la tasca di arrivo per '}

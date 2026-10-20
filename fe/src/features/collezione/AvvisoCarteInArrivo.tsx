@@ -12,7 +12,7 @@ export function AvvisoCarteInArrivo({ fallito }: { fallito: boolean }) {
       {fallito ? (
         <>
           <TriangleAlert aria-hidden className="size-5 shrink-0 text-errore" />
-          pokemontcg.io non risponde: riproviamo da soli tra poco… intanto le pagine si possono sfogliare.
+          TCGdex non risponde: riproviamo da soli tra poco… intanto le pagine si possono sfogliare.
         </>
       ) : (
         <>

@@ -1,7 +1,7 @@
 // Regole di genera-artisti.mjs: si eseguono con `node --test scripts/`
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { dividi, pulisci, query, sceltaAvatar, slug } from './artisti-regole.mjs'
+import { dividi, pulisci, sceltaAvatar, slug } from './artisti-regole.mjs'
 
 test('pulisci riduce spazi e a capo a uno spazio', () => {
   assert.equal(pulisci('Noriko Takaya,   \n  \n Shinji Higuchi '), 'Noriko Takaya, Shinji Higuchi')
@@ -33,12 +33,6 @@ test('slug', () => {
   assert.equal(slug('5ban Graphics'), '5ban-graphics')
 })
 
-test('query con jolly al posto di accenti e virgolette', () => {
-  assert.equal(query(['Mékayu']), 'artist:"M*kayu"')
-  assert.equal(query(['"Big Mama" Tagawa']), 'artist:"*Big Mama* Tagawa"')
-  assert.equal(query(['K. Hoshiba', 'K Hoshiba']), 'artist:"K. Hoshiba" OR artist:"K Hoshiba"')
-})
-
 test("l'avatar preferisce le illustrazioni piene più recenti", () => {
   const carte = [
     { rarity: 'Common', data: '2025/01/01', id: 'a-1', immagine: 'recente-comune' },
@@ -47,4 +41,29 @@ test("l'avatar preferisce le illustrazioni piene più recenti", () => {
   ]
   assert.equal(sceltaAvatar(carte), 'sir')
   assert.equal(sceltaAvatar(carte.slice(0, 1)), 'recente-comune')
+})
+
+test("l'avatar riconosce le rarità di TCGdex, scritte in minuscolo", () => {
+  const carte = [
+    { rarity: 'Common', data: '2025-01-01', id: 'a-1', immagine: 'recente-comune' },
+    { rarity: 'Special illustration rare', data: '2024-01-01', id: 'c-1', immagine: 'sir' },
+  ]
+  assert.equal(sceltaAvatar(carte), 'sir')
+})
+
+test("senza candidati con immagine l'avatar è null", () => {
+  assert.equal(sceltaAvatar([]), null)
+})
+
+test('dividi toglie i prefissi Illus. e Direc. e le parti vuote', () => {
+  assert.deepEqual(dividi('Illus. & Direc. The Pokémon Company Art Team'), ['The Pokémon Company Art Team'])
+})
+
+test('N/A non è un artista', () => {
+  assert.deepEqual(dividi('N/A'), [])
+})
+
+test('un alias può dividere due nomi scritti senza separatore', () => {
+  assert.deepEqual(dividi('Ken Sugimori Yusuke Ohmura'), ['Ken Sugimori', 'Yusuke Ohmura'])
+  assert.deepEqual(dividi('Shinji Higuchi + Noriko Takaya 樋口 真嗣 + 高屋 法子'), ['Shinji Higuchi', 'Noriko Takaya'])
 })

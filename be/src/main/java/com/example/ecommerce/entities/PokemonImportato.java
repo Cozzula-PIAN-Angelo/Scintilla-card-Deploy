@@ -10,7 +10,7 @@ import lombok.Setter;
 
 import java.time.Instant;
 
-// Pokémon di cui si sono già scaricate le carte da pokemontcg.io, e quando
+// Pokémon di cui si sono già scaricate le carte da TCGdex, e quando
 @Entity
 @Table(name = "pokemon_importati")
 @Getter

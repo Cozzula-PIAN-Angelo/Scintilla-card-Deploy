@@ -44,14 +44,28 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni")
     Set<String> findIdEsterniPresenti(@Param("idEsterni") Collection<String> idEsterni);
 
-    // set già importati con almeno una carta di pokemontcg.io di cui varianti, rarità o artista non sono mai stati letti.
+    // tra gli id dati, le carte del catalogo con espansione, varianti, rarità e artista già letti: lo scaricamento
+    // da TCGdex non chiede di nuovo il loro dettaglio
+    @Query("SELECT o.idEsterno FROM Oggetto o WHERE o.idEsterno IN :idEsterni AND o.espansione IS NOT NULL "
+            + "AND o.varianti IS NOT NULL AND o.rarita IS NOT NULL AND o.artista IS NOT NULL")
+    Set<String> findIdEsterniCompleti(@Param("idEsterni") Collection<String> idEsterni);
+
+    // set già importati con almeno una carta di TCGdex di cui varianti, rarità o artista non sono mai stati letti.
     // Ordine casuale: i set che falliscono sempre (es. 404) non occupano ogni giro a danno degli altri
     @Query(value = "SELECT o.espansione_id FROM oggetti o JOIN espansioni e ON e.id = o.espansione_id "
             + "WHERE (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL) AND o.id_esterno IS NOT NULL AND e.importata "
             + "GROUP BY o.espansione_id ORDER BY random() LIMIT :limite", nativeQuery = true)
     List<String> findSetConVariantiMancanti(@Param("limite") int limite);
 
-    // le carte di un set ancora senza varianti, rarità o artista: dopo il riempimento sono quelle che pokemontcg.io non restituisce più
+    // carte da rileggere (varianti, rarità o artista mai letti) fuori dai set importati: arrivate dalle pagine di
+    // Pokémon e artisti, il riempimento per set non le vede
+    @Query(value = "SELECT o.id_esterno FROM oggetti o LEFT JOIN espansioni e ON e.id = o.espansione_id "
+            + "WHERE o.id_esterno IS NOT NULL AND (e.id IS NULL OR NOT e.importata) "
+            + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL) ORDER BY o.id_esterno LIMIT :limite",
+            nativeQuery = true)
+    List<String> findIdEsterniDaRiempireFuoriDaiSetImportati(@Param("limite") int limite);
+
+    // le carte di un set ancora senza varianti, rarità o artista: dopo il riempimento sono quelle che TCGdex non restituisce più
     @Query("SELECT o FROM Oggetto o WHERE o.espansione.id = :espansioneId AND o.idEsterno IS NOT NULL "
             + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL)")
     List<Oggetto> findCarteDaRiempireDelSet(@Param("espansioneId") String espansioneId);
@@ -60,11 +74,11 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista IN :grafie")
     List<Oggetto> findByArtistaIn(@Param("grafie") Collection<String> grafie);
 
-    // carte per cui pokemontcg.io non indica un artista (pagina "Artista sconosciuto")
+    // carte per cui TCGdex non indica un artista (pagina "Artista sconosciuto")
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista = ''")
     List<Oggetto> findSenzaArtista();
 
-    // dopo un download completo delle carte senza artista: quelle che pokemontcg.io non restituisce più tra le
+    // dopo un download completo delle carte senza artista: quelle che TCGdex non restituisce più tra le
     // senza artista ne hanno ricevuto uno, e tornano "da leggere" (null) per il job o per la pagina dell'artista
     @Modifying
     @Query("UPDATE Oggetto o SET o.artista = NULL WHERE o.artista = '' AND o.idEsterno IS NOT NULL "

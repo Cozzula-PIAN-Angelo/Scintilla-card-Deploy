@@ -69,7 +69,7 @@ export function PokemonPage() {
     )
   }
 
-  // a pezzi il totale lo dice pokemontcg.io
+  // a pezzi il totale lo dice TCGdex
   const numeroCarte = data?.length ?? risposta.totaleServer
   const generazione = generazioneDi(pokemon.numero)
   const precedente = trovaPokemon(pokemon.numero - 1)

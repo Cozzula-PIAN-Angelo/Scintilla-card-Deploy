@@ -7,8 +7,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 public class ImportConfig {
 
-    // scaricamenti completi da pokemontcg.io lanciati dalle pagine pubbliche (ImportInBackground). Due alla volta:
-    // pokemontcg.io risponde spesso 500 se lo si interroga troppo. Con la coda piena l'import si rinvia alla visita dopo
+    // scaricamenti completi da TCGdex lanciati dalle pagine pubbliche (ImportInBackground). Due alla volta:
+    // non si martella l'API esterna, e ogni scaricamento ha già 8 dettagli in parallelo. Con la coda piena l'import si rinvia alla visita dopo
     @Bean
     public ThreadPoolTaskExecutor importExecutor() {
         ThreadPoolTaskExecutor esecutore = new ThreadPoolTaskExecutor();

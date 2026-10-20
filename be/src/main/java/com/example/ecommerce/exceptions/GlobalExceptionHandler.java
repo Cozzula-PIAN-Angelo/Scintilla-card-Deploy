@@ -53,7 +53,7 @@ public class GlobalExceptionHandler {
     }
 
     // l'unico punto in cui si scrive l'errore finale: il service mette il dettaglio nel messaggio
-    // (status e risposta di pokemontcg.io) senza loggarlo. Al client va un messaggio generico
+    // (status e risposta di TCGdex) senza loggarlo. Al client va un messaggio generico
     @ExceptionHandler(ServizioEsternoException.class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     public ErrorResponseDTO handleServizioEsterno(ServizioEsternoException ex) {

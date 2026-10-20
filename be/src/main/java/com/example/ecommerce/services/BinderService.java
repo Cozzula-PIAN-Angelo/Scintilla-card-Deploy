@@ -60,7 +60,6 @@ public class BinderService {
     private final OggettoRepository oggettoRepository;
     private final CollezioneService collezioneService;
     private final ElencoArtisti elencoArtisti;
-    private final VariantiMaster variantiMaster;
 
     // contenuto di una tasca: la carta e, nel binder del master set, la sua variante (null = una qualsiasi)
     private record TascaBinder(Oggetto oggetto, Variante variante) {
@@ -95,7 +94,7 @@ public class BinderService {
             throw new BadRequestException("Il master set è di un set");
         }
         List<Oggetto> carte = carteChecklist(body);
-        List<TascaBinder> voci = master ? vociMaster(carte, body.espansioneId())
+        List<TascaBinder> voci = master ? vociMaster(carte)
                 : carte.stream().map(c -> new TascaBinder(c, null)).toList();
         int pagine = voci.isEmpty() ? body.pagine() : pagineChecklist(voci.size(), body.tasche(), troppe(body));
         Binder binder = new Binder(utente, body.nome().trim(), body.tasche(), pagine, body.colore().toLowerCase(), body.motivo());
@@ -109,11 +108,10 @@ public class BinderService {
 
     // una tasca per ogni voce del master set, nell'ordine dell'enum: la Normale e subito dopo la Reverse holo.
     // Stesse voci del conteggio (VariantiMaster.effettive): una carta letta solo Reverse ha una tasca sola
-    private List<TascaBinder> vociMaster(List<Oggetto> carte, String espansioneId) {
-        boolean senzaDati = variantiMaster.setSenzaDati().contains(espansioneId);
+    private List<TascaBinder> vociMaster(List<Oggetto> carte) {
         List<TascaBinder> voci = new ArrayList<>();
         for (Oggetto carta : carte) {
-            VariantiMaster.effettive(carta.getVarianti(), carta.getRarita(), senzaDati)
+            VariantiMaster.effettive(carta.getVarianti())
                     .forEach(variante -> voci.add(new TascaBinder(carta, variante)));
         }
         return voci;

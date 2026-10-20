@@ -1,6 +1,6 @@
 import type { CarteProgressive, Oggetto, RichiestaCarte, StatoCarte } from '../../types/api'
 
-// carte per pagina della griglia: la stessa pagina che il backend prende al volo da pokemontcg.io
+// carte per pagina della griglia: la stessa pagina che il backend prende al volo da TCGdex
 export const PER_PAGINA = 24
 
 // modalità delle carte di un set, Pokémon o artista. Va solo avanti (sconosciuta → a-pezzi → completa): la cache può

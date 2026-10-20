@@ -5,7 +5,7 @@ import com.example.ecommerce.payloads.ImportaCartaDTO;
 import com.example.ecommerce.payloads.ImportaSetResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.PageResponse;
-import com.example.ecommerce.services.PokemonTcgService;
+import com.example.ecommerce.services.CatalogoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,26 +25,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class CarteController {
 
-    private final PokemonTcgService pokemonTcgService;
+    private final CatalogoService catalogoService;
 
     // nome non obbligatorio a livello HTTP: se manca, il service risponde 400 con un messaggio in italiano
     @GetMapping("/ricerca")
     public PageResponse<CartaEsternaDTO> cerca(@RequestParam(required = false) String nome,
                                                @RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "10") int size) {
-        return pokemonTcgService.cerca(nome, page, size);
+        return catalogoService.cerca(nome, page, size);
     }
 
     @PostMapping("/importa/{idEsterno}")
     @ResponseStatus(HttpStatus.CREATED)
     public OggettoResponseDTO importa(@PathVariable String idEsterno,
                                       @RequestBody(required = false) @Valid ImportaCartaDTO body) {
-        return pokemonTcgService.importa(idEsterno, body);
+        return catalogoService.importa(idEsterno, body);
     }
 
     // importa in blocco tutte le carte di un set, es. POST /carte/importa-set/base1
     @PostMapping("/importa-set/{setId}")
     public ImportaSetResponseDTO importaSet(@PathVariable String setId) {
-        return pokemonTcgService.importaSet(setId);
+        return catalogoService.importaSet(setId);
     }
 }

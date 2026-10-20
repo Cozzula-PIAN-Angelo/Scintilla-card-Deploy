@@ -2,7 +2,7 @@ package com.example.ecommerce.runners;
 
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.services.EspansioneService;
-import com.example.ecommerce.services.PokemonTcgService;
+import com.example.ecommerce.services.CatalogoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -18,16 +18,16 @@ import java.util.List;
 public class CatalogoSeeder implements CommandLineRunner {
 
     private final OggettoRepository oggettoRepository;
-    private final PokemonTcgService pokemonTcgService;
+    private final CatalogoService catalogoService;
     private final EspansioneService espansioneService;
     private final List<String> setIniziali;
 
     public CatalogoSeeder(OggettoRepository oggettoRepository,
-                          PokemonTcgService pokemonTcgService,
+                          CatalogoService catalogoService,
                           EspansioneService espansioneService,
                           @Value("${app.seed.set:}") List<String> setIniziali) {
         this.oggettoRepository = oggettoRepository;
-        this.pokemonTcgService = pokemonTcgService;
+        this.catalogoService = catalogoService;
         this.espansioneService = espansioneService;
         this.setIniziali = setIniziali;
     }
@@ -50,7 +50,7 @@ public class CatalogoSeeder implements CommandLineRunner {
                 continue;
             }
             try {
-                pokemonTcgService.importaSet(setId);
+                catalogoService.importaSet(setId);
             } catch (RuntimeException ex) {
                 log.warn("Seeder catalogo: import del set {} fallito ({}), riprova con POST /carte/importa-set/{}",
                         setId, ex.getMessage(), setId);

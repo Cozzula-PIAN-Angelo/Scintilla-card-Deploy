@@ -52,7 +52,7 @@ public class Oggetto {
     @Column(name = "immagine_url", length = 512)
     private String immagineUrl;
 
-    // id della carta su pokemontcg.io; null per gli oggetti creati a mano
+    // id della carta su TCGdex; null per gli oggetti creati a mano
     // (PostgreSQL ammette più NULL in una colonna UNIQUE)
     @Column(name = "id_esterno", unique = true)
     private String idEsterno;
@@ -71,18 +71,18 @@ public class Oggetto {
     @Column(name = "numero_pokedex", nullable = false)
     private Set<Integer> numeriPokedex = new HashSet<>();
 
-    // versioni in cui esiste la carta (normale, holo, ...): null = non ancora lette da pokemontcg.io,
-    // lista vuota = pokemontcg.io non ne indica
+    // versioni in cui esiste la carta (normale, holo, ...): null = non ancora lette da TCGdex,
+    // lista vuota = TCGdex non ne indica
     @Convert(converter = ConvertitoreVarianti.class)
     @Column(length = 120)
     private List<Variante> varianti;
 
-    // rarità secondo pokemontcg.io (es. "Double Rare"): null = non ancora letta, '' = pokemontcg.io non la indica
+    // rarità secondo TCGdex (es. "Double Rare"): null = non ancora letta, '' = TCGdex non la indica
     @Column(length = 60)
     private String rarita;
 
-    // artista secondo pokemontcg.io, grezzo come arriva (può contenere coautori, es. "Shinji Higuchi + Sachiko Eba"):
-    // null = non ancora letto, '' = pokemontcg.io non lo indica. I nomi puliti li dà ElencoArtisti
+    // artista secondo TCGdex, grezzo come arriva (può contenere coautori, es. "Shinji Higuchi + Sachiko Eba"):
+    // null = non ancora letto, '' = TCGdex non lo indica. I nomi puliti li dà ElencoArtisti
     @Column(length = 200)
     private String artista;
 

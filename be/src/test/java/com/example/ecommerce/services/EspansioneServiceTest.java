@@ -25,6 +25,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -41,7 +42,7 @@ class EspansioneServiceTest {
     @Mock
     private OggettoRepository oggettoRepository;
     @Mock
-    private PokemonTcgService pokemonTcgService;
+    private CatalogoService catalogoService;
 
     // l'import in background finisce in una coda che i test non eseguono
     private final List<Runnable> coda = new ArrayList<>();
@@ -50,7 +51,7 @@ class EspansioneServiceTest {
     @BeforeEach
     void prepara() {
         ImportInBackground background = new ImportInBackground(coda::add, new LimitatoreImport(10, 1000), Clock.systemUTC());
-        service = new EspansioneService(espansioneRepository, oggettoRepository, pokemonTcgService, background);
+        service = new EspansioneService(espansioneRepository, oggettoRepository, catalogoService, background);
     }
 
     // vetrina vuota e pokemontcg.io giù: dopo un fallimento le visite successive rispondono subito con
@@ -58,19 +59,19 @@ class EspansioneServiceTest {
     @Test
     void dopoUnaSincronizzazioneFallitaNonSiRiprovaSubito() {
         when(espansioneRepository.count()).thenReturn(0L);
-        when(pokemonTcgService.sincronizzaEspansioni())
+        when(catalogoService.sincronizzaEspansioni())
                 .thenThrow(new ServizioEsternoException("pokemontcg.io ha risposto 502 BAD_GATEWAY", null));
 
         assertThatThrownBy(() -> service.findAll()).isInstanceOf(ServizioEsternoException.class);
         assertThatThrownBy(() -> service.findAll()).isInstanceOf(ServizioEsternoException.class);
 
-        verify(pokemonTcgService, times(1)).sincronizzaEspansioni();
+        verify(catalogoService, times(1)).sincronizzaEspansioni();
     }
 
     @Test
     void vetrinaVuotaSiSincronizzaAllaPrimaVisita() {
         when(espansioneRepository.count()).thenReturn(0L, 0L, 1L);
-        when(pokemonTcgService.sincronizzaEspansioni()).thenReturn(1);
+        when(catalogoService.sincronizzaEspansioni()).thenReturn(1);
         Espansione base = new Espansione("base1");
         base.setNome("Base");
         when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(List.of(base));
@@ -78,7 +79,7 @@ class EspansioneServiceTest {
         List<EspansioneResponseDTO> espansioni = service.findAll();
 
         assertThat(espansioni).extracting(EspansioneResponseDTO::id).containsExactly("base1");
-        verify(pokemonTcgService, times(1)).sincronizzaEspansioni();
+        verify(catalogoService, times(1)).sincronizzaEspansioni();
     }
 
     // vetrina già popolata: nessuna chiamata esterna
@@ -88,7 +89,7 @@ class EspansioneServiceTest {
 
         service.findAll();
 
-        verify(pokemonTcgService, times(0)).sincronizzaEspansioni();
+        verify(catalogoService, times(0)).sincronizzaEspansioni();
     }
 
     @Test
@@ -100,15 +101,15 @@ class EspansioneServiceTest {
 
         assertThat(carte.completo()).isTrue();
         assertThat(carte.carte()).extracting(OggettoResponseDTO::nome).containsExactly("Carta 2", "Carta 10");
-        verify(pokemonTcgService, never()).paginaCarte(any(), anyInt(), any());
+        verify(catalogoService, never()).paginaCarte(any(), anyInt(), anyBoolean());
         assertThat(coda).isEmpty();
     }
 
     @Test
     void primaAperturaPaginaAlVoloEImportAccodato() {
         when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
-        when(pokemonTcgService.paginaCarte("set.id:sv8", 0, "number"))
-                .thenReturn(new PokemonTcgService.PaginaCarte(List.of(carta("2"), carta("1")), 252));
+        when(catalogoService.paginaCarte(FiltroCarte.diSet("sv8"), 0, false))
+                .thenReturn(new CatalogoService.PaginaCarte(List.of(carta("2"), carta("1")), 252));
 
         CarteDTO carte = service.carte("sv8", null, "1.2.3.4");
 
@@ -121,8 +122,8 @@ class EspansioneServiceTest {
     @Test
     void dueAperturePerUnSoloImport() {
         when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", false)));
-        when(pokemonTcgService.paginaCarte(eq("set.id:sv8"), anyInt(), eq("number")))
-                .thenReturn(new PokemonTcgService.PaginaCarte(List.of(carta("1")), 252));
+        when(catalogoService.paginaCarte(eq(FiltroCarte.diSet("sv8")), anyInt(), eq(false)))
+                .thenReturn(new CatalogoService.PaginaCarte(List.of(carta("1")), 252));
 
         service.carte("sv8", 0, "1.2.3.4");
         service.carte("sv8", 1, "5.6.7.8");
@@ -134,7 +135,7 @@ class EspansioneServiceTest {
     @Test
     void setAnnunciatoSenzaCarte() {
         when(espansioneRepository.findById("me6")).thenReturn(Optional.of(set("me6", false)));
-        when(pokemonTcgService.paginaCarte("set.id:me6", 0, "number")).thenReturn(new PokemonTcgService.PaginaCarte(List.of(), 0));
+        when(catalogoService.paginaCarte(FiltroCarte.diSet("me6"), 0, false)).thenReturn(new CatalogoService.PaginaCarte(List.of(), 0));
 
         CarteDTO prima = service.carte("me6", 0, "1.2.3.4");
         CarteDTO dopo = service.carte("me6", 0, "1.2.3.4");
@@ -142,7 +143,7 @@ class EspansioneServiceTest {
         assertThat(prima.completo()).isTrue();
         assertThat(prima.carte()).isEmpty();
         assertThat(dopo.completo()).isTrue();
-        verify(pokemonTcgService, times(1)).paginaCarte(any(), anyInt(), any());
+        verify(catalogoService, times(1)).paginaCarte(any(), anyInt(), anyBoolean());
         // niente scaricamento completo di un set vuoto (fallirebbe e consumerebbe il limite)
         assertThat(coda).isEmpty();
     }
@@ -174,7 +175,7 @@ class EspansioneServiceTest {
         when(espansioneRepository.findById("sv8")).thenReturn(Optional.of(set("sv8", true)));
 
         assertThat(service.stato("sv8", "1.2.3.4")).isEqualTo(new StatoCarteDTO(true, false));
-        verifyNoInteractions(pokemonTcgService);
+        verifyNoInteractions(catalogoService);
     }
 
     // scaricamento fermo (pausa dopo un errore finita, o server riavviato): il controllo dello stato lo rilancia,
@@ -186,7 +187,7 @@ class EspansioneServiceTest {
         assertThat(service.stato("sv8", "1.2.3.4")).isEqualTo(new StatoCarteDTO(false, false));
         service.stato("sv8", "1.2.3.4");
 
-        verifyNoInteractions(pokemonTcgService);
+        verifyNoInteractions(catalogoService);
         assertThat(coda).hasSize(1);
     }
 }

@@ -3,7 +3,7 @@ import type { CarteProgressive, RichiestaCarte, StatoCarte } from '../../types/a
 
 export const pokedexApi = api.injectEndpoints({
   endpoints: (build) => ({
-    // alla prima apertura il backend risponde a pezzi (la pagina chiesta, presa al volo da pokemontcg.io) e scarica
+    // alla prima apertura il backend risponde a pezzi (la pagina chiesta, presa al volo da TCGdex) e scarica
     // il resto in background (vedi useCarteProgressive). Niente maxRetries: il backend ritenta già da solo.
     // Su un 502 resta il pulsante Riprova
     getCartePokemon: build.query<CarteProgressive, RichiestaCarte<number>>({
@@ -13,7 +13,7 @@ export const pokedexApi = api.injectEndpoints({
       }),
       providesTags: ['Oggetti'],
     }),
-    // a che punto è lo scaricamento in background: niente pagine, niente pokemontcg.io (vedi useCarteProgressive)
+    // a che punto è lo scaricamento in background: niente pagine, niente TCGdex (vedi useCarteProgressive)
     getStatoCartePokemon: build.query<StatoCarte, number>({
       query: (chiave) => `/pokedex/${chiave}/carte/stato`,
     }),

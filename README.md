@@ -1,7 +1,7 @@
 # CeloManca - il binder delle tue carte collezionabili
 
 Backend REST (Spring Boot + JWT) e frontend React per sfogliare carte Pokémon,
-salvarle tra i preferiti e, come admin, importarle dall'API Pokémon TCG.
+salvarle tra i preferiti e, come admin, importarle da [TCGdex](https://tcgdex.dev).
 Avviabile in locale e pronto per il deploy su Render.
 
 | Parte | Tecnologia | In locale | Su Render |
@@ -53,7 +53,8 @@ I test delle migrazioni (`MigrazioniTest`) girano su un PostgreSQL vero scaricat
 
 ## Vetrina ed espansioni
 
-La vetrina mostra tutte le espansioni di pokemontcg.io (circa 180), raggruppate per
+Le carte arrivano da [TCGdex](https://tcgdex.dev) (API gratuita, senza chiave), in inglese.
+La vetrina mostra tutte le sue espansioni (circa 200, senza quelle di TCG Pocket), raggruppate per
 serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le sue carte.
 
 - **Elenco espansioni**: si sincronizza all'avvio e ogni notte (`GET /espansioni`, pubblico).
@@ -63,9 +64,9 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
 - **Import a mano** (admin): `POST /carte/importa-set/{setId}` importa un set intero e
   completa le carte mancanti di un set già importato. Risponde con `trovate`,
   `importate`, `saltate` (già nel catalogo), `scartate` (prezzo oltre il massimo) e
-  `rinominate`: carte il cui nome composto era già usato, importate con l'id di pokemontcg.io
+  `rinominate`: carte il cui nome composto era già usato, importate con l'id di TCGdex
   tra parentesi quadre invece di essere scartate.
-- **Limite sugli import pubblici**: le prime aperture di set e Pokémon scaricano da pokemontcg.io,
+- **Limite sugli import pubblici**: le prime aperture di set e Pokémon scaricano da TCGdex,
   quindi sono limitate a `IMPORT_LIMITE_CLIENT` (default 30) all'ora per indirizzo IP e a
   `IMPORT_LIMITE_GIORNALIERO` (default 400) al giorno per tutto il sito; oltre, `429`. Quello che è
   già nel catalogo si consulta senza limiti, e gli import dell'admin non contano.
@@ -80,9 +81,18 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
 - **Primo avvio**: se il catalogo è vuoto si importano i set di `SEED_SET` (default `base1`),
   così l'hero ha subito delle carte.
 - Le carte senza prezzo Cardmarket (tipico dei set appena usciti) entrano a 1,00 €.
-- pokemontcg.io risponde spesso 500/502 a caso: le chiamate ritentano da sole fino a 6
-  volte. `POKEMONTCG_API_KEY` (gratuita su dev.pokemontcg.io) alza il limite di richieste
-  da circa 1.000 a 20.000 al giorno, ma non elimina quegli errori.
+- Gli errori temporanei di TCGdex (5xx, 429, timeout) si ritentano da soli fino a 3 volte. Le carte
+  di una pagina arrivano con un dettaglio per carta, 8 alla volta.
+- **Passaggio da pokemontcg.io** (che si spegne il 1° marzo 2027): `be/src/main/resources/abbinamento-id.json`,
+  generato una volta con `node scripts/genera-abbinamento.mjs`, dice per ogni set e carta l'id di TCGdex. La
+  migrazione `V9__tcgdex` (Java) riscrive gli id nel database, e `DatiInizialiSeeder` fa lo stesso con un
+  export fatto prima del passaggio.
+- **Immagini che TCGdex non ha** (885 carte, i simboli di tutti i set, 30 loghi): copie in webp in
+  `fe/public/immagini/` (circa 45 MB), fatte una volta con `node scripts/scarica-immagini.mjs` dai server di
+  pokemontcg.io e Scrydex, che si spengono con la loro API. Lo script le converte con
+  [sharp](https://sharp.pixelplumbing.com) (vedi «Script»). La migrazione `V10__immagini_locali` sostituisce nel
+  database gli indirizzi di quei server con le copie; un'immagine già sparita diventa il segnaposto. Il sito non
+  dipende più da pokemontcg.io in nessun punto.
 
 ## Pokédex
 
@@ -91,7 +101,7 @@ art di PokeAPI e una ricerca per nome (italiano o inglese) o numero. Cliccando u
 aprono tutte le carte in cui compare, dalla più recente.
 
 - `GET /pokedex/{numero}/carte` (pubblico): alla prima apertura il backend importa da
-  pokemontcg.io tutte le carte del Pokémon (`nationalPokedexNumbers`), poi legge dal database;
+  TCGdex tutte le carte del Pokémon (`dexId`), poi legge dal database;
   dopo 7 giorni le riscarica, così compaiono le carte dei set nuovi. Il numero massimo è
   `POKEDEX_NUMERO_MASSIMO` (default 1025); se il limite sugli import è raggiunto, il
   riaggiornamento settimanale si rinvia e si mostrano le carte già scaricate.
@@ -108,11 +118,12 @@ le mancanti si possono mostrare in grigio (impostazione del binder) e il menu de
 
 - `GET /me/collezione?espansione=` o `?pokemon=` restituisce le copie possedute; `PATCH /me/collezione`
   (`oggettoId`, `variante`, `delta`) le aggiunge o le toglie. Solo per utenti autenticati.
-- Le varianti di una carta si leggono dai prezzi TCGplayer di pokemontcg.io e si salvano insieme
-  alla carta: decidono l'effetto holo e la variante registrata dal «+». Per i set già importati
-  prima di questa funzione le riempie il job orario, **5 set per giro e solo mentre il backend è
-  sveglio** (su Render gratuito si addormenta): finché un set non è stato riempito non ha l'effetto
-  holo e il «+» registra «Normale». Le carte create a mano non hanno varianti suggerite.
+- Le varianti di una carta si leggono da TCGdex (`variants`) e si salvano insieme alla carta:
+  decidono l'effetto holo, la variante registrata dal «+» e le voci del master set. Le carte ancora
+  da leggere le riempie il job orario: al primo giro dopo l'avvio tutti i set, poi **5 set per giro e
+  solo mentre il backend è sveglio** (su Render gratuito si addormenta). Finché un set non è stato
+  riempito non ha l'effetto holo e il «+» registra «Normale». Le carte create a mano non hanno
+  varianti suggerite.
 
 ## Deploy su Render
 
@@ -127,7 +138,6 @@ le mancanti si possono mostrare in grigio (impostazione del binder) e il menu de
    | `scintilla-be` | `ADMIN_PASSWORD` | password dell'admin (obbligatoria) |
    | `scintilla-be` | `ADMIN_EMAIL` | email dell'admin |
    | `scintilla-be` | `ALLOWED_ORIGIN` | `https://scintilla-fe.onrender.com` |
-   | `scintilla-be` | `POKEMONTCG_API_KEY` | facoltativa, può restare vuota |
    | `scintilla-fe` | `VITE_API_URL` | `https://scintilla-be.onrender.com` |
 
 4. **Manual Deploy** di entrambi (`VITE_API_URL` è letta in fase di build).
@@ -186,6 +196,25 @@ veri. Si corregge il file, oppure lo si toglie dai Secret File per partire senza
 - le password sono quelle del database di origine: l'admin entra con la password che aveva lì;
 - una migrazione che aggiunge una colonna obbligatoria **senza** default richiede di riesportare il file.
 
+## Script
+
+Script Node in `scripts/`, lanciati a mano dalla radice del progetto. Le regole di ognuno sono funzioni pure
+in un file `*-regole.mjs` con il suo test (`node --test scripts/<nome>-regole.test.mjs`).
+
+| Script | Cosa fa | Quando |
+|---|---|---|
+| `genera-artisti.mjs` | `artisti.json` (elenco degli artisti) da tutte le carte di TCGdex | quando escono set nuovi |
+| `genera-abbinamento.mjs` | `abbinamento-id.json`: id di pokemontcg.io -> TCGdex | una volta, già fatto (chiamava pokemontcg.io) |
+| `scarica-immagini.mjs` | copie webp delle immagini che TCGdex non ha | una volta, già fatto (dopo `genera-abbinamento.mjs`) |
+| `esporta-dati.ps1` | export del database per `DatiInizialiSeeder` | prima che scada il database di Render |
+
+**sharp** (`fe/package.json`, solo `devDependencies`) serve soltanto a `scarica-immagini.mjs`: libreria Node per le
+immagini (basata su libvips) che le legge, le ridimensiona (carte 450 px, loghi 400, simboli 96, mai ingrandite) e
+le converte in WebP (qualità 75 per le carte, 90 per loghi e simboli), così una carta passa da circa 650 KB a
+circa 48 KB. Non entra nella build del sito né nel browser; porta circa 30 MB di binari nativi in
+`fe/node_modules`. Lo script la carica dal frontend (`createRequire` su `fe/package.json`), quindi prima serve
+`npm install` in `fe/`. Se le copie restano definitive si può togliere con `npm uninstall sharp` in `fe/`.
+
 ## Struttura
 
 ```
@@ -204,5 +233,7 @@ be/
     db/migration/                 migrazioni Flyway dello schema (V1, V2, ...)
 fe/
   src/app/api.ts            base delle chiamate, da VITE_API_URL
+  public/immagini/          copie webp delle immagini che TCGdex non ha (carte/, set/)
   .env.example
+scripts/                    script Node e PowerShell (vedi «Script»)
 ```

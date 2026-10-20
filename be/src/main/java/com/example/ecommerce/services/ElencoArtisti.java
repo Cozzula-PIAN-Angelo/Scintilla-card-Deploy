@@ -22,15 +22,15 @@ import java.util.stream.Collectors;
 // rotto ferma l'applicazione invece della prima richiesta
 public final class ElencoArtisti {
 
-    // pagina delle carte per cui pokemontcg.io non indica l'artista: non è nell'elenco
+    // pagina delle carte per cui TCGdex non indica l'artista: non è nell'elenco
     public static final String SLUG_SCONOSCIUTO = "sconosciuto";
     public static final String NOME_SCONOSCIUTO = "Artista sconosciuto";
 
     private static final String RISORSA = "artisti.json";
 
-    // grafie: i valori grezzi del campo artist in cui compare l'artista; query: già verificata dallo script
+    // grafie: i valori grezzi del campo illustrator in cui compare l'artista (una chiamata a TCGdex per grafia)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Artista(String slug, String nome, List<String> grafie, String query, int carte, String avatar) {
+    public record Artista(String slug, String nome, List<String> grafie, int carte, String avatar) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

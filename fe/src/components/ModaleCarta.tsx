@@ -135,7 +135,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
                   dragElastic={0.5}
                   onDragEnd={fineScorrimento}
                 >
-                  <HoloCard className="w-full rounded-[6%/4.3%]">
+                  <HoloCard className="w-full rounded-[3%/2.1%]">
                     <ImmagineCarta
                       src={mostrato.immagineUrl}
                       alt={mostrato.nome}

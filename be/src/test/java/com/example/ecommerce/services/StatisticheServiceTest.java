@@ -42,7 +42,7 @@ class StatisticheServiceTest {
     @BeforeEach
     void prepara() {
         jdbc = new JdbcTemplate(dataSource);
-        service = new StatisticheService(jdbc, oggettoRepository, new VariantiMaster(jdbc));
+        service = new StatisticheService(jdbc, oggettoRepository);
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'mario', 'mario@esempio.it', 'hash')", idUtente);
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'luigi', 'luigi@esempio.it', 'hash')", idAltro);
         utente = new Utente();
@@ -221,15 +221,17 @@ class StatisticheServiceTest {
                 .extracting(AvanzamentoSetDTO::posseduteMaster, AvanzamentoSetDTO::totaleMaster).containsExactly(2, 4);
     }
 
+    // varianti non ancora lette da TCGdex: ogni carta vale la sola Normale, la rarità non conta più
     @Test
-    void masterDiUnSetSenzaDati() {
+    void masterDiUnSetSenzaVariantiLette() {
         set("me3", "Perfect Order", "Mega Evolution", "2026-03-27", true, 124);
         UUID comune = carta("Abra", "me3", "Common", "");
         carta("Mega Alakazam ex", "me3", "Double Rare", "");
+        possiedi(utente, comune, Variante.NORMALE, 1);
         possiedi(utente, comune, Variante.REVERSE_HOLO, 1);
 
         assertThat(set(service.statistiche(utente), "me3"))
-                .extracting(AvanzamentoSetDTO::posseduteMaster, AvanzamentoSetDTO::totaleMaster).containsExactly(1, 3);
+                .extracting(AvanzamentoSetDTO::posseduteMaster, AvanzamentoSetDTO::totaleMaster).containsExactly(1, 2);
     }
 
     @Test

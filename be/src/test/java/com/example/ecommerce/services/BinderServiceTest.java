@@ -67,8 +67,7 @@ class BinderServiceTest {
     void prepara() {
         jdbc = new JdbcTemplate(dataSource);
         CollezioneService collezione = new CollezioneService(collezioneRepository, oggettoRepository, jdbc, ElencoArtisti.get());
-        service = new BinderService(binderRepository, slotRepository, immagineRepository, oggettoRepository, collezione, ElencoArtisti.get(),
-                new VariantiMaster(jdbc));
+        service = new BinderService(binderRepository, slotRepository, immagineRepository, oggettoRepository, collezione, ElencoArtisti.get());
         UUID idUtente = UUID.randomUUID();
         UUID idAltro = UUID.randomUUID();
         jdbc.update("INSERT INTO utenti (id, username, email, password) VALUES (?, 'mario', 'mario@esempio.it', 'hash')", idUtente);
