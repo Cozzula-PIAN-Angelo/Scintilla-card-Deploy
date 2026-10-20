@@ -12,6 +12,7 @@ import com.example.ecommerce.payloads.RiordinaDTO;
 import com.example.ecommerce.payloads.SlotBinderResponseDTO;
 import com.example.ecommerce.payloads.SpostaCartaDTO;
 import com.example.ecommerce.services.BinderService;
+import com.example.ecommerce.services.FormatoImmagine;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -121,12 +122,12 @@ public class BinderController {
     public BinderResponseDTO salvaImmagine(@AuthenticationPrincipal Utente utente,
                                            @PathVariable UUID id,
                                            HttpServletRequest request) throws IOException {
-        if (request.getContentLengthLong() > BinderService.DIMENSIONE_MASSIMA_IMMAGINE) {
+        if (request.getContentLengthLong() > FormatoImmagine.DIMENSIONE_MASSIMA) {
             throw new BadRequestException("L'immagine supera 1 MB");
         }
         // senza Content-Length (invio a blocchi) il limite vale comunque: oltre il massimo
-        // il service riceve DIMENSIONE_MASSIMA_IMMAGINE + 1 byte e risponde 400
-        byte[] contenuto = request.getInputStream().readNBytes(BinderService.DIMENSIONE_MASSIMA_IMMAGINE + 1);
+        // il service riceve DIMENSIONE_MASSIMA + 1 byte e risponde 400
+        byte[] contenuto = request.getInputStream().readNBytes(FormatoImmagine.DIMENSIONE_MASSIMA + 1);
         return binderService.salvaImmagine(utente, id, contenuto);
     }
 

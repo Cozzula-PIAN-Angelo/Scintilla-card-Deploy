@@ -125,6 +125,26 @@ le mancanti si possono mostrare in grigio (impostazione del binder) e il menu de
   riempito non ha l'effetto holo e il «+» registra «Normale». Le carte create a mano non hanno
   varianti suggerite.
 
+## Profilo
+
+Dal menu account si aprono **Profilo** e **Impostazioni**. Il profilo è privato per ora, ma è già nella
+forma di una futura pagina pubblica: non contiene mai l'email.
+
+- `GET /me/profilo`: username, data di registrazione, immagine profilo, bio, colore, squadra (fino a 6
+  Pokémon, il primo è il compagno), vetrina (fino a 6 carte, separate dai preferiti col cuore), binder
+  in evidenza (fino a 3) e i numeri della collezione.
+- `PATCH /me/profilo` (`bio`, `colore`); `PATCH /me/profilo/vetrina` e `/binder` (`ids`),
+  `PATCH /me/profilo/squadra` (`numeri`): le liste arrivano intere e ordinate e sostituiscono quelle
+  salvate (PATCH e non PUT: il CORS non ammette PUT).
+- `POST` e `DELETE /me/profilo/avatar`: immagine già ritagliata quadrata e compressa dal browser,
+  JPEG, PNG o WebP fino a 1 MB. `GET /avatar/{idUtente}?v=…` è pubblico, con cache lunga: la versione
+  nell'URL cambia a ogni immagine nuova.
+- `PATCH /me/account` (username, email) e `POST /me/password` chiedono la password attuale; una password
+  sbagliata risponde 400 e conta nel limite dei tentativi di login. Il cambio password risponde con un
+  token nuovo: i token emessi prima (gli altri dispositivi) non valgono più.
+- Cancellando l'account spariscono immagine profilo e bio; squadra, vetrina, binder in evidenza e colore
+  restano collegati all'id anonimo, per le statistiche.
+
 ## Deploy su Render
 
 1. Repository Git con `be/`, `fe/`, `render.yaml` nella radice.
@@ -180,7 +200,7 @@ cancellato). Per ripartire da un database nuovo senza perdere i dati:
    ```
    Nasce `dati-iniziali.b64` (base64 di gzip di un JSON con le righe di ogni tabella). Contiene email e
    hash delle password: non va in git (è nel `.gitignore`). Dentro c'è solo quello che non si può
-   riscaricare: utenti, collezioni, binder, preferiti e le sole carte che usano. Il resto del catalogo si
+   riscaricare: utenti, collezioni, binder, preferiti, profili e le sole carte che usano. Il resto del catalogo si
    riscarica da TCGdex alla prima apertura delle pagine (i set escono non importati), così il file resta di
    pochi kB anche con migliaia di carte nel catalogo.
 2. `scintilla-be` > **Environment** > **Secret Files**: aggiungere `dati-iniziali.b64` con il contenuto

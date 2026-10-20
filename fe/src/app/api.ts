@@ -29,12 +29,14 @@ const baseQueryConSessione: BaseQueryFn<
   FetchBaseQueryError,
   { maxRetries?: number }
 > = async (args, apiBase, extraOptions) => {
+  const tokenDi = () => (apiBase.getState() as { auth: { token: string | null } }).auth.token
+  // il token con cui parte la richiesta (prepareHeaders legge lo stesso stato)
+  const tokenRichiesta = tokenDi()
   const risultato = await baseQueryConRetry(args, apiBase, extraOptions ?? {})
   const url = typeof args === 'string' ? args : args.url
 
-  // 401 con un token: logout locale, cache svuotata; il SessionWatcher porta al login (vedi sessioneDaChiudere)
-  const { token } = (apiBase.getState() as { auth: { token: string | null } }).auth
-  if (sessioneDaChiudere(risultato.error?.status, url, token)) {
+  // 401 con il token di adesso: logout locale, cache svuotata; il SessionWatcher porta al login (vedi sessioneDaChiudere)
+  if (sessioneDaChiudere(risultato.error?.status, url, tokenDi(), tokenRichiesta)) {
     apiBase.dispatch(sessioneScaduta())
     apiBase.dispatch(api.util.resetApiState())
   }
@@ -44,6 +46,6 @@ const baseQueryConSessione: BaseQueryFn<
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryConSessione,
-  tagTypes: ['Espansioni', 'Oggetti', 'Preferiti', 'PreferitiIds', 'Me', 'Utenti', 'Ricerca', 'Binder', 'Collezione', 'Statistiche'],
+  tagTypes: ['Espansioni', 'Oggetti', 'Preferiti', 'PreferitiIds', 'Me', 'Utenti', 'Ricerca', 'Binder', 'Collezione', 'Statistiche', 'Profilo'],
   endpoints: () => ({}),
 })

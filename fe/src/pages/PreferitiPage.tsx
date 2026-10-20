@@ -48,10 +48,8 @@ export function PreferitiPage() {
     <PaginaAnimata className="min-h-[70vh]">
       <section className="bg-notte-2 text-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-12 sm:px-6">
-          <h1 className="flex items-center gap-3 text-4xl font-bold sm:text-5xl">
-            <Heart aria-hidden className="size-9 fill-rosso-500 text-rosso-500" />I miei preferiti
-          </h1>
-          <p className="text-white">Le carte che hai salvato, pronte da ammirare.</p>
+          <h1 className="text-4xl font-bold sm:text-5xl">I miei preferiti</h1>
+          <p className="text-white">Le carte a cui hai messo il cuore. Non serve averle: qui tieni anche quelle che sogni.</p>
         </div>
       </section>
 

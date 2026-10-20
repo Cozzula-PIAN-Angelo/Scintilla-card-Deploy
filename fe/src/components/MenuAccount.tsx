@@ -1,31 +1,20 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, LoaderCircle, LogOut, UserX } from 'lucide-react'
+import { ChevronDown, LoaderCircle, LogOut } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
 import { selectIsAdmin, selectToken, selectUtente } from '../features/auth/authSlice'
 import { useLogout } from '../features/auth/useLogout'
 import { cn } from '../utils/cn'
+import { Avatar } from './Avatar'
 import { LinkBottone } from './Button'
-import { VOCE_ADMIN, VOCE_COLLEZIONE, type VoceMenu } from './vociNavigazione'
-
-// pallino con l'iniziale del nome: l'«avatar» dell'utente nella navbar
-function Iniziale({ nome, className }: { nome: string; className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn('grid shrink-0 place-items-center rounded-full bg-giallo-400 font-titolo font-bold uppercase text-blu-900', className)}
-    >
-      {nome.charAt(0)}
-    </span>
-  )
-}
+import { VOCE_ADMIN, VOCE_COLLEZIONE, VOCE_IMPOSTAZIONI, VOCE_PROFILO, type VoceMenu } from './vociNavigazione'
 
 // le voci del pannello account in fila: stessa forma per link e bottoni
 const RIGA = 'flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-semibold transition-colors'
 
 // contenuto del pannello account: lo stesso nel menu a tendina da desktop e nel pannello da telefono
-export function ContenutoAccount({ onCancellaAccount }: { onCancellaAccount: () => void }) {
+export function ContenutoAccount() {
   const token = useAppSelector(selectToken)
   const utente = useAppSelector(selectUtente)
   const isAdmin = useAppSelector(selectIsAdmin)
@@ -46,23 +35,25 @@ export function ContenutoAccount({ onCancellaAccount }: { onCancellaAccount: () 
     )
   }
 
-  const voci: VoceMenu[] = [VOCE_COLLEZIONE, ...(isAdmin ? [VOCE_ADMIN] : [])]
+  const voci: VoceMenu[] = [VOCE_PROFILO, VOCE_COLLEZIONE, VOCE_IMPOSTAZIONI, ...(isAdmin ? [VOCE_ADMIN] : [])]
 
   return (
     <div>
-      <div className="flex items-center gap-3 px-3 pb-3 pt-1">
-        <Iniziale nome={utente.username} className="size-10 text-lg" />
+      <NavLink to={VOCE_PROFILO.a} className="mb-2 flex items-center gap-3 rounded-2xl px-3 py-2 transition-colors hover:bg-white/10">
+        <Avatar utente={utente} className="size-10 text-lg" />
         <div className="min-w-0">
           <p className="truncate font-semibold text-white">{utente.username}</p>
-          <p className="text-xs text-white/70">{isAdmin ? 'Amministratore' : 'Collezionista'}</p>
+          <p className="text-xs text-white/70">{isAdmin ? 'Amministratore' : 'Collezionista'} · vedi il profilo</p>
         </div>
-      </div>
+      </NavLink>
 
       <ul className="space-y-1">
         {voci.map((voce) => (
           <li key={voce.a}>
             <NavLink
               to={voce.a}
+              // /profilo non resta acceso su /profilo/impostazioni
+              end
               className={({ isActive }) => cn(RIGA, isActive ? 'bg-white text-blu-900' : 'text-white hover:bg-white/10')}
             >
               {({ isActive }) => (
@@ -81,10 +72,6 @@ export function ContenutoAccount({ onCancellaAccount }: { onCancellaAccount: () 
           {inUscita ? <LoaderCircle aria-hidden className="size-5 animate-spin" /> : <LogOut aria-hidden className="size-5" />}
           Esci
         </button>
-        <button type="button" onClick={onCancellaAccount} className={cn(RIGA, 'py-2.5 text-sm text-white/70 hover:bg-rosso-700/30 hover:text-white')}>
-          <UserX aria-hidden className="size-5" />
-          Cancella account
-        </button>
       </div>
     </div>
   )
@@ -92,7 +79,7 @@ export function ContenutoAccount({ onCancellaAccount }: { onCancellaAccount: () 
 
 // da desktop: bottone con iniziale e nome che apre il pannello account a tendina.
 // Si chiude cliccando fuori, con Esc (il focus torna sul bottone) o cambiando pagina
-export function MenuAccount({ onCancellaAccount }: { onCancellaAccount: () => void }) {
+export function MenuAccount() {
   const utente = useAppSelector(selectUtente)
   const [aperto, setAperto] = useState(false)
   const { pathname } = useLocation()
@@ -122,8 +109,8 @@ export function MenuAccount({ onCancellaAccount }: { onCancellaAccount: () => vo
 
   if (!utente) return null
 
-  // acceso anche quando si è su una pagina che sta nel menu (Collezione, Admin)
-  const suPaginaDelMenu = pathname.startsWith(VOCE_COLLEZIONE.a) || pathname.startsWith(VOCE_ADMIN.a)
+  // acceso anche quando si è su una pagina che sta nel menu (Profilo, Collezione, Admin)
+  const suPaginaDelMenu = [VOCE_PROFILO, VOCE_COLLEZIONE, VOCE_ADMIN].some((voce) => pathname.startsWith(voce.a))
 
   return (
     <div ref={contenitore} className="relative">
@@ -139,7 +126,7 @@ export function MenuAccount({ onCancellaAccount }: { onCancellaAccount: () => vo
           aperto || suPaginaDelMenu ? 'bg-white/15 ring-white/40' : 'ring-white/20 hover:bg-white/10',
         )}
       >
-        <Iniziale nome={utente.username} className="size-8 text-base" />
+        <Avatar utente={utente} className="size-8 text-base" />
         <span className="max-w-[12ch] truncate">{utente.username}</span>
         <ChevronDown aria-hidden className={cn('size-4 text-white/70 transition-transform duration-200', aperto && 'rotate-180')} />
       </button>
@@ -154,12 +141,7 @@ export function MenuAccount({ onCancellaAccount }: { onCancellaAccount: () => vo
             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
             className="absolute right-0 top-full z-50 mt-3 w-72 origin-top-right rounded-3xl bg-notte-2 p-3 shadow-2xl shadow-ombra/50 ring-1 ring-white/10"
           >
-            <ContenutoAccount
-              onCancellaAccount={() => {
-                setAperto(false)
-                onCancellaAccount()
-              }}
-            />
+            <ContenutoAccount />
           </motion.div>
         )}
       </AnimatePresence>

@@ -48,7 +48,8 @@ public class JWTTools {
             return new TokenVerificato(
                     UUID.fromString(claims.getSubject()),
                     UUID.fromString(claims.getId()),
-                    claims.getExpiration().toInstant());
+                    claims.getExpiration().toInstant(),
+                    claims.getIssuedAt().toInstant());
         } catch (JwtException | IllegalArgumentException | NullPointerException ex) {
             // firma errata, token scaduto, malformato o vuoto
             throw new UnauthorizedException("Token non valido o scaduto: effettua di nuovo il login");

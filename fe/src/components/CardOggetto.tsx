@@ -60,7 +60,7 @@ export function CardOggetto({ oggetto, preferito, onTogglePreferito, onApri, agg
           type="button"
           onClick={onApri}
           aria-label={`Apri i dettagli di ${oggetto.nome}`}
-          className="group block w-full rounded-2xl bg-superficie p-2 text-left sm:rounded-3xl sm:p-3 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 transition-shadow hover:shadow-2xl hover:shadow-blu-500/25"
+          className="group block w-full rounded-2xl bg-superficie p-2 text-left sm:rounded-3xl sm:p-3 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 transition-shadow hover:shadow-xl hover:shadow-ombra/25"
         >
           <ImmagineCarta
             src={oggetto.immagineUrlPiccola ?? oggetto.immagineUrl}

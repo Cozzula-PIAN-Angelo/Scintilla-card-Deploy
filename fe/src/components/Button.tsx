@@ -8,10 +8,13 @@ import { cn } from '../utils/cn'
 export type Variante = 'primario' | 'secondario' | 'pericolo' | 'chiaro' | 'fantasma' | 'suScuro'
 export type Dimensione = 'sm' | 'md' | 'lg'
 
+// bottoni pieni: un bordo inferiore più scuro e un'ombra corta e neutra, come un tasto stampato, non un alone colorato
+const PIENO = 'shadow-[inset_0_-2px_0_rgb(0_0_0/0.2),0_2px_6px_-2px_rgb(0_0_0/0.35)]'
+
 const VARIANTI: Record<Variante, string> = {
-  primario: 'bg-blu-500 text-white shadow-lg shadow-blu-500/30 hover:bg-blu-700',
-  secondario: 'bg-giallo-400 text-blu-900 shadow-lg shadow-giallo-400/40 hover:shadow-giallo-400/60',
-  pericolo: 'bg-rosso-700 text-white shadow-lg shadow-rosso-500/30',
+  primario: `bg-blu-500 text-white ${PIENO} hover:bg-blu-700`,
+  secondario: `bg-giallo-400 text-blu-900 ${PIENO} hover:brightness-95`,
+  pericolo: `bg-rosso-700 text-white ${PIENO} hover:brightness-110`,
   chiaro: 'bg-superficie text-testo-2 shadow-md shadow-ombra/10 hover:bg-tenue scuro:ring-1 scuro:ring-white/10',
   fantasma: 'bg-transparent text-testo-2 hover:bg-tenue',
   // per sfondi blu scuri (navbar)

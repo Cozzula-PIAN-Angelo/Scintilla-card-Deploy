@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Album, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { Button } from '../components/Button'
@@ -38,10 +38,7 @@ export function BinderPage() {
             <section className="bg-notte-2 text-white">
               <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-12 sm:flex-row sm:items-end sm:justify-between sm:px-6">
                 <div>
-                  <h1 className="flex items-center gap-3 text-4xl font-bold sm:text-5xl">
-                    <Album aria-hidden className="size-9 text-giallo-400" />I miei binder
-                  </h1>
-                  <p className="mt-2 text-white">Album da riempire come vuoi: ogni carta nella tasca che preferisci.</p>
+                  <h1 className="text-4xl font-bold sm:text-5xl">I miei binder</h1>
                 </div>
                 <Button variante="secondario" onClick={() => apriImpostazioni(null)}>
                   <Plus aria-hidden className="size-4" />

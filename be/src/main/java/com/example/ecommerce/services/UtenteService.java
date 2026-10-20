@@ -1,6 +1,7 @@
 package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.NomiRuolo;
+import com.example.ecommerce.entities.Profilo;
 import com.example.ecommerce.entities.RuoloUtente;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.exceptions.BadRequestException;
@@ -9,6 +10,7 @@ import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.payloads.RegistrazioneDTO;
 import com.example.ecommerce.payloads.UtenteResponseDTO;
+import com.example.ecommerce.repositories.ProfiloRepository;
 import com.example.ecommerce.repositories.RuoloUtenteRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,20 +41,12 @@ public class UtenteService {
     private final RuoloService ruoloService;
     private final PasswordEncoder passwordEncoder;
     private final LimitatoreRegistrazione limitatoreRegistrazione;
+    private final ProfiloRepository profiloRepository;
 
     @Transactional
     public UtenteResponseDTO registra(RegistrazioneDTO body, String ip) {
-        // oltre i 72 byte BCryptPasswordEncoder.encode lancia IllegalArgumentException (500)
-        if (body.password().getBytes(StandardCharsets.UTF_8).length > MASSIMO_BYTE_PASSWORD) {
-            throw new BadRequestException("La password è troppo lunga: lettere accentate ed emoji occupano più spazio, "
-                    + "accorciala o usa meno caratteri speciali");
-        }
-        // senza spazi ai bordi, come l'identificativo al login (che li toglie): " mario" non entrerebbe più.
-        // @Size li conta, quindi la lunghezza si ricontrolla qui
-        String username = body.username().trim();
-        if (username.length() < LUNGHEZZA_MINIMA_USERNAME) {
-            throw new BadRequestException("Lo username deve avere tra 3 e 30 caratteri, spazi esclusi");
-        }
+        controllaBytePassword(body.password());
+        String username = usernamePulito(body.username());
         // IgnoreCase: "Mario" e "mario" sarebbero due account indistinguibili. Si salva com'è scritto
         // dopo i controlli che non rivelano niente: solo username ed email già usati consumano il limite
         limitatoreRegistrazione.controlla(ip);
@@ -72,7 +67,26 @@ public class UtenteService {
         // la registrazione assegna sempre e solo il ruolo UTENTE
         ruoloUtenteRepository.save(new RuoloUtente(utente, ruoloService.findByNome(NomiRuolo.UTENTE)));
 
-        return new UtenteResponseDTO(utente.getId(), utente.getUsername(), utente.getEmail(), List.of(NomiRuolo.UTENTE));
+        return new UtenteResponseDTO(utente.getId(), utente.getUsername(), utente.getEmail(), List.of(NomiRuolo.UTENTE), null);
+    }
+
+    // oltre i 72 byte BCryptPasswordEncoder.encode lancia IllegalArgumentException (500).
+    // Usato anche dal cambio password (AccountService)
+    static void controllaBytePassword(String password) {
+        if (password.getBytes(StandardCharsets.UTF_8).length > MASSIMO_BYTE_PASSWORD) {
+            throw new BadRequestException("La password è troppo lunga: lettere accentate ed emoji occupano più spazio, "
+                    + "accorciala o usa meno caratteri speciali");
+        }
+    }
+
+    // senza spazi ai bordi, come l'identificativo al login (che li toglie): " mario" non entrerebbe più.
+    // @Size li conta, quindi la lunghezza si ricontrolla qui. Usato anche dal cambio username (AccountService)
+    static String usernamePulito(String username) {
+        String pulito = username.trim();
+        if (pulito.length() < LUNGHEZZA_MINIMA_USERNAME) {
+            throw new BadRequestException("Lo username deve avere tra 3 e 30 caratteri, spazi esclusi");
+        }
+        return pulito;
     }
 
     // uso interno
@@ -91,7 +105,9 @@ public class UtenteService {
 
     @Transactional(readOnly = true)
     public UtenteResponseDTO getProfilo(Utente utente) {
-        return new UtenteResponseDTO(utente.getId(), utente.getUsername(), utente.getEmail(), getNomiRuoli(utente.getId()));
+        // la versione dell'immagine profilo serve alla navbar
+        Instant avatar = profiloRepository.findById(utente.getId()).map(Profilo::getAvatarAggiornatoIl).orElse(null);
+        return new UtenteResponseDTO(utente.getId(), utente.getUsername(), utente.getEmail(), getNomiRuoli(utente.getId()), avatar);
     }
 
     @Transactional(readOnly = true)
@@ -109,6 +125,7 @@ public class UtenteService {
                 utente.getId(),
                 utente.getUsername(),
                 utente.getEmail(),
-                ruoliPerUtente.getOrDefault(utente.getId(), List.of()))));
+                ruoliPerUtente.getOrDefault(utente.getId(), List.of()),
+                null)));
     }
 }

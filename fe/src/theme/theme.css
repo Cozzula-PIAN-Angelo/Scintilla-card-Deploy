@@ -86,8 +86,7 @@
 }
 
 /*
- * Modalità scura: un cielo stellato. Fondo blu notte con una nebulosa appena accennata,
- * superfici indaco un po' più chiare, testo bianco stella con una punta di lavanda.
+ * Modalità scura: un cielo stellato. Fondo blu notte, superfici indaco un po' più chiare, testo bianco stella con una punta di lavanda.
  * Giallo e rosso del marchio restano uguali: sul fondo scuro brillano come stelle.
  */
 :root[data-tema="scuro"] {
@@ -108,10 +107,20 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* la barra di scorrimento e il cursore di testo fanno parte del tema, non del browser */
+    scrollbar-color: color-mix(in srgb, var(--color-testo-2) 45%, transparent) transparent;
+    caret-color: var(--color-accento);
+    text-underline-offset: 0.2em;
   }
   body {
     @apply bg-sfondo font-sans text-testo antialiased;
+    /* prezzi, contatori e numeri di carta in colonna: cifre tutte larghe uguali */
+    font-variant-numeric: tabular-nums;
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  ::selection {
+    background-color: var(--color-giallo-400);
+    color: var(--color-blu-900);
   }
   h1, h2, h3, h4 {
     @apply font-titolo;
@@ -139,14 +148,13 @@
     );
     background-size: 300% 300%;
   }
-  /* di notte l'hero è un velo semitrasparente dal blu profondo al viola di una nebulosa:
-     sotto continua il cielo stellato della pagina */
+  /* di notte l'hero è un velo blu semitrasparente: sotto continua il cielo stellato della pagina */
   :root[data-tema="scuro"] .sfondo-hero {
     background-image: linear-gradient(
       125deg,
       rgb(6 8 25 / 0.55),
       rgb(24 30 88 / 0.7),
-      rgb(52 36 120 / 0.7),
+      rgb(30 42 110 / 0.7),
       rgb(24 30 88 / 0.7),
       rgb(6 8 25 / 0.55)
     );
@@ -288,9 +296,9 @@
 
 /*
  * Il cielo stellato dietro le pagine, solo in modalità scura. Due strati fissi sotto il
- * contenuto: ::before con la nebulosa e le stelle ferme, ::after con poche stelle più grandi
- * che scintillano piano. Le stelle sono SVG con punti sparsi a caso su tessere grandi e di
- * misura diversa, così la ripetizione non si nota.
+ * contenuto: ::before con le stelle ferme, ::after con poche stelle più grandi che scintillano
+ * piano. Le stelle sono SVG con punti sparsi a caso su tessere grandi e di misura diversa, così
+ * la ripetizione non si nota. Niente nebulose sfumate: il cielo è il blu notte del fondo
  */
 :root[data-tema="scuro"] body::before,
 :root[data-tema="scuro"] body::after {
@@ -303,12 +311,8 @@
 /* .cielo-stellato: stesso cielo per ciò che copre la pagina (binder a schermo intero) */
 :root[data-tema="scuro"] body::before,
 :root[data-tema="scuro"] .cielo-stellato {
-  background-image:
-    url("/cielo-stelle.svg"),
-    radial-gradient(ellipse 60% 45% at 15% 10%, rgb(94 70 190 / 0.22), transparent 70%),
-    radial-gradient(ellipse 50% 40% at 90% 35%, rgb(42 117 187 / 0.18), transparent 70%),
-    radial-gradient(ellipse 70% 40% at 55% 100%, rgb(130 70 170 / 0.16), transparent 70%);
-  background-size: 1100px 1100px, 100% 100%, 100% 100%, 100% 100%;
+  background-image: url("/cielo-stelle.svg");
+  background-size: 1100px 1100px;
 }
 :root[data-tema="scuro"] body::after {
   background-image: url("/cielo-stelle-brillanti.svg");

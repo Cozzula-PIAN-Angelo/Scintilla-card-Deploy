@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Layers, PackageSearch, ShieldCheck, Users, type LucideIcon } from 'lucide-react'
+import { Layers, PackageSearch, Users, type LucideIcon } from 'lucide-react'
 import { useSearchParams } from 'react-router'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { OggettiTab } from '../features/admin/OggettiTab'
@@ -27,10 +27,7 @@ export function AdminPage() {
     <PaginaAnimata className="min-h-[70vh]">
       <section className="bg-notte-2 text-white">
         <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6">
-          <h1 className="flex items-center gap-3 text-4xl font-bold sm:text-5xl">
-            <ShieldCheck aria-hidden className="size-9 text-giallo-400" />
-            Amministrazione
-          </h1>
+          <h1 className="text-4xl font-bold sm:text-5xl">Amministrazione</h1>
           <p className="mt-2 text-white">Importa nuove carte, gestisci il catalogo e i permessi degli utenti.</p>
 
           <div role="tablist" aria-label="Sezioni di amministrazione" className="mt-8 flex gap-2 overflow-x-auto pb-4">

@@ -1,15 +1,19 @@
 package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.NomiRuolo;
+import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.entities.Profilo;
 import com.example.ecommerce.entities.Ruolo;
 import com.example.ecommerce.entities.RuoloUtente;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
+import com.example.ecommerce.repositories.AvatarProfiloRepository;
 import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.CollezioneRepository;
 import com.example.ecommerce.repositories.ImmagineBinderRepository;
+import com.example.ecommerce.repositories.ProfiloRepository;
 import com.example.ecommerce.repositories.RuoloUtenteRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +24,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,6 +55,10 @@ class CancellazioneUtenteServiceTest {
     private CollezioneRepository collezioneRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private ProfiloRepository profiloRepository;
+    @Mock
+    private AvatarProfiloRepository avatarProfiloRepository;
 
     @Mock
     private UtenteService utenteService;
@@ -70,7 +81,7 @@ class CancellazioneUtenteServiceTest {
         // e i test sotto ne controllano l'effetto sul repository
         RuoloUtenteService ruoloUtenteService = new RuoloUtenteService(ruoloUtenteRepository, utenteService, ruoloService);
         service = new CancellazioneUtenteService(utenteRepository, ruoloUtenteService, binderRepository,
-                immagineRepository, collezioneRepository, passwordEncoder);
+                immagineRepository, collezioneRepository, passwordEncoder, profiloRepository, avatarProfiloRepository);
     }
 
     @Test
@@ -91,6 +102,46 @@ class CancellazioneUtenteServiceTest {
         verify(binderRepository).anonimizzaByUtenteId(eq(id), anyString());
         // la riga non si cancella: è il punto dell'anonimizzazione
         verify(utenteRepository, never()).delete(any());
+    }
+
+    // dati personali del profilo via; squadra, vetrina, binder in evidenza e colore restano per le statistiche
+    @Test
+    void anonimizzareTogliAvatarEBio() {
+        when(passwordEncoder.encode(anyString())).thenReturn("hash-casuale");
+        when(ruoloUtenteRepository.findByUtenteIdAndRuoloNome(id, NomiRuolo.ADMIN)).thenReturn(Optional.empty());
+        Profilo profilo = new Profilo(utente);
+        Oggetto carta = new Oggetto("Pikachu", BigDecimal.ONE);
+        profilo.setBio("Ciao");
+        profilo.setColore("#2a75bb");
+        profilo.setAvatarAggiornatoIl(Instant.now());
+        profilo.setSquadra(new ArrayList<>(List.of(25, 6)));
+        profilo.setVetrina(new ArrayList<>(List.of(carta)));
+        when(profiloRepository.findById(id)).thenReturn(Optional.of(profilo));
+        when(avatarProfiloRepository.existsById(id)).thenReturn(true);
+
+        service.cancellaUtente(id);
+
+        verify(avatarProfiloRepository).deleteById(id);
+        assertThat(profilo.getBio()).isNull();
+        assertThat(profilo.getAvatarAggiornatoIl()).isNull();
+        assertThat(profilo.getColore()).isEqualTo("#2a75bb");
+        assertThat(profilo.getSquadra()).containsExactly(25, 6);
+        assertThat(profilo.getVetrina()).containsExactly(carta);
+        verify(profiloRepository, never()).delete(any());
+        verify(profiloRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void anonimizzareSenzaProfilo() {
+        when(passwordEncoder.encode(anyString())).thenReturn("hash-casuale");
+        when(ruoloUtenteRepository.findByUtenteIdAndRuoloNome(id, NomiRuolo.ADMIN)).thenReturn(Optional.empty());
+        when(profiloRepository.findById(id)).thenReturn(Optional.empty());
+
+        service.cancellaUtente(id);
+
+        verify(avatarProfiloRepository, never()).deleteById(any());
+        verify(profiloRepository, never()).save(any());
+        assertThat(utente.isAnonimizzato()).isTrue();
     }
 
     @Test

@@ -23,6 +23,10 @@ const authSlice = createSlice({
       state.token = action.payload
       state.utente = null
     },
+    // cambio password: stesso utente, token nuovo (quello vecchio non vale più)
+    tokenRinnovato(state, action: PayloadAction<string>) {
+      state.token = action.payload
+    },
     utenteCaricato(state, action: PayloadAction<Utente>) {
       // una risposta di /me arrivata dopo un logout non deve ripristinare l'utente
       if (state.token) state.utente = action.payload
@@ -48,7 +52,7 @@ const authSlice = createSlice({
   },
 })
 
-export const { tokenImpostato, utenteCaricato, logoutLocale, sessioneScaduta, avvisoSessioneGestito } =
+export const { tokenImpostato, tokenRinnovato, utenteCaricato, logoutLocale, sessioneScaduta, avvisoSessioneGestito } =
   authSlice.actions
 export const { selectToken, selectUtente, selectIsAdmin, selectSessioneScaduta } = authSlice.selectors
 export default authSlice.reducer

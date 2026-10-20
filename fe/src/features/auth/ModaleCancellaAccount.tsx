@@ -56,7 +56,7 @@ export function ModaleCancellaAccount({ aperta, onChiudi }: Props) {
     // il token non vale più: uscita locale, come nel logout
     dispatch(logoutLocale())
     dispatch(api.util.resetApiState())
-    toast.info('Il tuo account è stato cancellato. Grazie per essere passato da CeloManca!')
+    toast.info('Account cancellato. Grazie per il tempo passato su CeloManca')
     onChiudi()
     navigate('/', { replace: true })
   }
@@ -68,7 +68,8 @@ export function ModaleCancellaAccount({ aperta, onChiudi }: Props) {
           <p>Non potrai più accedere con questo account e l'operazione non si può annullare.</p>
           <p className="text-testo/70">
             Username ed email vengono rimossi (potrai riusarli per un nuovo account), insieme alle immagini di copertina
-            dei binder. I preferiti e i binder restano solo in forma anonima, per le statistiche del sito.
+            dei binder, all'immagine profilo e alla bio. Preferiti, binder, squadra e vetrina restano solo in forma
+            anonima, per le statistiche del sito.
           </p>
         </div>
         <Campo

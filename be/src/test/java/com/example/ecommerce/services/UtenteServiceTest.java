@@ -1,5 +1,6 @@
 package com.example.ecommerce.services;
 
+import com.example.ecommerce.entities.Profilo;
 import com.example.ecommerce.entities.Ruolo;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.exceptions.BadRequestException;
@@ -7,6 +8,7 @@ import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.TroppeRichiesteException;
 import com.example.ecommerce.payloads.RegistrazioneDTO;
 import com.example.ecommerce.payloads.UtenteResponseDTO;
+import com.example.ecommerce.repositories.ProfiloRepository;
 import com.example.ecommerce.repositories.RuoloUtenteRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
 import org.junit.jupiter.api.Test;
@@ -17,8 +19,12 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,10 +50,37 @@ class UtenteServiceTest {
     @Spy
     private LimitatoreRegistrazione limitatoreRegistrazione = new LimitatoreRegistrazione(2, Clock.systemUTC());
 
+    @Mock
+    private ProfiloRepository profiloRepository;
+
     @InjectMocks
     private UtenteService service;
 
     private static final String IP = "1.1.1.1";
+
+    // la navbar mostra l'immagine profilo: GET /me ne restituisce la versione
+    @Test
+    void getProfiloRestituisceLaVersioneDellAvatar() {
+        Utente utente = new Utente("mario", "mario@esempio.it", "hash");
+        UUID id = UUID.randomUUID();
+        ReflectionTestUtils.setField(utente, "id", id);
+        Profilo profilo = new Profilo(utente);
+        Instant versione = Instant.parse("2026-10-20T12:00:00Z");
+        profilo.setAvatarAggiornatoIl(versione);
+        when(profiloRepository.findById(id)).thenReturn(Optional.of(profilo));
+
+        assertThat(service.getProfilo(utente).avatarAggiornatoIl()).isEqualTo(versione);
+    }
+
+    @Test
+    void getProfiloSenzaProfiloNonHaAvatar() {
+        Utente utente = new Utente("mario", "mario@esempio.it", "hash");
+        UUID id = UUID.randomUUID();
+        ReflectionTestUtils.setField(utente, "id", id);
+        when(profiloRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThat(service.getProfilo(utente).avatarAggiornatoIl()).isNull();
+    }
 
     // il login toglie gli spazi all'identificativo: uno username salvato con gli spazi non entrerebbe più
     @Test

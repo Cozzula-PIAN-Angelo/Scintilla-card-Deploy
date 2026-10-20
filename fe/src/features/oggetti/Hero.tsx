@@ -24,17 +24,10 @@ export function Hero({ vetrina, sfondo, onEsplora }: Props) {
       <CarteSfondo carte={sfondo} />
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 md:py-28 lg:grid-cols-[1.15fr_1fr]">
         <div>
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center rounded-full bg-blu-900/60 px-4 py-1.5 text-sm font-semibold ring-1 ring-white/30"
-          >
-            Pokédex · Set · Binder
-          </motion.span>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 0.1 } }}
-            className="mt-5 text-5xl font-bold leading-[1.05] sm:text-6xl lg:text-7xl"
+            className="text-balance text-5xl font-bold leading-[1.05] sm:text-6xl lg:text-7xl"
           >
             Ogni tasca vuota è una carta da <span className="text-giallo-400">trovare</span>.
           </motion.h1>

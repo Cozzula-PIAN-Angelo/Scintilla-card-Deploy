@@ -2,6 +2,7 @@ package com.example.ecommerce.services;
 
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.entities.Variante;
+import com.example.ecommerce.payloads.ProfiloDTO;
 import com.example.ecommerce.payloads.StatisticheDTO;
 import com.example.ecommerce.payloads.StatisticheDTO.AvanzamentoSetDTO;
 import com.example.ecommerce.repositories.OggettoRepository;
@@ -187,6 +188,21 @@ class StatisticheServiceTest {
 
         assertThat(t.binder()).isEqualTo(2);
         assertThat(t.carteNeiBinder()).isEqualTo(3);
+    }
+
+    // i 4 numeri del profilo: base1 ha solo queste due carte nel catalogo, quindi è completo
+    @Test
+    void riepilogoContaCarteSetPokemonEBinder() {
+        UUID abra = carta("Abra", "base1", "1.00");
+        UUID zubat = carta("Zubat", "base1", "1.00");
+        pokedex(abra, 63);
+        pokedex(zubat, 41);
+        possiedi(utente, abra, Variante.NORMALE, 2);
+        possiedi(utente, zubat, Variante.REVERSE_HOLO, 1);
+        binder(utente);
+        tasca(binder(altro), 0, abra);
+
+        assertThat(service.riepilogo(idUtente)).isEqualTo(new ProfiloDTO.RiepilogoDTO(2, 1, 2, 1));
     }
 
     @Test

@@ -19,6 +19,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 // non è un @Component: se lo fosse, Spring Boot lo registrerebbe anche come filtro servlet
@@ -64,6 +65,12 @@ public class JWTFilter extends OncePerRequestFilter {
             // account cancellato: i token emessi prima della cancellazione non valgono più
             if (utente.isAnonimizzato()) {
                 throw new UnauthorizedException("Questo account è stato cancellato");
+            }
+            // password cambiata: valgono solo i token emessi da quel momento. iat ha la precisione del secondo,
+            // quindi si tronca anche la data del cambio: il token restituito dal cambio stesso resta valido
+            if (utente.getPasswordCambiataIl() != null
+                    && verificato.emessoIl().isBefore(utente.getPasswordCambiataIl().truncatedTo(ChronoUnit.SECONDS))) {
+                throw new UnauthorizedException("La password è cambiata: effettua di nuovo il login");
             }
             List<GrantedAuthority> authorities = utenteService.getNomiRuoli(utente.getId()).stream()
                     .<GrantedAuthority>map(nomeRuolo -> new SimpleGrantedAuthority("ROLE_" + nomeRuolo))

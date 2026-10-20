@@ -3,9 +3,11 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.NotFoundException;
+import com.example.ecommerce.repositories.AvatarProfiloRepository;
 import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.CollezioneRepository;
 import com.example.ecommerce.repositories.ImmagineBinderRepository;
+import com.example.ecommerce.repositories.ProfiloRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +20,8 @@ import java.util.UUID;
 
 // Cancellazione di un account come anonimizzazione: la riga dell'utente resta, con lo stesso id,
 // così preferiti e binder restano collegati e le statistiche non cambiano. Spariscono i dati
-// personali: username, email, password, immagini di copertina caricate, nomi dei binder e collezione.
+// personali: username, email, password, immagini di copertina caricate, nomi dei binder, collezione,
+// immagine profilo e bio. Squadra, vetrina, binder in evidenza e colore del profilo restano.
 // I token già emessi smettono di valere subito: il JWTFilter rifiuta gli account anonimizzati
 @Slf4j
 @Service
@@ -33,6 +36,8 @@ public class CancellazioneUtenteService {
     private final ImmagineBinderRepository immagineRepository;
     private final CollezioneRepository collezioneRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProfiloRepository profiloRepository;
+    private final AvatarProfiloRepository avatarProfiloRepository;
 
     // l'utente cancella il proprio account: serve la password, così un token rubato non basta
     @Transactional
@@ -79,6 +84,13 @@ public class CancellazioneUtenteService {
         // la riga utente resta, quindi il CASCADE del DB non scatta: la collezione si cancella a mano
         collezioneRepository.deleteByUtenteId(id);
         binderRepository.anonimizzaByUtenteId(id, NOME_BINDER_ANONIMO);
+        // del profilo spariscono solo i dati personali (immagine e bio): squadra, vetrina, binder in evidenza
+        // e colore restano collegati all'id anonimo, servono alle statistiche
+        if (avatarProfiloRepository.existsById(id)) avatarProfiloRepository.deleteById(id);
+        profiloRepository.findById(id).ifPresent(profilo -> {
+            profilo.setBio(null);
+            profilo.setAvatarAggiornatoIl(null);
+        });
 
         // solo l'id: username ed email sono proprio i dati da non conservare
         log.info("Account {} anonimizzato", id);

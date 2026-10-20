@@ -167,7 +167,7 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
                 </span>
               )}
               <h2 className="text-3xl font-semibold leading-tight text-testo sm:text-4xl">{mostrato.nome}</h2>
-              <p className="inline-block rounded-2xl bg-giallo-400 px-5 py-2 font-titolo text-3xl font-bold text-blu-900 shadow-lg shadow-giallo-400/40">
+              <p className="inline-block rounded-2xl bg-giallo-400 px-5 py-2 font-titolo text-3xl font-bold text-blu-900 shadow-[inset_0_-3px_0_rgb(0_0_0/0.15)]">
                 {formattaPrezzo(mostrato.prezzo)}
               </p>
               <p className="flex items-center gap-2 text-sm text-testo/70">

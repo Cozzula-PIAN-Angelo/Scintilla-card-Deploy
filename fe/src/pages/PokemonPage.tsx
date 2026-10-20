@@ -1,4 +1,4 @@
-import { ArrowLeft, BookPlus, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { ArrowLeft, BookPlus, ChevronLeft, ChevronRight, SearchX } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { Button, LinkBottone } from '../components/Button'
@@ -56,7 +56,7 @@ export function PokemonPage() {
     return (
       <PaginaAnimata className="min-h-[70vh] px-4">
         <StatoVuoto
-          icona={<Sparkles aria-hidden className="size-16" />}
+          icona={<SearchX aria-hidden className="size-16" />}
           titolo="Pokémon non trovato"
           testo="Nel Pokédex non c'è un Pokémon con questo numero."
           azione={
@@ -97,13 +97,15 @@ export function PokemonPage() {
           <img src={spriteUrl(pokemon.numero)} alt="" width={96} height={96} className="sprite-pixel size-36" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-wide text-accento">
-            {numeroFormattato(pokemon.numero)}
-            {generazione && ` · Generazione ${generazione.sigla} · ${generazione.regione}`}
-          </p>
-          <h1 className="text-4xl font-bold text-testo">{pokemon.nome}</h1>
+          <h1 className="text-4xl font-bold text-testo">
+            {pokemon.nome} <span className="font-sans text-2xl font-semibold text-testo/50">{numeroFormattato(pokemon.numero)}</span>
+          </h1>
           <p className="mt-1 text-testo/70">
-            {[pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`, numeroCarte !== undefined && (numeroCarte === 1 ? '1 carta' : `${numeroCarte} carte`)]
+            {[
+              generazione && `Generazione ${generazione.sigla} · ${generazione.regione}`,
+              pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`,
+              numeroCarte !== undefined && (numeroCarte === 1 ? '1 carta' : `${numeroCarte} carte`),
+            ]
               .filter(Boolean)
               .join(' · ')}
           </p>

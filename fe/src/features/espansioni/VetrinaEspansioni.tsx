@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Search, Sparkles } from 'lucide-react'
+import { Layers, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useNavigationType } from 'react-router'
 import { messaggioErrore } from '../../app/errori'
@@ -59,9 +59,9 @@ export function VetrinaEspansioni() {
   if (!data || data.length === 0) {
     return (
       <StatoVuoto
-        icona={<Sparkles aria-hidden className="size-16" />}
+        icona={<Layers aria-hidden className="size-16" />}
         titolo="Nessuna espansione"
-        testo="Le espansioni arriveranno presto: torna a trovarci!"
+        testo="I set stanno ancora arrivando da TCGdex: dacci qualche minuto e riprova."
       />
     )
   }

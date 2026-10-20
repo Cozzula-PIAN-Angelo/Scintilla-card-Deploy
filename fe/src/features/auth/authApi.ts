@@ -1,6 +1,6 @@
 import { api } from '../../app/api'
 import type { DatiLogin, DatiRegistrazione, RispostaLogin, Utente } from '../../types/api'
-import { tokenImpostato, utenteCaricato } from './authSlice'
+import { tokenImpostato, tokenRinnovato, utenteCaricato } from './authSlice'
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -26,6 +26,31 @@ export const authApi = api.injectEndpoints({
     cancellaAccount: build.mutation<void, { password: string }>({
       query: (body) => ({ url: '/me', method: 'DELETE', body }),
     }),
+    // username ed email; la risposta aggiorna subito l'utente nello slice (navbar, menu)
+    modificaAccount: build.mutation<Utente, { username: string; email: string; passwordAttuale: string }>({
+      query: (body) => ({ url: '/me/account', method: 'PATCH', body }),
+      invalidatesTags: ['Profilo'],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(utenteCaricato(data))
+        } catch {
+          // errore mostrato dal form
+        }
+      },
+    }),
+    // il token vecchio non vale più: quello nuovo della risposta tiene dentro questa sessione
+    cambiaPassword: build.mutation<RispostaLogin, { passwordAttuale: string; nuovaPassword: string }>({
+      query: (body) => ({ url: '/me/password', method: 'POST', body }),
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(tokenRinnovato(data.token))
+        } catch {
+          // errore mostrato dal form
+        }
+      },
+    }),
     me: build.query<Utente, void>({
       query: () => '/me',
       providesTags: ['Me'],
@@ -41,4 +66,12 @@ export const authApi = api.injectEndpoints({
   }),
 })
 
-export const { useLoginMutation, useRegistraMutation, useLogoutMutation, useCancellaAccountMutation, useMeQuery } = authApi
+export const {
+  useLoginMutation,
+  useRegistraMutation,
+  useLogoutMutation,
+  useCancellaAccountMutation,
+  useModificaAccountMutation,
+  useCambiaPasswordMutation,
+  useMeQuery,
+} = authApi

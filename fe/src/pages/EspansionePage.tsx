@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowLeft, ChevronDown, Layers, Sparkles } from 'lucide-react'
+import { ArrowLeft, ChevronDown, Layers, SearchX } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { messaggioErrore } from '../app/errori'
@@ -58,7 +58,7 @@ export function EspansionePage() {
         <StatoErrore messaggio={messaggioErrore(error, "Non è stato possibile caricare l'espansione.")} onRiprova={refetch} />
       ) : !data || !espansione ? (
         <StatoVuoto
-          icona={<Sparkles aria-hidden className="size-16" />}
+          icona={<SearchX aria-hidden className="size-16" />}
           titolo="Espansione non trovata"
           testo="Forse il link non è corretto."
           azione={

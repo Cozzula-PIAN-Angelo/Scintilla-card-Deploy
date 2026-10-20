@@ -66,16 +66,16 @@ export function RegisterPage() {
     // registrazione riuscita: accesso automatico con le stesse credenziali
     try {
       await login({ identificativo: inviati.email, password: inviati.password }).unwrap()
-      toast.successo(`Benvenuto su CeloManca, ${inviati.username}!`)
+      toast.successo(`Ciao ${inviati.username}, il tuo account è pronto!`)
       navigate('/', { replace: true })
     } catch {
-      toast.successo('Registrazione completata! Ora puoi accedere.')
+      toast.successo('Account creato! Accedi e inizia la collezione')
       navigate('/login', { state: { identificativo: inviati.email } })
     }
   }
 
   return (
-    <LayoutAuth titolo="Crea il tuo account" sottotitolo="Registrati e inizia a collezionare i tuoi preferiti.">
+    <LayoutAuth titolo="Crea il tuo account" sottotitolo="Così puoi segnare le carte che hai, salvare i preferiti e riempire i tuoi binder.">
       <form onSubmit={invia} noValidate className="space-y-5">
         <Campo
           etichetta="Username"
