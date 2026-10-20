@@ -1,7 +1,7 @@
 # CeloManca - il binder delle tue carte collezionabili
 
 Backend REST (Spring Boot + JWT) e frontend React per sfogliare carte Pokémon,
-salvarle tra i preferiti e, come admin, importarle dall'API Pokémon TCG.
+salvarle tra i preferiti e, come admin, importarle da [TCGdex](https://tcgdex.dev).
 Avviabile in locale e pronto per il deploy su Render.
 
 | Parte | Tecnologia | In locale | Su Render |
@@ -89,7 +89,8 @@ serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le
   export fatto prima del passaggio.
 - **Immagini che TCGdex non ha** (885 carte, i simboli di tutti i set, 30 loghi): copie in webp in
   `fe/public/immagini/` (circa 45 MB), fatte una volta con `node scripts/scarica-immagini.mjs` dai server di
-  pokemontcg.io e Scrydex, che si spengono con la loro API. La migrazione `V10__immagini_locali` sostituisce nel
+  pokemontcg.io e Scrydex, che si spengono con la loro API. Lo script le converte con
+  [sharp](https://sharp.pixelplumbing.com) (vedi «Script»). La migrazione `V10__immagini_locali` sostituisce nel
   database gli indirizzi di quei server con le copie; un'immagine già sparita diventa il segnaposto. Il sito non
   dipende più da pokemontcg.io in nessun punto.
 
@@ -195,6 +196,25 @@ veri. Si corregge il file, oppure lo si toglie dai Secret File per partire senza
 - le password sono quelle del database di origine: l'admin entra con la password che aveva lì;
 - una migrazione che aggiunge una colonna obbligatoria **senza** default richiede di riesportare il file.
 
+## Script
+
+Script Node in `scripts/`, lanciati a mano dalla radice del progetto. Le regole di ognuno sono funzioni pure
+in un file `*-regole.mjs` con il suo test (`node --test scripts/<nome>-regole.test.mjs`).
+
+| Script | Cosa fa | Quando |
+|---|---|---|
+| `genera-artisti.mjs` | `artisti.json` (elenco degli artisti) da tutte le carte di TCGdex | quando escono set nuovi |
+| `genera-abbinamento.mjs` | `abbinamento-id.json`: id di pokemontcg.io -> TCGdex | una volta, già fatto (chiamava pokemontcg.io) |
+| `scarica-immagini.mjs` | copie webp delle immagini che TCGdex non ha | una volta, già fatto (dopo `genera-abbinamento.mjs`) |
+| `esporta-dati.ps1` | export del database per `DatiInizialiSeeder` | prima che scada il database di Render |
+
+**sharp** (`fe/package.json`, solo `devDependencies`) serve soltanto a `scarica-immagini.mjs`: libreria Node per le
+immagini (basata su libvips) che le legge, le ridimensiona (carte 450 px, loghi 400, simboli 96, mai ingrandite) e
+le converte in WebP (qualità 75 per le carte, 90 per loghi e simboli), così una carta passa da circa 650 KB a
+circa 48 KB. Non entra nella build del sito né nel browser; porta circa 30 MB di binari nativi in
+`fe/node_modules`. Lo script la carica dal frontend (`createRequire` su `fe/package.json`), quindi prima serve
+`npm install` in `fe/`. Se le copie restano definitive si può togliere con `npm uninstall sharp` in `fe/`.
+
 ## Struttura
 
 ```
@@ -213,5 +233,7 @@ be/
     db/migration/                 migrazioni Flyway dello schema (V1, V2, ...)
 fe/
   src/app/api.ts            base delle chiamate, da VITE_API_URL
+  public/immagini/          copie webp delle immagini che TCGdex non ha (carte/, set/)
   .env.example
+scripts/                    script Node e PowerShell (vedi «Script»)
 ```
