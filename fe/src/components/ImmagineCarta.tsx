@@ -62,22 +62,30 @@ export function ImmagineOPlaceholder({
   return <img src={src} {...resto} className={className} onError={() => setSrcInErrore(src)} />
 }
 
+// Le misure sono in proporzione alla larghezza della carta (cqw): lo stesso disegno va dalla carta grande del
+// dettaglio alla miniatura di 40px delle liste. Il nome si legge solo da 96px in su: sotto resterebbe tagliato
+// a poche lettere, e chi guarda la miniatura ha il nome accanto. Il padding sta sul figlio: sul contenitore
+// stesso cqw si riferirebbe al viewport e allargherebbe la carta
 export function PlaceholderCarta({ nome, className }: { nome: string; className?: string }) {
   return (
     <div
       role="img"
       aria-label={`${nome}: immagine non disponibile`}
       className={cn(
-        'relative flex items-end overflow-hidden bg-blu-700 bg-gradient-to-br from-blu-900 via-blu-700 to-blu-500 p-4',
+        '@container relative overflow-hidden bg-blu-700 bg-gradient-to-br from-blu-900 via-blu-700 to-blu-500',
         className,
       )}
     >
-      <Anello className="absolute -right-6 -top-6 w-28 stroke-giallo-400/70" />
-      <Stella className="absolute left-5 top-6 w-12 fill-giallo-400" />
-      <Fulmine className="absolute right-6 top-1/3 w-12 fill-rosso-500" />
-      <Scintilla className="absolute left-1/3 top-1/2 w-8 fill-white/80" />
-      <Anello className="absolute -bottom-8 -left-8 w-24 stroke-white/30" />
-      <span className="relative line-clamp-3 font-titolo text-xl font-semibold leading-tight text-white">{nome}</span>
+      <Anello className="absolute -right-[10cqw] -top-[10cqw] w-[45cqw] stroke-giallo-400/70" />
+      <Stella className="absolute left-[8cqw] top-[10cqw] w-[19cqw] fill-giallo-400" />
+      <Fulmine className="absolute right-[10cqw] top-1/3 w-[19cqw] fill-rosso-500" />
+      <Scintilla className="absolute left-1/3 top-1/2 w-[13cqw] fill-white/80" />
+      <Anello className="absolute -bottom-[13cqw] -left-[13cqw] w-[38cqw] stroke-white/30" />
+      <div className="absolute inset-0 flex items-end p-[7cqw]">
+        <span className="hidden font-titolo text-[9cqw] font-semibold leading-tight text-white [overflow-wrap:anywhere] @min-[6rem]:line-clamp-4">
+          {nome}
+        </span>
+      </div>
     </div>
   )
 }
