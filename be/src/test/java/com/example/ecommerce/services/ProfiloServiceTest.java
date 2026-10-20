@@ -17,6 +17,7 @@ import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.ProfiloRepository;
 import com.example.ecommerce.repositories.SlotBinderRepository;
+import com.example.ecommerce.repositories.UtenteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +61,8 @@ class ProfiloServiceTest {
     private StatisticheService statisticheService;
     @Mock
     private AvatarProfiloRepository avatarRepository;
+    @Mock
+    private UtenteRepository utenteRepository;
 
     private ProfiloService service;
     private Utente utente;
@@ -68,7 +71,7 @@ class ProfiloServiceTest {
 
     @BeforeEach
     void prepara() {
-        service = new ProfiloService(profiloRepository, oggettoRepository, binderRepository, slotRepository, statisticheService, avatarRepository);
+        service = new ProfiloService(profiloRepository, oggettoRepository, binderRepository, slotRepository, statisticheService, avatarRepository, utenteRepository);
         id = UUID.randomUUID();
         utente = new Utente("mario", "mario@esempio.it", "hash");
         ReflectionTestUtils.setField(utente, "id", id);

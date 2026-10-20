@@ -16,6 +16,7 @@ import com.example.ecommerce.repositories.BinderRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.ProfiloRepository;
 import com.example.ecommerce.repositories.SlotBinderRepository;
+import com.example.ecommerce.repositories.UtenteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +49,7 @@ public class ProfiloService {
     private final SlotBinderRepository slotRepository;
     private final StatisticheService statisticheService;
     private final AvatarProfiloRepository avatarRepository;
+    private final UtenteRepository utenteRepository;
 
     @Transactional(readOnly = true)
     public ProfiloDTO getProfilo(Utente utente) {
@@ -118,7 +120,7 @@ public class ProfiloService {
     public ProfiloDTO salvaAvatar(Utente utente, byte[] contenuto) {
         String contentType = FormatoImmagine.controlla(contenuto);
         AvatarProfilo avatar = avatarRepository.findById(utente.getId())
-                .orElseGet(() -> new AvatarProfilo(utente, contenuto, contentType));
+                .orElseGet(() -> new AvatarProfilo(utenteGestito(utente), contenuto, contentType));
         avatar.setContenuto(contenuto);
         avatar.setContentType(contentType);
         avatarRepository.save(avatar);
@@ -145,7 +147,13 @@ public class ProfiloService {
 
     // il profilo salvato, o uno nuovo da salvare per la prima volta
     private Profilo profiloDi(Utente utente) {
-        return profiloRepository.findById(utente.getId()).orElseGet(() -> new Profilo(utente));
+        return profiloRepository.findById(utente.getId()).orElseGet(() -> new Profilo(utenteGestito(utente)));
+    }
+
+    // il principal arriva dal JWTFilter, letto in un'altra transazione: con @MapsId Hibernate rifiuta di salvare
+    // un profilo (o un'immagine) che punta a un utente staccato dalla sessione, serve un riferimento gestito
+    private Utente utenteGestito(Utente utente) {
+        return utenteRepository.getReferenceById(utente.getId());
     }
 
     private static void controllaLista(List<?> lista, int massimo, String troppi, String doppioni) {
