@@ -1,8 +1,11 @@
 package com.example.ecommerce;
 
-import com.example.ecommerce.entities.TokenRevocato;
 import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.entities.Profilo;
+import com.example.ecommerce.entities.TokenRevocato;
 import com.example.ecommerce.repositories.OggettoRepository;
+import com.example.ecommerce.repositories.ProfiloRepository;
+import com.example.ecommerce.repositories.UtenteRepository;
 import com.example.ecommerce.repositories.TokenRevocatoRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,11 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +51,14 @@ class MigrazioniTest {
             Map.entry("binder_slot.id_binder", "CASCADE"),
             Map.entry("binder_slot.id_oggetto", "CASCADE"),
             Map.entry("collezione.id_utente", "CASCADE"),
-            Map.entry("collezione.id_oggetto", "CASCADE"));
+            Map.entry("collezione.id_oggetto", "CASCADE"),
+            Map.entry("profili.id_utente", "CASCADE"),
+            Map.entry("profili_avatar.id_utente", "CASCADE"),
+            Map.entry("profili_squadra.id_utente", "CASCADE"),
+            Map.entry("profili_vetrina.id_utente", "CASCADE"),
+            Map.entry("profili_vetrina.id_oggetto", "CASCADE"),
+            Map.entry("profili_binder.id_utente", "CASCADE"),
+            Map.entry("profili_binder.id_binder", "CASCADE"));
 
     private static final String REGOLE = """
             SELECT c.conrelid::regclass::text AS tabella, a.attname AS colonna,
@@ -267,6 +279,85 @@ class MigrazioniTest {
                 UUID.randomUUID(), binder, carta);
         assertViolazione(() -> jdbc.update("INSERT INTO binder_slot (id, id_binder, pagina, posizione, id_oggetto, variante) VALUES (?, ?, 1, 1, ?, 'PRIMA_EDIZIONE')",
                 UUID.randomUUID(), binder, carta));
+    }
+
+    // V10: limiti e doppioni del profilo, controllati anche dal database
+    @Test
+    void vincoliDelProfilo() {
+        inserisciUtenteCartaEBinder();
+        jdbc.update("INSERT INTO profili (id_utente) VALUES (?)", utente);
+
+        assertViolazione(() -> inserisciInSquadra(0, 0));
+        assertViolazione(() -> inserisciInSquadra(0, 1026));
+        assertViolazione(() -> inserisciInSquadra(6, 25));
+        inserisciInSquadra(0, 25);
+        assertViolazione(() -> inserisciInSquadra(1, 25));
+        assertViolazione(() -> jdbc.update("INSERT INTO profili_vetrina (id_utente, posizione, id_oggetto) VALUES (?, 6, ?)", utente, carta));
+        jdbc.update("INSERT INTO profili_vetrina (id_utente, posizione, id_oggetto) VALUES (?, 0, ?)", utente, carta);
+        assertViolazione(() -> jdbc.update("INSERT INTO profili_vetrina (id_utente, posizione, id_oggetto) VALUES (?, 1, ?)", utente, carta));
+        assertViolazione(() -> jdbc.update("INSERT INTO profili_binder (id_utente, posizione, id_binder) VALUES (?, 3, ?)", utente, binder));
+        assertViolazione(() -> jdbc.update("UPDATE profili SET colore = '#2a75bb0' WHERE id_utente = ?", utente));
+    }
+
+    @Test
+    void cancellareUnaCartaOUnBinderLiTogliDalProfilo() {
+        inserisciUtenteCartaEBinder();
+        jdbc.update("INSERT INTO profili (id_utente) VALUES (?)", utente);
+        jdbc.update("INSERT INTO profili_vetrina (id_utente, posizione, id_oggetto) VALUES (?, 0, ?)", utente, carta);
+        jdbc.update("INSERT INTO profili_binder (id_utente, posizione, id_binder) VALUES (?, 0, ?)", utente, binder);
+
+        jdbc.update("DELETE FROM binder WHERE id = ?", binder);
+        assertThat(contaRighe("profili_binder")).isZero();
+        jdbc.update("DELETE FROM oggetti WHERE id = ?", carta);
+        assertThat(contaRighe("profili_vetrina")).isZero();
+    }
+
+    // la lista si sostituisce con una nuova: Hibernate cancella e reinserisce le righe, lo scambio non urta UNIQUE
+    @Test
+    void scambiareDueCarteInVetrina(@Autowired ProfiloRepository profili, @Autowired OggettoRepository oggetti,
+                                    @Autowired UtenteRepository utenti, @Autowired TestEntityManager em) {
+        inserisciUtenteCartaEBinder();
+        UUID altra = inserisciCarta("Raichu (Base 14/102)");
+        Profilo profilo = new Profilo(utenti.findById(utente).orElseThrow());
+        profilo.setVetrina(new ArrayList<>(List.of(oggetti.findById(carta).orElseThrow(), oggetti.findById(altra).orElseThrow())));
+        profili.saveAndFlush(profilo);
+
+        Profilo letto = profili.findById(utente).orElseThrow();
+        letto.setVetrina(new ArrayList<>(List.of(letto.getVetrina().get(1), letto.getVetrina().get(0))));
+        em.flush();
+        em.clear();
+
+        assertThat(profili.findById(utente).orElseThrow().getVetrina()).extracting(Oggetto::getId).containsExactly(altra, carta);
+    }
+
+    // carta cancellata dal catalogo: nella lista resta un null al suo posto, che ProfiloService deve saltare
+    @Test
+    void buchiNelleListeDiventanoNull(@Autowired ProfiloRepository profili, @Autowired OggettoRepository oggetti,
+                                      @Autowired UtenteRepository utenti, @Autowired TestEntityManager em) {
+        inserisciUtenteCartaEBinder();
+        UUID seconda = inserisciCarta("Raichu (Base 14/102)");
+        UUID terza = inserisciCarta("Pichu (Neo 12/75)");
+        Profilo profilo = new Profilo(utenti.findById(utente).orElseThrow());
+        profilo.setVetrina(new ArrayList<>(List.of(oggetti.findById(carta).orElseThrow(), oggetti.findById(seconda).orElseThrow(),
+                oggetti.findById(terza).orElseThrow())));
+        profili.saveAndFlush(profilo);
+        em.clear();
+
+        jdbc.update("DELETE FROM oggetti WHERE id = ?", seconda);
+
+        List<Oggetto> vetrina = profili.findById(utente).orElseThrow().getVetrina();
+        assertThat(vetrina).hasSize(3);
+        assertThat(vetrina.get(1)).isNull();
+    }
+
+    private void inserisciInSquadra(int posizione, int numero) {
+        jdbc.update("INSERT INTO profili_squadra (id_utente, posizione, numero) VALUES (?, ?, ?)", utente, posizione, numero);
+    }
+
+    private UUID inserisciCarta(String nome) {
+        UUID id = UUID.randomUUID();
+        jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at) VALUES (?, ?, 1.00, now())", id, nome);
+        return id;
     }
 
     // dopo un errore PostgreSQL annulla la transazione del test: un savepoint la tiene viva per il controllo successivo

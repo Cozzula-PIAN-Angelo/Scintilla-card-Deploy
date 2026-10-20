@@ -10,6 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 import java.util.Locale;
@@ -41,6 +42,16 @@ public class Utente {
     // ma username, email e password non sono più quelli dell'utente. Null per gli account attivi
     @Column(name = "anonimizzato_il")
     private Instant anonimizzatoIl;
+
+    // data di registrazione: null per gli account creati prima che si salvasse
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    @Setter(AccessLevel.NONE)
+    private Instant createdAt;
+
+    // ultimo cambio password: il JWTFilter rifiuta i token emessi prima
+    @Column(name = "password_cambiata_il")
+    private Instant passwordCambiataIl;
 
     public Utente(String username, String email, String password) {
         this.username = username;
