@@ -86,32 +86,52 @@
 }
 
 /*
- * Modalità scura: un cielo stellato. Fondo blu notte con una nebulosa appena accennata,
- * superfici indaco un po' più chiare, testo bianco stella con una punta di lavanda.
- * Giallo e rosso del marchio restano uguali: sul fondo scuro brillano come stelle.
+ * Grana della carta: un rumore finissimo sopra i fondi, come il cartoncino di una carta o la
+ * copertina di un raccoglitore. Scura sul tema chiaro, chiara su quello scuro; quasi invisibile,
+ * toglie al colore piatto l'aspetto da schermo.
+ */
+:root {
+  --grana: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/*
+ * Modalità scura: inchiostro blu, non un cielo. Fondo blu notte quasi neutro, superfici appena
+ * più chiare con la stessa tinta, testo bianco carta. Giallo e rosso del marchio restano uguali.
  */
 :root[data-tema="scuro"] {
   color-scheme: dark;
-  --color-sfondo: #0a0e24;
-  --color-superficie: #151b3c;
-  --color-tenue: #212a55;
-  --color-testo: #e6eaff;
-  --color-testo-2: #a9b7ee;
-  --color-accento: #8eaeff;
+  --grana: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  --color-sfondo: #0c1120;
+  --color-superficie: #161d31;
+  --color-tenue: #232c46;
+  --color-testo: #e9edf6;
+  --color-testo-2: #a9b7d8;
+  --color-accento: #8fb2ee;
   --color-errore: #ff9479;
-  --color-linea: #c9d4ff;
+  --color-linea: #cdd7ee;
   --color-ombra: #000000;
-  --color-notte: #070a1c;
-  --color-notte-2: #1a1a48;
+  --color-notte: #080b16;
+  --color-notte-2: #14213f;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* la barra di scorrimento e il cursore di testo fanno parte del tema, non del browser */
+    scrollbar-color: color-mix(in srgb, var(--color-testo-2) 45%, transparent) transparent;
+    caret-color: var(--color-accento);
+    text-underline-offset: 0.2em;
   }
   body {
     @apply bg-sfondo font-sans text-testo antialiased;
+    background-image: var(--grana);
+    /* prezzi, contatori e numeri di carta in colonna: cifre tutte larghe uguali */
+    font-variant-numeric: tabular-nums;
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  ::selection {
+    background-color: var(--color-giallo-400);
+    color: var(--color-blu-900);
   }
   h1, h2, h3, h4 {
     @apply font-titolo;
@@ -127,29 +147,15 @@
   .sprite-pixel {
     image-rendering: pixelated;
   }
-  /* sfondo blu animato di hero e pagine di accesso */
+  /* fondo blu di hero e pagine di accesso: fermo, con la grana della carta. Di notte il blu inchiostro
+     delle fasce d'intestazione */
   .sfondo-hero {
-    background-image: linear-gradient(
-      125deg,
-      var(--color-blu-900),
-      var(--color-blu-700),
-      var(--color-blu-500),
-      var(--color-blu-700),
-      var(--color-blu-900)
-    );
-    background-size: 300% 300%;
+    background-color: var(--color-blu-700);
+    background-image: var(--grana), linear-gradient(160deg, var(--color-blu-700), var(--color-blu-900));
   }
-  /* di notte l'hero è un velo semitrasparente dal blu profondo al viola di una nebulosa:
-     sotto continua il cielo stellato della pagina */
   :root[data-tema="scuro"] .sfondo-hero {
-    background-image: linear-gradient(
-      125deg,
-      rgb(6 8 25 / 0.55),
-      rgb(24 30 88 / 0.7),
-      rgb(52 36 120 / 0.7),
-      rgb(24 30 88 / 0.7),
-      rgb(6 8 25 / 0.55)
-    );
+    background-color: var(--color-notte-2);
+    background-image: var(--grana);
   }
 
   .skeleton {
@@ -238,9 +244,10 @@
     mix-blend-mode: hard-light;
   }
 
-  /* fondo della pagina per ciò che la copre per intero; di notte vi si aggiungono le stelle (più sotto) */
+  /* fondo della pagina per ciò che la copre per intero (binder a schermo intero) */
   .cielo-stellato {
     background-color: var(--color-sfondo);
+    background-image: var(--grana);
   }
 
   /* fondo delle pagine dei binder: tela antracite a quadretti come nei binder imbottiti (tipo Vault X).
@@ -284,41 +291,6 @@
     );
     box-shadow: inset -5px -7px 0 color-mix(in srgb, var(--color-blu-900) 25%, transparent);
   }
-}
-
-/*
- * Il cielo stellato dietro le pagine, solo in modalità scura. Due strati fissi sotto il
- * contenuto: ::before con la nebulosa e le stelle ferme, ::after con poche stelle più grandi
- * che scintillano piano. Le stelle sono SVG con punti sparsi a caso su tessere grandi e di
- * misura diversa, così la ripetizione non si nota.
- */
-:root[data-tema="scuro"] body::before,
-:root[data-tema="scuro"] body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-/* .cielo-stellato: stesso cielo per ciò che copre la pagina (binder a schermo intero) */
-:root[data-tema="scuro"] body::before,
-:root[data-tema="scuro"] .cielo-stellato {
-  background-image:
-    url("/cielo-stelle.svg"),
-    radial-gradient(ellipse 60% 45% at 15% 10%, rgb(94 70 190 / 0.22), transparent 70%),
-    radial-gradient(ellipse 50% 40% at 90% 35%, rgb(42 117 187 / 0.18), transparent 70%),
-    radial-gradient(ellipse 70% 40% at 55% 100%, rgb(130 70 170 / 0.16), transparent 70%);
-  background-size: 1100px 1100px, 100% 100%, 100% 100%, 100% 100%;
-}
-:root[data-tema="scuro"] body::after {
-  background-image: url("/cielo-stelle-brillanti.svg");
-  background-size: 1300px 1300px;
-  background-position: 370px 210px;
-  animation: scintilla-stelle 5s ease-in-out infinite alternate;
-}
-@keyframes scintilla-stelle {
-  from { opacity: 0.25; }
-  to { opacity: 1; }
 }
 
 /* con "riduci movimento" attivo restano solo dissolvenze */

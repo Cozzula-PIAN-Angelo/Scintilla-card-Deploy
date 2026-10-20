@@ -53,11 +53,10 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
           </div>
         )}
         <div className="min-w-0">
-          {espansione.serie && <p className="text-sm font-semibold uppercase tracking-wide text-accento">{espansione.serie}</p>}
-          <h3 className="text-4xl font-bold text-testo">{espansione.nome}</h3>
+          <h3 className="text-balance text-4xl font-bold text-testo">{espansione.nome}</h3>
           <p className="mt-1 flex items-center gap-2 text-testo/70">
             <SimboloSet src={espansione.simboloUrl} className="size-5" />
-            {[anno, totale != null && (totale === 1 ? '1 carta' : `${totale} carte`)].filter(Boolean).join(' · ')}
+            {[espansione.serie, anno, totale != null && (totale === 1 ? '1 carta' : `${totale} carte`)].filter(Boolean).join(' · ')}
           </p>
         </div>
         {/* collezione presente = utente loggato. A pezzi il bottone si vede ma aspetta tutte le carte */}

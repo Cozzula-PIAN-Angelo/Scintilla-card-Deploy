@@ -1,4 +1,4 @@
-import { Palette, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigationType } from 'react-router'
 import { messaggioErrore } from '../app/errori'
@@ -46,10 +46,7 @@ export function ArtistiPage() {
   return (
     <PaginaAnimata className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <div className="mb-8">
-        <h1 className="flex items-center gap-3 text-4xl font-bold text-testo">
-          Artisti
-          <Palette aria-hidden className="size-8 text-accento" />
-        </h1>
+        <h1 className="text-4xl font-bold text-testo">Artisti</h1>
         <p className="mt-1 text-testo/70">Scegli un artista per vedere tutte le carte che ha illustrato.</p>
       </div>
 
@@ -148,7 +145,7 @@ function TileArtista({ artista }: { artista: Artista }) {
         }}
         className={cn(
           'group flex h-full flex-col items-center gap-2 rounded-2xl bg-superficie px-3 pb-4 pt-5 text-center shadow-md shadow-ombra/10 ring-1 ring-linea/5 transition',
-          'hover:-translate-y-1 hover:shadow-xl hover:shadow-blu-500/25',
+          'hover:-translate-y-1 hover:shadow-xl hover:shadow-ombra/25',
           evidenziato && 'ring-4 ring-giallo-400',
         )}
       >

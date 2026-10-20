@@ -25,7 +25,7 @@ export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
         aria-label={`Apri ${espansione.nome}`}
         className={cn(
           'group flex h-full w-full flex-col items-center gap-3 rounded-3xl bg-superficie p-4 text-center shadow-lg shadow-ombra/10 ring-1 ring-linea/5 transition',
-          'hover:-translate-y-1 hover:shadow-2xl hover:shadow-blu-500/25',
+          'hover:-translate-y-1 hover:shadow-xl hover:shadow-ombra/25',
           evidenziata && 'ring-4 ring-giallo-400',
         )}
       >

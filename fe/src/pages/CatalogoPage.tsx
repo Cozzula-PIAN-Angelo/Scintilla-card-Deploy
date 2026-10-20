@@ -1,5 +1,4 @@
 import { useRef } from 'react'
-import { Scintilla } from '../components/Forme'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { VetrinaEspansioni } from '../features/espansioni/VetrinaEspansioni'
 import { Hero } from '../features/oggetti/Hero'
@@ -20,10 +19,7 @@ export function CatalogoPage() {
 
       <section ref={sezione} id="catalogo" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
         <div className="mb-8">
-          <h2 className="flex items-center gap-2 text-4xl font-bold text-testo">
-            Le espansioni
-            <Scintilla className="w-6 fill-accento" />
-          </h2>
+          <h2 className="text-4xl font-bold text-testo">Le espansioni</h2>
           <p className="mt-1 text-testo/70">Scegli un'espansione per scoprirne le carte.</p>
         </div>
 

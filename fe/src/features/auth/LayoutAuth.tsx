@@ -14,7 +14,7 @@ interface Props {
 export function LayoutAuth({ titolo, sottotitolo, children }: Props) {
   const carte = useUltimeCarte()
   return (
-    <PaginaAnimata className="sfondo-hero relative flex min-h-[calc(100vh-5rem)] animate-gradiente items-center justify-center overflow-hidden px-4 py-16">
+    <PaginaAnimata className="sfondo-hero relative flex min-h-[calc(100vh-5rem)] items-center justify-center overflow-hidden px-4 py-16">
       <CarteSfondo carte={carte} />
       <motion.div
         initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -25,7 +25,7 @@ export function LayoutAuth({ titolo, sottotitolo, children }: Props) {
           <motion.div
             initial={{ rotate: -30, scale: 0 }}
             animate={{ rotate: 0, scale: 1, transition: { type: 'spring', stiffness: 260, damping: 14, delay: 0.25 } }}
-            className="mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-blu-500 shadow-lg shadow-blu-500/40"
+            className="mx-auto mb-4 grid size-16 place-items-center rounded-2xl bg-blu-500 shadow-md shadow-ombra/30"
           >
             <MarchioIcona className="h-11" />
           </motion.div>

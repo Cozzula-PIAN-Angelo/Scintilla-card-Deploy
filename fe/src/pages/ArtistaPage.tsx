@@ -90,11 +90,10 @@ export function ArtistaPage() {
       <header className="mb-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
         {artista && <AvatarArtista artista={artista} dimensione="grande" />}
         <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-wide text-accento">Artista</p>
           <h1 className="text-4xl font-bold text-testo">{nome}</h1>
-          {numeroCarte !== undefined && (
-            <p className="mt-1 text-testo/70">{numeroCarte === 1 ? '1 carta' : `${numeroCarte} carte`}</p>
-          )}
+          <p className="mt-1 text-testo/70">
+            {['Illustratore', numeroCarte !== undefined && (numeroCarte === 1 ? '1 carta' : `${numeroCarte} carte`)].filter(Boolean).join(' · ')}
+          </p>
           {slug === SLUG_SCONOSCIUTO && (
             <p className="mt-2 max-w-xl text-sm text-testo/70">
               Carte a cui TCGdex non assegna un artista: soprattutto Energie, Allenatori e alcune serie speciali.

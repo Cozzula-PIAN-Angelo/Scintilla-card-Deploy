@@ -1,4 +1,4 @@
-import { BookOpen, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigationType } from 'react-router'
 import { PaginaAnimata } from '../components/PaginaAnimata'
@@ -35,10 +35,7 @@ export function PokedexPage() {
   return (
     <PaginaAnimata className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <div className="mb-8">
-        <h1 className="flex items-center gap-3 text-4xl font-bold text-testo">
-          Pokédex
-          <BookOpen aria-hidden className="size-8 text-accento" />
-        </h1>
+        <h1 className="text-4xl font-bold text-testo">Pokédex</h1>
         <p className="mt-1 text-testo/70">Scegli un Pokémon per vedere tutte le carte in cui compare.</p>
       </div>
 
@@ -122,7 +119,7 @@ function TilePokemon({ pokemon }: { pokemon: Pokemon }) {
         }}
         className={cn(
           'group flex flex-col items-center rounded-2xl bg-superficie px-2 pb-3 pt-1 text-center shadow-md shadow-ombra/10 ring-1 ring-linea/5 transition',
-          'hover:-translate-y-1 hover:shadow-xl hover:shadow-blu-500/25',
+          'hover:-translate-y-1 hover:shadow-xl hover:shadow-ombra/25',
           evidenziato && 'ring-4 ring-giallo-400',
         )}
       >

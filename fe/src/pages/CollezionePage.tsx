@@ -1,4 +1,4 @@
-import { ChartPie, Sparkles } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { messaggioErrore } from '../app/errori'
 import { LinkBottone } from '../components/Button'
@@ -25,10 +25,7 @@ export function CollezionePage() {
     <PaginaAnimata>
       <section className="bg-notte-2 text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-          <h1 className="flex items-center gap-3 text-4xl font-bold sm:text-5xl">
-            <ChartPie aria-hidden className="size-9 text-giallo-400" />
-            La mia collezione
-          </h1>
+          <h1 className="text-4xl font-bold sm:text-5xl">La mia collezione</h1>
           {data && data.totali.carteDiverse > 0 ? (
             <Riassunto totali={data.totali} />
           ) : (
@@ -46,7 +43,7 @@ export function CollezionePage() {
           <StatoErrore messaggio={messaggioErrore(error, 'Non è stato possibile caricare le statistiche.')} onRiprova={refetch} />
         ) : data.totali.carteDiverse === 0 ? (
           <StatoVuoto
-            icona={<Sparkles aria-hidden className="size-16" />}
+            icona={<Layers aria-hidden className="size-16" />}
             titolo="La collezione è ancora vuota"
             testo="Segna le carte che possiedi dalle pagine dei set o dei Pokémon: qui vedrai a che punto sei."
             azione={

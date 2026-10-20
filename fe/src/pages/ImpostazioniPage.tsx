@@ -1,4 +1,4 @@
-import { ArrowLeft, Settings, UserX } from 'lucide-react'
+import { ArrowLeft, UserX } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useAppSelector } from '../app/hooks'
@@ -37,10 +37,7 @@ export function ImpostazioniPage() {
         <ArrowLeft aria-hidden className="size-4" />
         Torna al profilo
       </Link>
-      <h1 className="mt-3 flex items-center gap-3 text-4xl font-bold text-testo">
-        <Settings aria-hidden className="size-8 text-blu-500" />
-        Impostazioni
-      </h1>
+      <h1 className="mt-3 text-4xl font-bold text-testo">Impostazioni</h1>
 
       {/* ProtectedRoute aspetta già l'utente: qui c'è sempre */}
       {utente && (

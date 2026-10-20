@@ -10,10 +10,10 @@ interface Props {
   children: ReactNode
 }
 
-// riquadro di una sezione del profilo, con il suo pulsante Modifica
+// sezione del profilo, con il suo pulsante Modifica: niente riquadro, la separa dalla precedente una linea sottile
 export function SezioneProfilo({ titolo, sottotitolo, onModifica, children }: Props) {
   return (
-    <section className="rounded-3xl bg-superficie p-5 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 sm:p-6">
+    <section className="border-t border-linea/10 pt-8">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-testo">{titolo}</h2>

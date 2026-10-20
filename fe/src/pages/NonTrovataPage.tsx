@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { SearchX } from 'lucide-react'
 import { LinkBottone } from '../components/Button'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
@@ -9,7 +9,7 @@ export function NonTrovataPage() {
   return (
     <PaginaAnimata className="min-h-[70vh] px-4">
       <StatoVuoto
-        icona={<Sparkles aria-hidden className="size-16" />}
+        icona={<SearchX aria-hidden className="size-16" />}
         titolo="Questa pagina è introvabile"
         testo="Più rara di una carta segreta: forse il link non è corretto."
         azione={

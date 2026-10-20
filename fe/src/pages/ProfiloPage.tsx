@@ -48,7 +48,7 @@ export function ProfiloPage() {
       ) : (
         <>
           <IntestazioneProfilo profilo={profilo} onModifica={() => setModifica('profilo')} />
-          <div className="mx-auto max-w-5xl space-y-6 px-4 py-10 sm:px-6">
+          <div className="mx-auto max-w-5xl space-y-12 px-4 py-10 sm:px-6">
             <RiepilogoProfilo riepilogo={profilo.riepilogo} />
             <SezioneSquadra squadra={profilo.squadra} onModifica={() => setModifica('squadra')} />
             <SezioneVetrina vetrina={profilo.vetrina} onApri={apri} onModifica={() => setModifica('vetrina')} />
