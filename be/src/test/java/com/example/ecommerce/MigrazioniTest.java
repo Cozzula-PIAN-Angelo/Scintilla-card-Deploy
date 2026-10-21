@@ -3,6 +3,7 @@ package com.example.ecommerce;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.entities.Profilo;
 import com.example.ecommerce.entities.TokenRevocato;
+import com.example.ecommerce.entities.Variante;
 import com.example.ecommerce.repositories.OggettoRepository;
 import com.example.ecommerce.repositories.ProfiloRepository;
 import com.example.ecommerce.repositories.UtenteRepository;
@@ -19,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -217,6 +219,26 @@ class MigrazioniTest {
         inserisciCartaDelSet("Carta B", "jungle-1", "jungle", "", "", "");
 
         assertThat(oggettoRepository.findSetConVariantiMancanti(5)).containsExactly("base1");
+    }
+
+    // varianti (ConvertitoreVarianti su una colonna di testo): null = mai lette, lista vuota = TCGdex non ne
+    // indica. Le due cose devono restare diverse dopo il salvataggio, altrimenti il job rilegge o salta carte a torto
+    @Test
+    void variantiSalvateERilette(@Autowired TestEntityManager em) {
+        Oggetto due = new Oggetto("Due varianti", new BigDecimal("1.00"));
+        due.setVarianti(List.of(Variante.NORMALE, Variante.REVERSE_HOLO));
+        Oggetto vuota = new Oggetto("Nessuna variante", new BigDecimal("1.00"));
+        vuota.setVarianti(List.of());
+        Oggetto maiLetta = new Oggetto("Mai letta", new BigDecimal("1.00"));
+        UUID idDue = em.persistAndGetId(due, UUID.class);
+        UUID idVuota = em.persistAndGetId(vuota, UUID.class);
+        UUID idMaiLetta = em.persistAndGetId(maiLetta, UUID.class);
+        em.flush();
+        em.clear();
+
+        assertThat(em.find(Oggetto.class, idDue).getVarianti()).containsExactly(Variante.NORMALE, Variante.REVERSE_HOLO);
+        assertThat(em.find(Oggetto.class, idVuota).getVarianti()).isNotNull().isEmpty();
+        assertThat(em.find(Oggetto.class, idMaiLetta).getVarianti()).isNull();
     }
 
     @Test
