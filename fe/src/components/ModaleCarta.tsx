@@ -59,7 +59,13 @@ export function ModaleCarta({ oggetto, preferito, onTogglePreferito, onChiudi, c
   // senza scelta vale la variante passata da fuori; durante la chiusura resta l'ultima
   const ultimaVariante = useRef<Variante | undefined>(undefined)
   if (oggetto) ultimaVariante.current = variante
-  const varianteScelta = mostrato && scelta?.id === mostrato.id ? scelta.variante : ultimaVariante.current
+  // la scelta vale finché la sua riga c'è: togliendo l'ultima copia di una variante non suggerita la riga
+  // sparisce, e la carta non deve restare con l'effetto di quella variante
+  const sceltaValida =
+    mostrato !== null &&
+    scelta?.id === mostrato.id &&
+    ((mostrato.varianti ?? []).includes(scelta.variante) || (perVariante?.get(scelta.variante) ?? 0) > 0)
+  const varianteScelta = sceltaValida && scelta ? scelta.variante : ultimaVariante.current
   const effetto = mostrato ? effettoCarta(mostrato, perVariante, varianteScelta) : null
   // riga evidenziata: quella cliccata, se no la più pregiata posseduta
   const selezionata = varianteScelta ?? piuPregiata([...(perVariante?.keys() ?? [])].filter((v) => (perVariante?.get(v) ?? 0) > 0))
