@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ImmagineOPlaceholder } from '../../components/ImmagineCarta'
 import type { MotivoBinder, Oggetto } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { angoli, classeMotivo, proporzionePagina, scuro, stileMotivo } from './aspetto'
@@ -51,8 +52,9 @@ export function CopertinaBinder({ nome, colore, motivo, tasche, cartaCopertina, 
 
       {cartaCopertina && (
         <div className="absolute left-[54%] top-[42%] w-[42%] -translate-x-1/2 -translate-y-1/2 rounded-[2.5cqw] bg-white/85 p-[1.6cqw] shadow-[0_1.5cqw_4cqw_rgb(0_0_0/0.45)] ring-[0.6cqw] ring-black/15">
-          <img
-            src={cartaCopertina.immagineUrlPiccola ?? cartaCopertina.immagineUrl ?? ''}
+          <ImmagineOPlaceholder
+            src={cartaCopertina.immagineUrlPiccola ?? cartaCopertina.immagineUrl}
+            nome={cartaCopertina.nome}
             alt=""
             className="aspect-[63/88] w-full rounded-[1.4cqw] object-fill"
           />

@@ -15,6 +15,7 @@ import { useCarteProgressive } from '../oggetti/useCarteProgressive'
 import type { Espansione, Oggetto } from '../../types/api'
 import { useGetCarteEspansioneQuery, useGetStatoCarteEspansioneQuery } from './espansioniApi'
 import { SimboloSet } from '../../components/SimboloSet'
+import { LogoSet } from './LogoSet'
 
 interface Props {
   espansione: Espansione
@@ -45,13 +46,11 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       <header className="mb-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-        {espansione.logoUrl && (
-          // dimensioni esplicite + object-contain: i loghi quadrati o verticali (POP, promo) con
-          // max-h-full restavano alti quanto la loro larghezza e uscivano dal riquadro
-          <div className="relative h-28 w-full max-w-56 shrink-0 rounded-3xl bg-superficie shadow-lg shadow-ombra/10">
-            <img src={espansione.logoUrl} alt="" className="absolute inset-0 h-full w-full object-contain p-4" />
-          </div>
-        )}
+        {/* dimensioni esplicite + object-contain: i loghi quadrati o verticali (POP, promo) con
+            max-h-full restavano alti quanto la loro larghezza e uscivano dal riquadro */}
+        <div className="relative h-28 w-full max-w-56 shrink-0 rounded-3xl bg-superficie shadow-lg shadow-ombra/10">
+          <LogoSet src={espansione.logoUrl} className="p-4" />
+        </div>
         <div className="min-w-0">
           <h3 className="text-balance text-4xl font-bold text-testo">{espansione.nome}</h3>
           <p className="mt-1 flex items-center gap-2 text-testo/70">

@@ -1,4 +1,4 @@
-import { ArrowDownWideNarrow, ArrowLeft, BetweenHorizontalStart, Book, BookOpen, Layers, Maximize2, Minimize2, Settings2 } from 'lucide-react'
+import { ArrowDownWideNarrow, ArrowLeft, BetweenHorizontalStart, Book, BookOpen, Contrast, Layers, Maximize2, Minimize2, Settings2 } from 'lucide-react'
 import { Button } from '../../../components/Button'
 import type { Binder } from '../../../types/api'
 import { percentuale } from '../../statistiche/calcoli'
@@ -22,11 +22,12 @@ interface Props {
   onAlternaEspanso: () => void
   onImpostazioni: (binder: Binder) => void
   onFaiSpazio: (acceso: boolean) => void
+  onMostraMancanti: (acceso: boolean) => void
   onOrdina: () => void
 }
 
 // barra sopra il binder aperto: ritorno ai binder, nome e conteggio, Apri/Chiudi, carte, Fai spazio,
-// Ordina per, schermo intero e impostazioni
+// mancanti in grigio, Ordina per, schermo intero e impostazioni
 export function BarraBinder({
   binder,
   carteInserite,
@@ -42,6 +43,7 @@ export function BarraBinder({
   onAlternaEspanso,
   onImpostazioni,
   onFaiSpazio,
+  onMostraMancanti,
   onOrdina,
 }: Props) {
   return (
@@ -107,6 +109,19 @@ export function BarraBinder({
         <BetweenHorizontalStart aria-hidden className="size-4" />
         <span className="hidden sm:inline">Fai spazio</span>
         <span className="sr-only sm:hidden">Fai spazio</span>
+      </Button>
+      {/* prima stava solo nella modale delle impostazioni, dove non la trovava nessuno */}
+      <Button
+        variante="chiaro"
+        dimensione="sm"
+        onClick={() => onMostraMancanti(!binder.mostraMancanti)}
+        aria-pressed={binder.mostraMancanti}
+        title={binder.mostraMancanti ? 'Le carte che non hai sono in grigio' : 'Tutte le carte a colori'}
+        className={cn(binder.mostraMancanti && 'bg-blu-500 text-white hover:bg-blu-500/90')}
+      >
+        <Contrast aria-hidden className="size-4" />
+        <span className="hidden sm:inline">Mancanti in grigio</span>
+        <span className="sr-only sm:hidden">Mancanti in grigio</span>
       </Button>
       <Button
         variante="chiaro"

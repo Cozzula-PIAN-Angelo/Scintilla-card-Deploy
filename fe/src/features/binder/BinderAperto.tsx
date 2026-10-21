@@ -25,7 +25,8 @@ import { useSchermoIntero } from './aperto/useSchermoIntero'
 import { useSfoglio } from './aperto/useSfoglio'
 import { useSfoglioPuntatore } from './aperto/useSfoglioPuntatore'
 import { proporzionePagina } from './aspetto'
-import { useGetBinderDettaglioQuery } from './binderApi'
+import { useGetBinderDettaglioQuery, useModificaBinderMutation } from './binderApi'
+import { useToast } from '../toast/useToast'
 import { Contesto, stessaPosizione } from './contesto'
 import { statisticheBinder } from './statisticheBinder'
 import { creaMappa, possiede, varianteMostrata } from '../collezione/conteggi'
@@ -73,6 +74,28 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   const [faiSpazio, setFaiSpazio] = useFaiSpazio()
   const [ordinaAperto, setOrdinaAperto] = useState(false)
   const carte = useCarteBinder(binder, slot, faiSpazio)
+  const toast = useToast()
+  const [modifica] = useModificaBinderMutation()
+
+  // la modifica manda sempre tutte le impostazioni: le altre restano quelle del binder
+  async function alternaMancanti(acceso: boolean) {
+    try {
+      await modifica({
+        id: binder.id,
+        dati: {
+          nome: binder.nome,
+          tasche: binder.tasche,
+          pagine: binder.pagine,
+          colore: binder.colore,
+          motivo: binder.motivo,
+          cartaCopertinaId: binder.cartaCopertina?.id ?? null,
+          mostraMancanti: acceso,
+        },
+      }).unwrap()
+    } catch (errore) {
+      toast.errore(messaggioErrore(errore, 'Non è stato possibile cambiare le carte in grigio'))
+    }
+  }
 
   const [cassettoAperto, setCassettoAperto] = useState(false)
   const [cassettoLaterale, setCassettoLaterale] = useState(true)
@@ -149,6 +172,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
               faiSpazio={faiSpazio}
               statistiche={statistiche}
               onFaiSpazio={setFaiSpazio}
+              onMostraMancanti={alternaMancanti}
               onOrdina={() => setOrdinaAperto(true)}
               onApri={apri}
               onChiudi={chiudi}

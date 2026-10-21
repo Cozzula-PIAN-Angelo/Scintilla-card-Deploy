@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
 import type { Espansione } from '../../types/api'
 import { elementoGriglia } from '../../theme/motion'
 import { cn } from '../../utils/cn'
 import { SimboloSet } from '../../components/SimboloSet'
+import { LogoSet } from './LogoSet'
 
 interface Props {
   espansione: Espansione
@@ -14,7 +14,6 @@ interface Props {
 
 // riquadro di un'espansione: logo, nome, anno e numero di carte
 export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
-  const [logoRotto, setLogoRotto] = useState(false)
   const anno = espansione.dataUscita?.slice(0, 4)
 
   return (
@@ -31,18 +30,7 @@ export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
       >
         {/* dimensioni esplicite + object-contain: il logo resta sempre dentro il riquadro */}
         <div className="relative grid h-24 w-full place-items-center">
-          {espansione.logoUrl && !logoRotto ? (
-            <img
-              src={espansione.logoUrl}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              onError={() => setLogoRotto(true)}
-              className="absolute inset-0 h-full w-full object-contain transition-transform group-hover:scale-105"
-            />
-          ) : (
-            <span className="font-titolo text-2xl font-bold text-testo-2">{espansione.nome}</span>
-          )}
+          <LogoSet src={espansione.logoUrl} lazy className="transition-transform group-hover:scale-105" />
         </div>
         <div className="mt-auto">
           <p className="line-clamp-2 font-semibold leading-tight text-testo">{espansione.nome}</p>

@@ -4,9 +4,11 @@ import { cn } from '../utils/cn'
 
 interface Props {
   className?: string
+  // colore della parte tratteggiata: chiaro sulla navbar scura, da cambiare su un fondo chiaro
+  classeTratteggio?: string
 }
 
-export function MarchioIcona({ className }: Props) {
+export function MarchioIcona({ className, classeTratteggio = 'stroke-blu-50' }: Props) {
   return (
     <svg viewBox="0 0 44 46" width="44" height="46" aria-hidden className={cn('w-auto', className)}>
       <rect
@@ -16,7 +18,7 @@ export function MarchioIcona({ className }: Props) {
         height="29.6"
         rx="2.6"
         transform="rotate(12 28 20)"
-        className="fill-none stroke-blu-50"
+        className={cn('fill-none', classeTratteggio)}
         strokeWidth="1.4"
         strokeDasharray="2.6 1.9"
       />
@@ -32,7 +34,7 @@ export function MarchioIcona({ className }: Props) {
 }
 
 // «Manca» è vuota e tratteggiata come la carta che manca: il CSS non tratteggia le lettere, serve il testo SVG
-export function MarchioScritta({ className }: Props) {
+export function MarchioScritta({ className, classeTratteggio = 'stroke-blu-50' }: Props) {
   return (
     <svg viewBox="0 0 152 30" width="152" height="30" aria-hidden className={cn('w-auto overflow-visible', className)}>
       <text x="2" y="24" fontSize="26" letterSpacing="-0.26" className="font-titolo font-bold">
@@ -40,7 +42,7 @@ export function MarchioScritta({ className }: Props) {
         <tspan
           dx="1.6"
           letterSpacing="1.6"
-          className="fill-none stroke-blu-50"
+          className={cn('fill-none', classeTratteggio)}
           strokeWidth="1.4"
           strokeDasharray="2.2 1.6"
           strokeLinejoin="round"
