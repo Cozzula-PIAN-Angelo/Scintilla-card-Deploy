@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/Button'
+import { ImmagineOPlaceholder } from '../../../components/ImmagineCarta'
 import { cn } from '../../../utils/cn'
 import { useContestoBinder, type Sorgente } from '../contesto'
 
@@ -14,8 +15,9 @@ export function AvvisoInMano({ sorgente, onAnnulla }: { sorgente: Sorgente; onAn
       exit={{ opacity: 0, y: 30 }}
       className="fixed inset-x-4 bottom-6 z-[48] mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-blu-900 p-2 pr-3 text-white shadow-2xl shadow-ombra/40 scuro:ring-1 scuro:ring-white/15"
     >
-      <img
-        src={sorgente.oggetto.immagineUrlPiccola ?? sorgente.oggetto.immagineUrl ?? ''}
+      <ImmagineOPlaceholder
+        src={sorgente.oggetto.immagineUrlPiccola ?? sorgente.oggetto.immagineUrl}
+        nome={sorgente.oggetto.nome}
         alt=""
         className="aspect-[63/88] w-10 shrink-0 rounded-md object-fill"
       />
