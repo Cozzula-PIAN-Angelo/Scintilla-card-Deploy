@@ -708,6 +708,20 @@ class CatalogoServiceTest {
         verify(client, times(2)).dettagli(anyList());
     }
 
+    // Pokémon e artisti: le date dei set si leggono una volta per l'elenco, non a ogni pagina
+    @Test
+    void dateDeiSetLetteUnaVoltaPerElenco() {
+        when(espansioneRepository.findAll()).thenReturn(List.of(set("sv1", 2023)));
+        risponde(FiltroCarte.diPokemon(25), IntStream.rangeClosed(1, 30).mapToObj(i -> carta("sv1-" + i, "Pikachu")).toList());
+        salvateTornanoAlContrario();
+
+        service.paginaCarte(FiltroCarte.diPokemon(25), 0, true);
+        service.paginaCarte(FiltroCarte.diPokemon(25), 1, true);
+
+        verify(espansioneRepository, times(1)).findAll();
+        verify(client, times(1)).elenco(FiltroCarte.diPokemon(25));
+    }
+
     @Test
     void dettaglioFallitoEsceSenzaQuellaCarta() {
         risponde(FiltroCarte.diSet("sv1"), List.of(carta("sv1-1", "Uno"), carta("sv1-2", "Due")), "sv1-2");

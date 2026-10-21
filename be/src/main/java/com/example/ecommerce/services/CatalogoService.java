@@ -62,6 +62,7 @@ public class CatalogoService {
     // elenchi e pagine al volo appena presi: il frontend richiede la pagina ogni 3 secondi finché lo scaricamento
     // completo non è finito, e TCGdex non deve vederla ogni volta
     private static final Duration DURATA_PAGINA = Duration.ofMinutes(5);
+    // elenchi già ordinati, per filtro e ordine
     private final Map<String, InMemoria<List<CartaBreve>>> elenchiRecenti = new ConcurrentHashMap<>();
     private final Map<String, InMemoria<PaginaCarte>> pagineRecenti = new ConcurrentHashMap<>();
 
@@ -247,13 +248,16 @@ public class CatalogoService {
         if (recente != null) {
             return recente;
         }
-        List<CartaBreve> elenco = recente(elenchiRecenti, filtro.chiave());
+        // l'elenco si tiene già ordinato: le date dei set (findAll) e l'ordinamento servono una volta, non a ogni pagina
+        String chiaveElenco = filtro.chiave() + "|" + piuRecenti;
+        List<CartaBreve> elenco = recente(elenchiRecenti, chiaveElenco);
         if (elenco == null) {
-            elenco = tcgdex.elenco(filtro);
-            ricorda(elenchiRecenti, filtro.chiave(), elenco);
+            elenco = tcgdex.elenco(filtro).stream()
+                    .sorted(piuRecenti ? OrdineCarte.breviDallaPiuRecente(dataPerSet()) : OrdineCarte.breviPerNumero())
+                    .toList();
+            ricorda(elenchiRecenti, chiaveElenco, elenco);
         }
         List<String> fetta = elenco.stream()
-                .sorted(piuRecenti ? OrdineCarte.breviDallaPiuRecente(dataPerSet()) : OrdineCarte.breviPerNumero())
                 .skip((long) pagina * PAGINA_VISTA)
                 .limit(PAGINA_VISTA)
                 .map(CartaBreve::id)
