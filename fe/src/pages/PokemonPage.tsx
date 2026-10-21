@@ -16,6 +16,7 @@ import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon 
 import { useGetCartePokemonQuery, useGetStatoCartePokemonQuery } from '../features/pokedex/pokedexApi'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
+import { useRitornoElenco, type StatoRitorno } from '../hooks/useRitornoElenco'
 import { useTitolo } from '../hooks/useTitolo'
 
 // tutte le carte in cui compare un Pokémon, dalla più recente
@@ -39,18 +40,11 @@ export function PokemonPage() {
   const [checklistAperta, setChecklistAperta] = useState(false)
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
 
-  // quante pagine di Pokémon ci sono nella cronologia dopo il Pokédex: 1 arrivando dall'indice,
-  // +1 per ogni Pokémon aperto con le frecce; null con un link diretto
-  const passiDalPokedex = (location.state as { passiDalPokedex?: number | null } | null)?.passiDalPokedex ?? null
+  const { torna: tornaAlPokedex, statoAvanti: statoFrecce } = useRitornoElenco('/pokedex')
 
   useEffect(() => {
     if (pokemon) memoriaPokedex.ultimo = pokemon.numero
   }, [pokemon])
-
-  const tornaAlPokedex = () => {
-    if (passiDalPokedex) navigate(-passiDalPokedex)
-    else navigate('/pokedex')
-  }
 
   if (!pokemon) {
     return (
@@ -74,7 +68,6 @@ export function PokemonPage() {
   const generazione = generazioneDi(pokemon.numero)
   const precedente = trovaPokemon(pokemon.numero - 1)
   const successivo = trovaPokemon(pokemon.numero + 1)
-  const statoFrecce = { passiDalPokedex: passiDalPokedex === null ? null : passiDalPokedex + 1 }
   // il filtro della collezione segue le frecce, la pagina no: ogni Pokémon riparte dalla prima
   const filtro = new URLSearchParams(location.search).get('filtro')
   const ricercaFrecce = filtro ? `?${new URLSearchParams({ filtro })}` : ''
@@ -172,7 +165,7 @@ interface PropsFreccia {
   direzione: 'precedente' | 'successivo'
   // query string da portare nel link (il filtro della collezione), vuota se non c'è
   ricerca: string
-  state: { passiDalPokedex: number | null }
+  state: StatoRitorno
 }
 
 // Pokémon precedente o successivo nel Pokédex, con il suo sprite
