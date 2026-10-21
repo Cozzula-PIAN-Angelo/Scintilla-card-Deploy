@@ -41,15 +41,17 @@ export function useCollezione(filtro: FiltroPagina | null) {
   const perVariante = useCallback((id: string) => mappa.get(id) ?? NESSUNA, [mappa])
   const copie = useCallback((id: string) => copieTotali(mappa, id), [mappa])
 
+  // true se il server ha salvato la modifica
   const modifica = useCallback(
     async (oggetto: Oggetto, variante: Variante, delta: number) => {
-      if (!attiva) return
+      if (!attiva) return false
       try {
         await modificaCopia({ oggettoId: oggetto.id, variante, delta, filtro: filtro ?? undefined }).unwrap()
+        return true
       } catch (errore) {
         // 401: ci pensa la gestione della sessione
-        if (statoErrore(errore) === 401) return
-        toast.errore(messaggioErrore(errore, 'Non è stato possibile aggiornare la collezione'))
+        if (statoErrore(errore) !== 401) toast.errore(messaggioErrore(errore, 'Non è stato possibile aggiornare la collezione'))
+        return false
       }
     },
     [attiva, filtro, modificaCopia, toast],
@@ -58,8 +60,10 @@ export function useCollezione(filtro: FiltroPagina | null) {
   const aggiungiRapido = useCallback(
     (oggetto: Oggetto) => {
       const variante = varianteRapida(oggetto)
-      void modifica(oggetto, variante, 1)
-      toast.successo(`Aggiunta: ${ETICHETTE[variante]}`)
+      // il conteggio cambia subito (aggiornamento ottimistico), la conferma solo a salvataggio riuscito
+      void modifica(oggetto, variante, 1).then((salvata) => {
+        if (salvata) toast.successo(`Aggiunta: ${ETICHETTE[variante]}`)
+      })
     },
     [modifica, toast],
   )

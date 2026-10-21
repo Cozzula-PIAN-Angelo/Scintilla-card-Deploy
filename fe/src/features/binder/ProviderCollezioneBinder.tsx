@@ -23,9 +23,9 @@ export function ProviderCollezioneBinder({ id, children }: { id: string; childre
   const ceLho = useCallback(
     async (oggetto: Oggetto, dellaTasca?: Variante | null) => {
       const variante = dellaTasca ?? varianteRapida(oggetto)
-      toast.successo(`Aggiunta alla collezione: ${ETICHETTE[variante]}`)
       try {
         await modificaCopia({ oggettoId: oggetto.id, variante, delta: 1, binderId: id }).unwrap()
+        toast.successo(`Aggiunta alla collezione: ${ETICHETTE[variante]}`)
       } catch (errore) {
         // 401: ci pensa la gestione della sessione
         if (statoErrore(errore) === 401) return
