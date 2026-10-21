@@ -13,6 +13,7 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -60,7 +61,10 @@ public class Profilo {
 
     // numeri del Pokédex nazionale; il primo è il compagno
     @ElementCollection
-    @CollectionTable(name = "profili_squadra", joinColumns = @JoinColumn(name = "id_utente"))
+    // vincoli UNIQUE come in V11: Hibernate non li usa, servono perché lo schema delle entity resti quello di Flyway
+    // (SchemaDerivaTest)
+    @CollectionTable(name = "profili_squadra", joinColumns = @JoinColumn(name = "id_utente"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_profili_squadra_numero", columnNames = {"id_utente", "numero"}))
     @OrderColumn(name = "posizione")
     @Column(name = "numero", nullable = false)
     private List<Integer> squadra = new ArrayList<>();
@@ -68,14 +72,16 @@ public class Profilo {
     @ManyToMany
     @JoinTable(name = "profili_vetrina",
             joinColumns = @JoinColumn(name = "id_utente"),
-            inverseJoinColumns = @JoinColumn(name = "id_oggetto"))
+            inverseJoinColumns = @JoinColumn(name = "id_oggetto"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_profili_vetrina_oggetto", columnNames = {"id_utente", "id_oggetto"}))
     @OrderColumn(name = "posizione")
     private List<Oggetto> vetrina = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(name = "profili_binder",
             joinColumns = @JoinColumn(name = "id_utente"),
-            inverseJoinColumns = @JoinColumn(name = "id_binder"))
+            inverseJoinColumns = @JoinColumn(name = "id_binder"),
+            uniqueConstraints = @UniqueConstraint(name = "uk_profili_binder_binder", columnNames = {"id_utente", "id_binder"}))
     @OrderColumn(name = "posizione")
     private List<Binder> binder = new ArrayList<>();
 
