@@ -96,7 +96,8 @@ class CatalogoServiceTest {
         return new TcgdexApi.CartaBreve(carta.id(), carta.localId(), carta.name(), carta.image());
     }
 
-    // l'elenco del filtro e i dettagli delle carte; gli id in "falliti" non arrivano
+    // l'elenco del filtro e i dettagli delle carte; gli id in "falliti" non arrivano (errore temporaneo), quelli
+    // che non sono né tra le carte né tra i falliti sono le carte che TCGdex non ha (404)
     private void risponde(FiltroCarte filtro, List<TcgdexApi.Carta> carte, String... falliti) {
         lenient().when(client.elenco(filtro)).thenReturn(carte.stream().map(CatalogoServiceTest::breve).toList());
         Map<String, TcgdexApi.Carta> perId = new LinkedHashMap<>();
@@ -105,7 +106,7 @@ class CatalogoServiceTest {
         lenient().when(client.dettagli(anyList())).thenAnswer(invocazione -> {
             List<String> ids = invocazione.getArgument(0);
             return new TcgdexClient.Dettagli(
-                    ids.stream().filter(id -> !nonArrivate.contains(id)).map(perId::get).toList(),
+                    ids.stream().filter(perId::containsKey).filter(id -> !nonArrivate.contains(id)).map(perId::get).toList(),
                     ids.stream().filter(nonArrivate::contains).toList());
         });
     }
@@ -267,6 +268,26 @@ class CatalogoServiceTest {
         verify(oggettoRepository, times(2)).saveAll(salvati.capture());
         assertThat(salvati.getAllValues()).extracting(Collection::size).containsExactly(24, 5);
         assertThat(lette).isEqualTo(29);
+    }
+
+    // una carta che TCGdex non ha più (404) riceve i valori vuoti, così il job non la ripropone a ogni giro;
+    // una fallita per un errore temporaneo resta da leggere
+    @Test
+    void riempiCarteSegnaLeCarteCheTcgdexNonHaPiu() {
+        risponde(FiltroCarte.diSet("sv1"), List.of(carta("sv1-1", "Uno")), "sv1-2");
+        Oggetto sparita = esistente("Sparita", "sv1-3");
+        sparita.setArtista("Già letto");
+        // la stessa query serve anche a salvaCarte per la carta arrivata
+        when(oggettoRepository.findByIdEsternoIn(any())).thenAnswer(invocazione ->
+                invocazione.<Collection<String>>getArgument(0).contains("sv1-3") ? List.of(sparita) : List.of());
+
+        int lette = service.riempiCarte(List.of("sv1-1", "sv1-2", "sv1-3"));
+
+        assertThat(lette).isEqualTo(1);
+        verify(oggettoRepository).findByIdEsternoIn(List.of("sv1-3"));
+        assertThat(sparita.getVarianti()).isEmpty();
+        assertThat(sparita.getRarita()).isEmpty();
+        assertThat(sparita.getArtista()).isEqualTo("Già letto");
     }
 
     // --- nomi (come con pokemontcg.io)
