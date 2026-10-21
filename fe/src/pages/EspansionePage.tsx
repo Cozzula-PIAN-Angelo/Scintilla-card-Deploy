@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowLeft, ChevronDown, Layers, SearchX } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { messaggioErrore } from '../app/errori'
 import { Button, LinkBottone } from '../components/Button'
 import { PaginaAnimata } from '../components/PaginaAnimata'
@@ -12,6 +12,7 @@ import { ListaEspansioni } from '../features/espansioni/ListaEspansioni'
 import { memoriaElenco } from '../features/espansioni/memoriaElenco'
 import { VistaEspansione } from '../features/espansioni/VistaEspansione'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
+import { useRitornoElenco } from '../hooks/useRitornoElenco'
 import { useTitolo } from '../hooks/useTitolo'
 import { cn } from '../utils/cn'
 
@@ -23,25 +24,14 @@ export function EspansionePage() {
   const espansione = data?.find((e) => e.id === id)
   const { isPreferito, toggle } = usePreferiti()
   const [listaMobileAperta, setListaMobileAperta] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
   useTitolo(espansione?.nome ?? 'Espansione')
 
-  // quante pagine di set ci sono nella cronologia dopo la vetrina: 1 arrivando dalla vetrina,
-  // +1 per ogni set aperto dalla lista laterale; null con un link diretto
-  const passiDallaVetrina = (location.state as { passiDallaVetrina?: number | null } | null)?.passiDallaVetrina ?? null
+  const { torna: tornaAllaVetrina, statoAvanti } = useRitornoElenco('/')
 
   useEffect(() => {
     if (espansione) memoriaElenco.ultimaAperta = espansione.id
     setListaMobileAperta(false)
   }, [espansione])
-
-  // si torna alla vetrina ripercorrendo la cronologia, così riappare nello stesso punto;
-  // da un link diretto non c'è niente dietro, quindi ci si va e basta
-  const tornaAllaVetrina = () => {
-    if (passiDallaVetrina) navigate(-passiDallaVetrina)
-    else navigate('/')
-  }
 
   return (
     <PaginaAnimata className="mx-auto min-h-[70vh] max-w-7xl px-4 py-10 sm:px-6">
@@ -73,7 +63,7 @@ export function EspansionePage() {
             <ListaEspansioni
               espansioni={data}
               corrente={espansione}
-              passiDallaVetrina={passiDallaVetrina}
+              statoAvanti={statoAvanti}
               className="sticky top-24 max-h-[calc(100vh-8rem)]"
             />
           </aside>
@@ -110,7 +100,7 @@ export function EspansionePage() {
                   <ListaEspansioni
                     espansioni={data}
                     corrente={espansione}
-                    passiDallaVetrina={passiDallaVetrina}
+                    statoAvanti={statoAvanti}
                     className="mb-8 h-96"
                   />
                 </motion.div>

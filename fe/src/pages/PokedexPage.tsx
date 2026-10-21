@@ -6,6 +6,7 @@ import { StatoVuoto } from '../components/StatiPagina'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { corrisponde, GENERAZIONI, numeroFormattato, POKEDEX, spriteUrl, type Pokemon } from '../features/pokedex/pokedex'
 import { useDebounce } from '../hooks/useDebounce'
+import { DALL_ELENCO } from '../hooks/useRitornoElenco'
 import { useTitolo } from '../hooks/useTitolo'
 import { cn } from '../utils/cn'
 
@@ -112,7 +113,7 @@ function TilePokemon({ pokemon }: { pokemon: Pokemon }) {
       <Link
         to={`/pokedex/${pokemon.numero}`}
         // passi di cronologia dal Pokédex: "← Pokédex" torna qui anche dopo aver sfogliato altri Pokémon
-        state={{ passiDalPokedex: 1 }}
+        state={DALL_ELENCO}
         onClick={() => {
           memoriaPokedex.posizione = window.scrollY
           memoriaPokedex.ultimo = pokemon.numero

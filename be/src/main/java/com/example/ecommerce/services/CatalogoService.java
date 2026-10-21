@@ -62,6 +62,7 @@ public class CatalogoService {
     // elenchi e pagine al volo appena presi: il frontend richiede la pagina ogni 3 secondi finché lo scaricamento
     // completo non è finito, e TCGdex non deve vederla ogni volta
     private static final Duration DURATA_PAGINA = Duration.ofMinutes(5);
+    // elenchi già ordinati, per filtro e ordine
     private final Map<String, InMemoria<List<CartaBreve>>> elenchiRecenti = new ConcurrentHashMap<>();
     private final Map<String, InMemoria<PaginaCarte>> pagineRecenti = new ConcurrentHashMap<>();
 
@@ -159,32 +160,46 @@ public class CatalogoService {
             throw new ServizioEsternoException("Nessuna carta restituita da TCGdex per il set " + setId
                     + ": varianti non aggiornate", null);
         }
-        transazione.executeWithoutResult(stato ->
-                oggettoRepository.findCarteDaRiempireDelSet(setId).forEach(oggetto -> {
-                    if (oggetto.getVarianti() == null) {
-                        oggetto.setVarianti(List.of());
-                    }
-                    if (oggetto.getRarita() == null) {
-                        oggetto.setRarita("");
-                    }
-                    if (oggetto.getArtista() == null) {
-                        oggetto.setArtista("");
-                    }
-                }));
+        transazione.executeWithoutResult(stato -> segnaComeLette(oggettoRepository.findCarteDaRiempireDelSet(setId)));
         log.info("Varianti, rarità e artisti del set {} aggiornate ({} carte)", setId, download.elenco().size());
     }
 
-    // rilegge da TCGdex le carte date (varianti, rarità e artista mancanti), a blocchi; quelle che non arrivano
-    // restano da leggere e si riprovano al giro dopo. Restituisce quante ne sono arrivate
+    // rilegge da TCGdex le carte date (varianti, rarità e artista mancanti), a blocchi; quelle che non arrivano per
+    // un errore temporaneo restano da leggere e si riprovano al giro dopo. Quelle che TCGdex non ha più (404: né
+    // arrivate né fallite) ricevono i valori vuoti come in riempiVarianti, così il job non le ripropone a ogni giro.
+    // Restituisce quante ne sono arrivate
     public int riempiCarte(List<String> idEsterni) {
         int lette = 0;
         for (int da = 0; da < idEsterni.size(); da += BLOCCO) {
-            TcgdexClient.Dettagli dettagli = tcgdex.dettagli(idEsterni.subList(da, Math.min(da + BLOCCO, idEsterni.size())));
+            List<String> blocco = idEsterni.subList(da, Math.min(da + BLOCCO, idEsterni.size()));
+            TcgdexClient.Dettagli dettagli = tcgdex.dettagli(blocco);
             salvaCarte(dettagli.carte());
             lette += dettagli.carte().size();
+            Set<String> risposte = new HashSet<>(dettagli.falliti());
+            dettagli.carte().forEach(carta -> risposte.add(carta.id()));
+            List<String> sparite = blocco.stream().filter(id -> !risposte.contains(id)).toList();
+            if (!sparite.isEmpty()) {
+                transazione.executeWithoutResult(stato -> segnaComeLette(oggettoRepository.findByIdEsternoIn(sparite)));
+            }
         }
         log.info("Carte fuori dai set importati rilette: {} su {}", lette, idEsterni.size());
         return lette;
+    }
+
+    // carte che TCGdex non restituisce più: lista vuota, rarità '' e artista '' dove mancano (entity gestite,
+    // salvate al commit)
+    private static void segnaComeLette(List<Oggetto> carte) {
+        carte.forEach(oggetto -> {
+            if (oggetto.getVarianti() == null) {
+                oggetto.setVarianti(List.of());
+            }
+            if (oggetto.getRarita() == null) {
+                oggetto.setRarita("");
+            }
+            if (oggetto.getArtista() == null) {
+                oggetto.setArtista("");
+            }
+        });
     }
 
     // importa tutte le carte in cui compare un Pokémon (numero del Pokédex nazionale), da qualunque set.
@@ -233,13 +248,16 @@ public class CatalogoService {
         if (recente != null) {
             return recente;
         }
-        List<CartaBreve> elenco = recente(elenchiRecenti, filtro.chiave());
+        // l'elenco si tiene già ordinato: le date dei set (findAll) e l'ordinamento servono una volta, non a ogni pagina
+        String chiaveElenco = filtro.chiave() + "|" + piuRecenti;
+        List<CartaBreve> elenco = recente(elenchiRecenti, chiaveElenco);
         if (elenco == null) {
-            elenco = tcgdex.elenco(filtro);
-            ricorda(elenchiRecenti, filtro.chiave(), elenco);
+            elenco = tcgdex.elenco(filtro).stream()
+                    .sorted(piuRecenti ? OrdineCarte.breviDallaPiuRecente(dataPerSet()) : OrdineCarte.breviPerNumero())
+                    .toList();
+            ricorda(elenchiRecenti, chiaveElenco, elenco);
         }
         List<String> fetta = elenco.stream()
-                .sorted(piuRecenti ? OrdineCarte.breviDallaPiuRecente(dataPerSet()) : OrdineCarte.breviPerNumero())
                 .skip((long) pagina * PAGINA_VISTA)
                 .limit(PAGINA_VISTA)
                 .map(CartaBreve::id)

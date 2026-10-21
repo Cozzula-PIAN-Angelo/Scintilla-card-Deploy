@@ -3,6 +3,7 @@ import { ChevronDown, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router'
 import { useDebounce } from '../../hooks/useDebounce'
+import type { StatoRitorno } from '../../hooks/useRitornoElenco'
 import type { Espansione } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { raggruppaPerSerie } from './raggruppaPerSerie'
@@ -11,14 +12,14 @@ import { SimboloSet } from '../../components/SimboloSet'
 interface Props {
   espansioni: Espansione[]
   corrente: Espansione
-  // passi di cronologia dalla vetrina alla pagina corrente (vedi EspansionePage)
-  passiDallaVetrina: number | null
+  // state dei link agli altri set, per il ritorno alla vetrina (vedi useRitornoElenco)
+  statoAvanti: StatoRitorno
   className?: string
 }
 
 // elenco compatto di tutte le espansioni accanto alle carte: si passa da un set all'altro senza
 // tornare alla vetrina. Aperta la serie del set corrente, le altre si aprono con un clic
-export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, className }: Props) {
+export function ListaEspansioni({ espansioni, corrente, statoAvanti, className }: Props) {
   const [ricerca, setRicerca] = useState('')
   const filtro = useDebounce(ricerca.trim().toLowerCase(), 200)
   const serieCorrente = corrente.serie || 'Altre'
@@ -102,7 +103,7 @@ export function ListaEspansioni({ espansioni, corrente, passiDallaVetrina, class
                           <Link
                             ref={attuale ? voceCorrente : undefined}
                             to={`/espansioni/${encodeURIComponent(espansione.id)}`}
-                            state={{ passiDallaVetrina: passiDallaVetrina === null ? null : passiDallaVetrina + 1 }}
+                            state={statoAvanti}
                             aria-current={attuale ? 'page' : undefined}
                             className={cn(
                               'flex items-center gap-2.5 rounded-xl py-1.5 pl-5 pr-3 text-sm transition-colors',

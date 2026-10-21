@@ -6,6 +6,7 @@ import { messaggioErrore } from '../../app/errori'
 import { Skeleton } from '../../components/Skeleton'
 import { StatoErrore, StatoVuoto } from '../../components/StatiPagina'
 import { useDebounce } from '../../hooks/useDebounce'
+import { DALL_ELENCO } from '../../hooks/useRitornoElenco'
 import { griglia } from '../../theme/motion'
 import { TileEspansione } from './TileEspansione'
 import { useGetEspansioniQuery } from './espansioniApi'
@@ -41,7 +42,7 @@ export function VetrinaEspansioni() {
     memoriaElenco.ultimaAperta = id
     // passi di cronologia dalla vetrina: "Tutte le espansioni" torna qui anche dopo aver
     // cambiato set dalla lista laterale
-    navigate(`/espansioni/${encodeURIComponent(id)}`, { state: { passiDallaVetrina: 1 } })
+    navigate(`/espansioni/${encodeURIComponent(id)}`, { state: DALL_ELENCO })
   }
 
   if (isLoading) {
