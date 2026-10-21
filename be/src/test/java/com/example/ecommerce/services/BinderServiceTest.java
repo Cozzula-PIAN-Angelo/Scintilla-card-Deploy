@@ -503,6 +503,27 @@ class BinderServiceTest {
                 .isInstanceOf(BadRequestException.class);
     }
 
+    // il dettaglio porta le copie possedute delle sole carte nel binder, e solo quelle dell'utente
+    @Test
+    void dettaglioConLaCollezioneDelleCarteInserite() {
+        UUID dentro = carta("Abra", "base1", "43");
+        UUID fuori = carta("Kadabra", "base1", "32");
+        metti(0, 0, dentro);
+        copia(utente, dentro, "NORMALE", 2);
+        copia(utente, dentro, "REVERSE_HOLO", 1);
+        copia(utente, fuori, "NORMALE", 1);
+        copia(altro, dentro, "NORMALE", 5);
+
+        assertThat(service.getDettaglio(utente, binder).collezione())
+                .extracting(c -> c.oggettoId() + ":" + c.variante() + ":" + c.quantita())
+                .containsExactlyInAnyOrder(dentro + ":NORMALE:2", dentro + ":REVERSE_HOLO:1");
+    }
+
+    private void copia(Utente di, UUID carta, String variante, int quantita) {
+        jdbc.update("INSERT INTO collezione (id, id_utente, id_oggetto, variante, quantita, aggiornata_il) VALUES (?, ?, ?, ?, ?, now())",
+                UUID.randomUUID(), di.getId(), carta, variante, quantita);
+    }
+
     // tasche come "indice:idCarta:variante", in ordine
     private List<String> disposizioneConVariante() {
         return service.getDettaglio(utente, binder).slot().stream()
