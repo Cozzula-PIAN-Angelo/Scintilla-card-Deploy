@@ -49,7 +49,7 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
         {/* dimensioni esplicite + object-contain: i loghi quadrati o verticali (POP, promo) con
             max-h-full restavano alti quanto la loro larghezza e uscivano dal riquadro */}
         <div className="relative h-28 w-full max-w-56 shrink-0 rounded-3xl bg-superficie shadow-lg shadow-ombra/10">
-          <LogoSet src={espansione.logoUrl} className="p-4" classeSegnaposto="rounded-3xl" />
+          <LogoSet src={espansione.logoUrl} className="p-4" />
         </div>
         <div className="min-w-0">
           <h3 className="text-balance text-4xl font-bold text-testo">{espansione.nome}</h3>

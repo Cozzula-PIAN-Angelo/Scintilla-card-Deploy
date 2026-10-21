@@ -1,22 +1,28 @@
 import { useState } from 'react'
-import { Anello, Fulmine, Scintilla, Stella } from '../../components/Forme'
+import { MarchioIcona, MarchioScritta } from '../../components/Marchio'
 import { cn } from '../../utils/cn'
 
 interface Props {
   src: string | null
   lazy?: boolean
-  // classi dell'immagine del logo
   className?: string
-  // classi del segnaposto (per esempio gli angoli del riquadro)
-  classeSegnaposto?: string
 }
 
 // logo di un set, steso sul contenitore (che deve essere relative, con le dimensioni). Senza logo (trainer kit,
-// McDonald's, promo) o se non si carica, un'illustrazione nello stile di PlaceholderCarta: il nome del set sta
-// sempre accanto, quindi è decorativa
-export function LogoSet({ src, lazy = false, className, classeSegnaposto }: Props) {
+// McDonald's, promo) o se non si carica, il marchio di CeloManca un po' attenuato: il nome del set sta sempre
+// accanto, quindi è decorativo
+export function LogoSet({ src, lazy = false, className }: Props) {
   const [srcInErrore, setSrcInErrore] = useState<string | null>(null)
-  if (!src || srcInErrore === src) return <SegnapostoLogo className={classeSegnaposto} />
+  if (!src || srcInErrore === src) {
+    return (
+      <div aria-hidden className={cn('@container absolute inset-0 flex items-center justify-center gap-1.5 opacity-70', className)}>
+        {/* il tratteggio chiaro della navbar sparirebbe sul fondo della tessera. Nelle tessere strette
+            (due colonne da telefono) la scritta non ci sta: resta solo l'icona */}
+        <MarchioIcona classeTratteggio="stroke-testo/50" className="h-11" />
+        <MarchioScritta classeTratteggio="stroke-testo/50" className="hidden h-7 @min-[12rem]:block" />
+      </div>
+    )
+  }
   return (
     <img
       src={src}
@@ -26,25 +32,5 @@ export function LogoSet({ src, lazy = false, className, classeSegnaposto }: Prop
       onError={() => setSrcInErrore(src)}
       className={cn('absolute inset-0 h-full w-full object-contain', className)}
     />
-  )
-}
-
-// riquadro orizzontale: le misure sono in proporzione all'altezza (cqh), così le forme non escono dal riquadro
-// basso della tessera né da quello più alto della testata
-function SegnapostoLogo({ className }: { className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        'absolute inset-0 overflow-hidden bg-blu-700 bg-gradient-to-br from-blu-900 via-blu-700 to-blu-500 [container-type:size]',
-        className,
-      )}
-    >
-      <Anello className="absolute -right-[12cqh] -top-[22cqh] w-[70cqh] stroke-giallo-400/70" />
-      <Stella className="absolute left-[12%] top-[16cqh] w-[30cqh] fill-giallo-400" />
-      <Scintilla className="absolute left-[44%] top-[50cqh] w-[20cqh] fill-white/80" />
-      <Fulmine className="absolute bottom-[14cqh] right-[24%] w-[28cqh] fill-rosso-500" />
-      <Anello className="absolute -bottom-[32cqh] -left-[14cqh] w-[60cqh] stroke-white/30" />
-    </div>
   )
 }

@@ -30,12 +30,7 @@ export function TileEspansione({ espansione, evidenziata, onClick }: Props) {
       >
         {/* dimensioni esplicite + object-contain: il logo resta sempre dentro il riquadro */}
         <div className="relative grid h-24 w-full place-items-center">
-          <LogoSet
-            src={espansione.logoUrl}
-            lazy
-            className="transition-transform group-hover:scale-105"
-            classeSegnaposto="rounded-2xl"
-          />
+          <LogoSet src={espansione.logoUrl} lazy className="transition-transform group-hover:scale-105" />
         </div>
         <div className="mt-auto">
           <p className="line-clamp-2 font-semibold leading-tight text-testo">{espansione.nome}</p>
