@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { motion, useIsPresent } from 'framer-motion'
 import { Check, Eye, Move, Trash2, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type Ref } from 'react'
 import { Button } from '../../../components/Button'
@@ -14,7 +14,12 @@ export function BarraTasca({ carta, onChiudi }: { carta: SlotBinder; onChiudi: (
   const binder = useContestoBinder()
   const collezione = useCollezioneBinder()
   const { oggetto, variante, pagina, posizione } = carta
-  const mancante = !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id, variante)
+  // mentre esce la barra resta com'era: dopo Togli il dettaglio si rilegge senza la carta, e la sua collezione
+  // (solo le carte nel binder) non la conta più. Ricalcolando, "Ce l'ho" ricomparirebbe per un attimo
+  const presente = useIsPresent()
+  const ultimoMancante = useRef(false)
+  if (presente) ultimoMancante.current = !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id, variante)
+  const mancante = ultimoMancante.current
   const dettagli = [oggetto.rarita, variante === 'REVERSE_HOLO' && 'Reverse holo', mancante && "Non ce l'hai"].filter(Boolean).join(' · ')
   const barra = useRef<HTMLDivElement>(null)
   const prima = useRef<HTMLButtonElement>(null)
