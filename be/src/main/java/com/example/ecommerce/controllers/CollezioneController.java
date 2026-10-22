@@ -3,7 +3,10 @@ package com.example.ecommerce.controllers;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.payloads.CopiaDTO;
 import com.example.ecommerce.payloads.ModificaCollezioneDTO;
+import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.services.CollezioneService;
+import com.example.ecommerce.services.PaginationHelper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +26,7 @@ import java.util.List;
 public class CollezioneController {
 
     private final CollezioneService collezioneService;
+    private final PaginationHelper paginationHelper;
 
     // copie possedute in un set (?espansione=), in un Pokémon (?pokemon=) oppure tra le carte di un artista
     // (?artista=slug): uno solo dei tre
@@ -32,6 +36,15 @@ public class CollezioneController {
                                    @RequestParam(required = false) Integer pokemon,
                                    @RequestParam(required = false) String artista) {
         return collezioneService.copie(utente, espansione, pokemon, artista);
+    }
+
+    // carte possedute, una per carta, dall'ultima aggiunta o modificata (cassetto del binder); q filtra per nome
+    @GetMapping("/carte")
+    public PageResponse<OggettoResponseDTO> getCarte(@AuthenticationPrincipal Utente utente,
+                                                    @RequestParam(required = false) Integer page,
+                                                    @RequestParam(required = false) Integer size,
+                                                    @RequestParam(required = false) String q) {
+        return collezioneService.carte(utente, q, paginationHelper.perCollezione(page, size));
     }
 
     @PatchMapping

@@ -40,6 +40,11 @@ public class PaginationHelper {
         return PageRequest.of(numeroPagina(page), dimensione(size), Sort.by("username"));
     }
 
+    // carte possedute: l'ordine (ultima modifica) lo dà la query, qui solo pagina e dimensione
+    public Pageable perCollezione(Integer page, Integer size) {
+        return PageRequest.of(numeroPagina(page), dimensione(size));
+    }
+
     // id come ultimo criterio: a parità di valore (es. createdAt delle carte importate in blocco)
     // PostgreSQL non garantisce lo stesso ordine tra una pagina e l'altra, e una carta potrebbe
     // comparire due volte o mai. L'id è univoco, quindi l'ordine diventa stabile

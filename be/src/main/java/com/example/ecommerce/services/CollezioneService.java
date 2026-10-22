@@ -5,9 +5,12 @@ import com.example.ecommerce.exceptions.BadRequestException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.payloads.CopiaDTO;
 import com.example.ecommerce.payloads.ModificaCollezioneDTO;
+import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.repositories.CollezioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +51,13 @@ public class CollezioneService {
         ElencoArtisti.Artista trovato = elencoArtisti.perSlug(artista)
                 .orElseThrow(() -> new NotFoundException("Artista non trovato: " + artista));
         return collezioneRepository.copieDiArtista(utente.getId(), trovato.grafie());
+    }
+
+    // carte possedute per il cassetto del binder, una per carta, dall'ultima aggiunta o modificata; q filtra per nome
+    @Transactional(readOnly = true)
+    public PageResponse<OggettoResponseDTO> carte(Utente utente, String q, Pageable pageable) {
+        String nome = q == null ? "" : q.trim().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        return PageResponse.from(oggettoRepository.possedute(utente.getId(), nome, pageable).map(OggettoResponseDTO::from));
     }
 
     @Transactional(readOnly = true)

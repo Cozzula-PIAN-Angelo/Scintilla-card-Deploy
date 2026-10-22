@@ -39,4 +39,14 @@ class PaginationHelperTest {
                 Sort.Order.asc("oggetto.nome"),
                 Sort.Order.asc("id"));
     }
+
+    // carte possedute: l'ordine è nella query nativa, un Sort qui verrebbe aggiunto in coda e la romperebbe
+    @Test
+    void collezioneSenzaOrdinamentoConDimensioneLimitata() {
+        Pageable pagina = helper.perCollezione(2, 500);
+
+        assertThat(pagina.getSort().isUnsorted()).isTrue();
+        assertThat(pagina.getPageNumber()).isEqualTo(2);
+        assertThat(pagina.getPageSize()).isEqualTo(50);
+    }
 }

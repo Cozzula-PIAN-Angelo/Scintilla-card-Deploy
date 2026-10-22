@@ -171,6 +171,39 @@
     @apply animate-shimmer;
   }
 
+  /* tasca appena riempita con un tocco dal cassetto: la carta "cade" nella tasca e il bordo giallo delle
+     destinazioni si spegne piano. Contorno e non ring: il ring della tasca è già un box-shadow */
+  .tasca-evidenziata {
+    outline: 3px solid transparent;
+    outline-offset: 2px;
+    animation: tasca-evidenziata 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes tasca-evidenziata {
+    0% { outline-color: var(--color-giallo-400); transform: scale(1.08); }
+    30% { outline-color: var(--color-giallo-400); transform: scale(1); }
+    100% { outline-color: transparent; transform: scale(1); }
+  }
+  /* il segno "già nel binder" della carta appena aggiunta, nel cassetto: compare crescendo e frena morbido */
+  .segno-pop {
+    animation: segno-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes segno-pop {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .segno-pop {
+      animation: none;
+    }
+    .tasca-evidenziata {
+      animation-name: tasca-evidenziata-ferma;
+    }
+    @keyframes tasca-evidenziata-ferma {
+      0%, 30% { outline-color: var(--color-giallo-400); }
+      100% { outline-color: transparent; }
+    }
+  }
+
   /* tasche del binder: riflesso acceso al passaggio del mouse (senza l'inclinazione di HoloCard, che darebbe
      fastidio a trascinamento e menu); --mx e --my li aggiorna Tasca. Senza mouse un riflesso fisso e leggero */
   .tasca-holo {
