@@ -5,11 +5,11 @@ import { LinkBottone } from '../components/Button'
 import { ModaleCarta } from '../components/ModaleCarta'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { Paginazione } from '../components/Paginazione'
-import { SelectOrdinamento } from '../components/SelectOrdinamento'
+import { PulsantiOrdinamento } from '../components/PulsantiOrdinamento'
 import { GrigliaSkeleton } from '../components/Skeleton'
 import { StatoErrore, StatoVuoto } from '../components/StatiPagina'
 import { GrigliaOggetti } from '../features/oggetti/GrigliaOggetti'
-import { ORDINAMENTI_PREFERITI, ORDINAMENTO_PREDEFINITO } from '../features/oggetti/ordinamenti'
+import { ORDINAMENTI_PREFERITI, ORDINAMENTO_PREDEFINITO, valoriOrdinamento } from '../features/oggetti/ordinamenti'
 import { useGetPreferitiQuery } from '../features/preferiti/preferitiApi'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
@@ -17,7 +17,7 @@ import { useParametriPagina } from '../hooks/useParametriPagina'
 import { useTitolo } from '../hooks/useTitolo'
 
 const PER_PAGINA = 12
-const VALORI_ORDINAMENTO = ORDINAMENTI_PREFERITI.map((o) => o.valore)
+const VALORI_ORDINAMENTO = valoriOrdinamento(ORDINAMENTI_PREFERITI)
 
 export function PreferitiPage() {
   useTitolo('I miei preferiti')
@@ -59,7 +59,7 @@ export function PreferitiPage() {
             <p className="font-semibold text-testo">
               {data.totalElements === 1 ? '1 carta salvata' : `${data.totalElements} carte salvate`}
             </p>
-            <SelectOrdinamento valore={ordinamento} opzioni={ORDINAMENTI_PREFERITI} onCambia={cambiaOrdinamento} />
+            <PulsantiOrdinamento valore={ordinamento} criteri={ORDINAMENTI_PREFERITI} onCambia={cambiaOrdinamento} />
           </div>
         )}
 

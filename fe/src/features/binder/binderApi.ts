@@ -43,8 +43,12 @@ export const binderApi = api.injectEndpoints({
     }),
 
     // la nuova disposizione arriva dal server: niente aggiornamento anticipato
-    riordinaBinder: build.mutation<SlotBinder[], { binderId: string; criterio: CriterioOrdine }>({
-      query: ({ binderId, criterio }) => ({ url: `/me/binder/${binderId}/riordina`, method: 'POST', body: { criterio } }),
+    riordinaBinder: build.mutation<SlotBinder[], { binderId: string; criterio: CriterioOrdine; decrescente: boolean }>({
+      query: ({ binderId, criterio, decrescente }) => ({
+        url: `/me/binder/${binderId}/riordina`,
+        method: 'POST',
+        body: { criterio, decrescente },
+      }),
       async onQueryStarted({ binderId }, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled
