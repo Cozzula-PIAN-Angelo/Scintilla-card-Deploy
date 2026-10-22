@@ -6,9 +6,11 @@ import com.example.ecommerce.payloads.NuovoOggettoDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
 import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.payloads.PreferitoResponseDTO;
+import com.example.ecommerce.payloads.PrezziCartaDTO;
 import com.example.ecommerce.services.OggettoService;
 import com.example.ecommerce.services.PaginationHelper;
 import com.example.ecommerce.services.PreferitoService;
+import com.example.ecommerce.services.PrezziService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,7 @@ public class OggettoController {
 
     private final OggettoService oggettoService;
     private final PreferitoService preferitoService;
+    private final PrezziService prezziService;
     private final PaginationHelper paginationHelper;
 
     @GetMapping
@@ -65,6 +68,12 @@ public class OggettoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancella(@PathVariable UUID id) {
         oggettoService.cancella(id);
+    }
+
+    // fascia di prezzo di Cardmarket per il dettaglio della carta (normale e reverse), letta al momento
+    @GetMapping("/{id}/prezzi")
+    public PrezziCartaDTO prezzi(@PathVariable UUID id) {
+        return prezziService.prezzi(id);
     }
 
     @PostMapping("/{id}/preferiti")

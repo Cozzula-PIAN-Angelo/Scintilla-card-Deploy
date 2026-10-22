@@ -43,6 +43,8 @@ public class SecurityConfig {
     // qui un token scaduto o non valido si ignora, invece di rispondere 401 a chi sta solo guardando
     private static final RequestMatcher ENDPOINT_PUBBLICI = new OrRequestMatcher(
             get("/oggetti"),
+            // fascia di prezzo nel dettaglio della carta, che vedono anche gli ospiti
+            get("/oggetti/*/prezzi"),
             // vetrina per espansioni: la prima apertura di un set lo importa, ma è pubblica
             get("/espansioni"),
             get("/espansioni/*/carte"),

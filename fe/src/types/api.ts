@@ -33,6 +33,22 @@ export interface Copia {
   quantita: number
 }
 
+// prezzi di Cardmarket in euro per una variante, nel dettaglio della carta. minimo: l'offerta più bassa;
+// massimo: il più alto tra media, trend e medie a 1/7/30 giorni
+export interface FasciaPrezzo {
+  minimo: number
+  massimo: number
+  trend: number | null
+  media30: number | null
+}
+
+// letti al momento da TCGdex; tutto null per le carte senza dati (o create a mano)
+export interface PrezziCarta {
+  normale: FasciaPrezzo | null
+  reverse: FasciaPrezzo | null
+  aggiornatoIl: string | null
+}
+
 export interface Oggetto {
   id: string
   nome: string
