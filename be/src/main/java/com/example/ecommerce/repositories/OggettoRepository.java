@@ -30,6 +30,19 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
 
     Page<Oggetto> findByNomeContainingIgnoreCaseAndImmagineUrlIsNotNull(String nome, Pageable pageable);
 
+    // carte che l'utente ha in collezione (cassetto del binder): una per carta qualunque sia la variante, dall'ultima
+    // aggiunta o modificata, id per un ordine stabile tra le pagine. nome: frammento con %, _ e \ già protetti
+    // ('' = tutte). L'ordine sta nella query: il Pageable porta solo pagina e dimensione
+    @Query(value = "SELECT o.* FROM oggetti o "
+            + "JOIN (SELECT id_oggetto, MAX(aggiornata_il) AS ultima FROM collezione WHERE id_utente = :utenteId "
+            + "GROUP BY id_oggetto) c ON c.id_oggetto = o.id "
+            + "WHERE o.nome ILIKE '%' || :nome || '%' ESCAPE '\\' "
+            + "ORDER BY c.ultima DESC, o.id",
+            countQuery = "SELECT COUNT(DISTINCT c.id_oggetto) FROM collezione c JOIN oggetti o ON o.id = c.id_oggetto "
+                    + "WHERE c.id_utente = :utenteId AND o.nome ILIKE '%' || :nome || '%' ESCAPE '\\'",
+            nativeQuery = true)
+    Page<Oggetto> possedute(@Param("utenteId") UUID utenteId, @Param("nome") String nome, Pageable pageable);
+
     List<Oggetto> findByIdEsternoIn(Collection<String> idEsterni);
 
     // carte della pagina al volo, con l'espansione già caricata: si ordinano per data d'uscita fuori dalla sessione

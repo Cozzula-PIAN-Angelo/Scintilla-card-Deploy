@@ -6,6 +6,8 @@ import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.entities.Utente;
 import com.example.ecommerce.payloads.CopiaDTO;
 import com.example.ecommerce.payloads.ModificaCollezioneDTO;
+import com.example.ecommerce.payloads.OggettoResponseDTO;
+import com.example.ecommerce.payloads.PageResponse;
 import com.example.ecommerce.repositories.CollezioneRepository;
 import com.example.ecommerce.repositories.OggettoRepository;
 import io.zonky.test.db.AutoConfigureEmbeddedDatabase;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -187,6 +190,58 @@ class CollezioneServiceTest {
         assertThatThrownBy(() -> service.copie(utente, null, null, "nessuno")).isInstanceOf(NotFoundException.class);
     }
 
+    // carte possedute (cassetto del binder): una per carta anche con più varianti, dalla più recente, solo le proprie
+    @Test
+    void cartePosseduteUnaPerCartaDallaPiuRecente() {
+        UUID charmander = UUID.randomUUID();
+        UUID bulbasaur = UUID.randomUUID();
+        inserisciCarta(charmander, "Charmander", "base1", 4);
+        inserisciCarta(bulbasaur, "Bulbasaur", "base1", 1);
+        possiede(idUtente, carta, "NORMALE", 3);
+        possiede(idUtente, carta, "REVERSE_HOLO", 1);
+        possiede(idUtente, charmander, "NORMALE", 2);
+        possiede(idAltro, bulbasaur, "NORMALE", 0);
+
+        PageResponse<OggettoResponseDTO> pagina = service.carte(utente, null, PageRequest.of(0, 24));
+
+        assertThat(pagina.content()).extracting(OggettoResponseDTO::id).containsExactly(carta, charmander);
+        assertThat(pagina.totalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void cartePossedutePerNomeConIJollyDelLikeProtetti() {
+        UUID charmander = UUID.randomUUID();
+        inserisciCarta(charmander, "Charmander", "base1", 4);
+        possiede(idUtente, carta, "NORMALE", 2);
+        possiede(idUtente, charmander, "NORMALE", 1);
+
+        assertThat(service.carte(utente, " PIKA ", PageRequest.of(0, 24)).content())
+                .extracting(OggettoResponseDTO::id).containsExactly(carta);
+        assertThat(service.carte(utente, "%", PageRequest.of(0, 24)).content()).isEmpty();
+        assertThat(service.carte(utente, "_", PageRequest.of(0, 24)).content()).isEmpty();
+    }
+
+    @Test
+    void cartePossedutePaginate() {
+        UUID charmander = UUID.randomUUID();
+        inserisciCarta(charmander, "Charmander", "base1", 4);
+        possiede(idUtente, carta, "NORMALE", 2);
+        possiede(idUtente, charmander, "NORMALE", 1);
+
+        PageResponse<OggettoResponseDTO> seconda = service.carte(utente, "", PageRequest.of(1, 1));
+
+        assertThat(seconda.content()).extracting(OggettoResponseDTO::id).containsExactly(carta);
+        assertThat(seconda.totalPages()).isEqualTo(2);
+    }
+
+    @Test
+    void cartePosseduteCollezioneVuota() {
+        PageResponse<OggettoResponseDTO> pagina = service.carte(utente, null, PageRequest.of(0, 24));
+
+        assertThat(pagina.content()).isEmpty();
+        assertThat(pagina.totalElements()).isZero();
+    }
+
     // due "−1" davvero contemporanei da quantità 2, ognuno in una transazione sua e committata:
     // nessuno deve andare in errore (prima il secondo portava la quantità a 0 violando il CHECK) e la riga sparisce.
     // Fuori dalla transazione di test: il @BeforeEach scrive già in autocommit, quindi alla fine si pulisce a mano
@@ -240,6 +295,13 @@ class CollezioneServiceTest {
     private void scrivi(UUID oggetto, int quantita) {
         jdbc.update("INSERT INTO collezione (id, id_utente, id_oggetto, variante, quantita, aggiornata_il) VALUES (?, ?, ?, 'REVERSE_HOLO', ?, now())",
                 UUID.randomUUID(), idUtente, oggetto, quantita);
+    }
+
+    // una copia aggiornata oreFa ore fa: l'ordine delle carte possedute segue l'ultima modifica
+    private void possiede(UUID chi, UUID oggetto, String variante, int oreFa) {
+        jdbc.update("INSERT INTO collezione (id, id_utente, id_oggetto, variante, quantita, aggiornata_il) "
+                        + "VALUES (?, ?, ?, ?, 1, now() - make_interval(hours => ?))",
+                UUID.randomUUID(), chi, oggetto, variante, oreFa);
     }
 
     private void inserisciCarta(UUID id, String nome, String set, int pokedex) {
