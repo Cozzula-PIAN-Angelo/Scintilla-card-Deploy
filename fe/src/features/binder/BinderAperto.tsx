@@ -13,7 +13,7 @@ import type { Binder, BinderDettaglio } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { usePreferiti } from '../preferiti/usePreferiti'
 import { Album } from './aperto/Album'
-import { AvvisoInMano, Cestino } from './aperto/AvvisiBinder'
+import { AvvisoInMano, BarraTasca, Cestino } from './aperto/AvvisiBinder'
 import { BarraBinder } from './aperto/BarraBinder'
 import { CassettoDalBasso, CassettoLaterale } from './aperto/Cassetto'
 import { NavigazionePagine } from './aperto/NavigazionePagine'
@@ -122,6 +122,10 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
   const puntatore = useSfoglioPuntatore({ attivo: fase === 'aperto', doppia, larghezzaLibro, sfoglio, onPresa: carte.chiudiMenu })
 
+  // carta toccata: la sua tasca dice quale, carta e variante arrivano dalle tasche
+  const tascaAttiva = carte.contesto.tascaAttiva
+  const toccata = tascaAttiva ? slot.find((s) => stessaPosizione(s, tascaAttiva)) : undefined
+
   // --- dettaglio carta: le frecce sfogliano le carte nell'ordine delle tasche, saltando le vuote ---
   const ordinate = useMemo(() => [...slot].sort((a, b) => a.pagina - b.pagina || a.posizione - b.posizione), [slot])
   const guardata = carte.guardata
@@ -218,6 +222,7 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
           <AnimatePresence>
             {carte.inMano && <AvvisoInMano sorgente={carte.inMano} onAnnulla={carte.posa} />}
             {carte.trascinata?.tipo === 'tasca' && <Cestino />}
+            {toccata && <BarraTasca key="tasca" carta={toccata} onChiudi={carte.chiudiMenu} />}
           </AnimatePresence>
 
           <ModaleCarta

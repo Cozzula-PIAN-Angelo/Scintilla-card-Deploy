@@ -1,10 +1,9 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Eye, Move, Plus, Trash2 } from 'lucide-react'
-import { useState, type DragEvent, type PointerEvent, type ReactNode } from 'react'
+import { Plus } from 'lucide-react'
+import { useState, type DragEvent, type PointerEvent } from 'react'
 import { ImmagineOPlaceholder } from '../../components/ImmagineCarta'
 import type { Oggetto, Variante } from '../../types/api'
 import { cn } from '../../utils/cn'
-import { stessaPosizione, TIPO_TRASCINAMENTO, useContestoBinder } from './contesto'
+import { ID_BARRA_TASCA, stessaPosizione, TIPO_TRASCINAMENTO, useContestoBinder } from './contesto'
 import { effettoCarta, varianteMostrata } from '../collezione/conteggi'
 import { useCollezioneBinder } from './contestoCollezione'
 
@@ -17,7 +16,8 @@ interface Props {
 }
 
 // Tasca trasparente di una pagina. Accetta carte trascinate (dal cassetto o da un'altra tasca)
-// oppure, con un tocco, la carta "in mano". Piena, un tocco apre il menu: guarda, sposta, togli
+// oppure, con un tocco, la carta "in mano". Piena, un tocco la alza e apre la barra in basso (BarraTasca):
+// guarda, sposta, ce l'ho, togli. Il menu non sta sulla carta, così resta scoperta
 export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
   const binder = useContestoBinder()
   const collezione = useCollezioneBinder()
@@ -83,7 +83,12 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
     : `Tasca ${posizione + 1}, vuota${inAttesa ? `. Inserisci ${inMano.oggetto.nome}` : ''}`
 
   return (
-    <div className="relative min-h-0 min-w-0" onDragOver={trascinaSopra} onDragLeave={() => setSopra(false)} onDrop={lascia}>
+    <div
+      className={cn('relative min-h-0 min-w-0', menuAperto && 'z-10')}
+      onDragOver={trascinaSopra}
+      onDragLeave={() => setSopra(false)}
+      onDrop={lascia}
+    >
       <button
         type="button"
         onClick={tocca}
@@ -93,10 +98,16 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
         onPointerMove={effetto ? muoviRiflesso : undefined}
         aria-label={etichetta}
         aria-expanded={oggetto ? menuAperto : undefined}
+        aria-controls={menuAperto ? ID_BARRA_TASCA : undefined}
+        data-tasca={`${pagina}-${posizione}`}
         className={cn(
-          'tasca-holo group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[3%/2.1%] transition',
+          'tasca-holo group relative mx-auto block aspect-[63/88] h-full max-h-full max-w-full overflow-hidden rounded-[3%/2.1%] transition duration-200 ease-out',
           // busta di plastica trasparente sulla tela scura: appena più chiara, bordo sottile e riflesso
-          'bg-white/[0.04] ring-1 ring-white/12',
+          'bg-white/[0.04]',
+          // carta toccata: si alza dalla tasca, col bordo giallo delle destinazioni
+          menuAperto
+            ? 'scale-[1.06] shadow-[0_14px_28px_-8px_rgb(0_0_0/0.7)] ring-2 ring-giallo-400 motion-reduce:scale-100'
+            : 'ring-1 ring-white/12',
           oggetto ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
           inAttesa && 'ring-2 ring-giallo-400/70',
           eOrigine && 'opacity-40',
@@ -141,63 +152,6 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
           </span>
         )}
       </button>
-
-      <AnimatePresence>
-        {menuAperto && oggetto && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.15 }}
-            className="absolute inset-0 z-10 m-auto flex aspect-[63/88] h-full max-w-full flex-col items-center justify-center gap-[6%] rounded-[3%/2.1%] bg-ombra/60 backdrop-blur-[2px]"
-          >
-            <AzioneTasca etichetta="Guarda la carta" onClick={() => binder.guarda({ oggetto, variante, pagina, posizione })}>
-              <Eye className="size-full" />
-            </AzioneTasca>
-            <AzioneTasca
-              etichetta="Sposta: poi tocca la tasca di arrivo"
-              onClick={() => binder.prendi({ tipo: 'tasca', oggetto, pagina, posizione })}
-            >
-              <Move className="size-full" />
-            </AzioneTasca>
-            {mancante && collezione && (
-              <AzioneTasca etichetta="Ce l'ho" onClick={() => collezione.ceLho(oggetto, variante)}>
-                <Check className="size-full" />
-              </AzioneTasca>
-            )}
-            <AzioneTasca etichetta="Togli dal binder" pericolo onClick={() => binder.togli(qui)}>
-              <Trash2 className="size-full" />
-            </AzioneTasca>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
-  )
-}
-
-function AzioneTasca({
-  etichetta,
-  pericolo = false,
-  onClick,
-  children,
-}: {
-  etichetta: string
-  pericolo?: boolean
-  onClick: () => void
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={etichetta}
-      title={etichetta}
-      className={cn(
-        'grid aspect-square w-[34%] max-w-11 place-items-center rounded-full p-[7%] shadow-lg transition-transform hover:scale-110',
-        pericolo ? 'bg-rosso-700 text-white' : 'bg-white text-blu-900',
-      )}
-    >
-      {children}
-    </button>
   )
 }

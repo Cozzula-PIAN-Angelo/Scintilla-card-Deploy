@@ -43,3 +43,6 @@ export function stessaPosizione(a: Posizione | null, b: Posizione | null) {
 
 // il dataTransfer serve comunque: senza dati Firefox non avvia il trascinamento
 export const TIPO_TRASCINAMENTO = 'application/x-scintilla-carta'
+
+// la barra delle azioni della carta toccata: la tasca la indica con aria-controls
+export const ID_BARRA_TASCA = 'barra-tasca'
