@@ -86,7 +86,7 @@ public class BinderController {
     public List<SlotBinderResponseDTO> riordina(@AuthenticationPrincipal Utente utente,
                                                 @PathVariable UUID id,
                                                 @RequestBody @Valid RiordinaDTO body) {
-        return binderService.riordina(utente, id, body.criterio());
+        return binderService.riordina(utente, id, body.criterio(), Boolean.TRUE.equals(body.decrescente()));
     }
 
     // sostituisce tutte le tasche (l'Annulla del riordino). PATCH e non PUT per il CORS

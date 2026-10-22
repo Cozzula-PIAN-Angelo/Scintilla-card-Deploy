@@ -81,23 +81,38 @@ final class OrdineCarte {
             .collect(Collectors.toMap(i -> SCALA_RARITA.get(i).toLowerCase(Locale.ROOT), Function.identity()));
 
     // ordine "da album", spareggio di tutti i criteri del binder: set dal più vecchio (senza set in fondo), poi numero
-    private static final Comparator<Oggetto> SET_NUMERO = Comparator
-            .comparing(Oggetto::getEspansione, Comparator.nullsLast(
-                    Comparator.comparing(Espansione::getDataUscita, Comparator.nullsLast(Comparator.<LocalDate>naturalOrder()))
-                            .thenComparing(Espansione::getId)))
-            .thenComparing(Oggetto::getNumero, NumeriCarta::confronta);
+    private static final Comparator<Oggetto> SET_NUMERO = setNumero(false);
 
     private OrdineCarte() {
     }
 
     static Comparator<Oggetto> comparatore(CriterioOrdine criterio) {
+        return comparatore(criterio, false);
+    }
+
+    // decrescente rovescia solo il criterio: le carte senza valore (senza set, senza Pokémon, rarità fuori scala)
+    // restano in fondo e a parità vale sempre l'ordine "da album"
+    static Comparator<Oggetto> comparatore(CriterioOrdine criterio, boolean decrescente) {
         Comparator<Oggetto> primo = switch (criterio) {
-            case SET_NUMERO -> (a, b) -> 0;
-            case POKEDEX -> Comparator.comparing(OrdineCarte::pokedex);
-            case NOME -> Comparator.comparing(Oggetto::getNome, nomi());
-            case RARITA -> Comparator.comparing(OrdineCarte::rarita);
+            case SET_NUMERO -> setNumero(decrescente);
+            case POKEDEX -> Comparator.comparing(OrdineCarte::pokedex, Comparator.nullsLast(OrdineCarte.<Integer>verso(decrescente)));
+            case NOME -> Comparator.comparing(Oggetto::getNome, decrescente ? nomi().reversed() : nomi());
+            case RARITA -> Comparator.comparing(OrdineCarte::rarita, Comparator.nullsLast(OrdineCarte.<Integer>verso(decrescente)));
         };
         return primo.thenComparing(SET_NUMERO);
+    }
+
+    private static Comparator<Oggetto> setNumero(boolean decrescente) {
+        Comparator<String> numeri = NumeriCarta::confronta;
+        return Comparator
+                .comparing(Oggetto::getEspansione, Comparator.nullsLast(
+                        Comparator.comparing(Espansione::getDataUscita, Comparator.nullsLast(OrdineCarte.<LocalDate>verso(decrescente)))
+                                .thenComparing(Espansione::getId, OrdineCarte.<String>verso(decrescente))))
+                .thenComparing(Oggetto::getNumero, decrescente ? numeri.reversed() : numeri);
+    }
+
+    private static <T extends Comparable<? super T>> Comparator<T> verso(boolean decrescente) {
+        return decrescente ? Comparator.reverseOrder() : Comparator.naturalOrder();
     }
 
     private static LocalDate dataUscita(Oggetto oggetto) {
@@ -106,13 +121,14 @@ final class OrdineCarte {
     }
 
     // il numero più basso: una carta con due Pokémon sta col primo. Senza Pokémon (allenatori, energie) in fondo
-    private static int pokedex(Oggetto carta) {
-        return carta.getNumeriPokedex().isEmpty() ? Integer.MAX_VALUE : Collections.min(carta.getNumeriPokedex());
+    private static Integer pokedex(Oggetto carta) {
+        return carta.getNumeriPokedex().isEmpty() ? null : Collections.min(carta.getNumeriPokedex());
     }
 
-    private static int rarita(Oggetto carta) {
+    // null = fuori scala, in fondo
+    private static Integer rarita(Oggetto carta) {
         String rarita = carta.getRarita();
-        return rarita == null ? Integer.MAX_VALUE : POSIZIONE_RARITA.getOrDefault(rarita.toLowerCase(Locale.ROOT), Integer.MAX_VALUE);
+        return rarita == null ? null : POSIZIONE_RARITA.get(rarita.toLowerCase(Locale.ROOT));
     }
 
     // PRIMARY: niente differenze tra maiuscole e accenti

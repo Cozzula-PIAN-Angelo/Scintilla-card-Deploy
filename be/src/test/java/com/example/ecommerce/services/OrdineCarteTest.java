@@ -88,9 +88,57 @@ class OrdineCarteTest {
                 .containsExactly(rare, holo, doppia, fullArt, segreta, boh);
     }
 
+    @Test
+    void setNumeroDecrescenteConSenzaSetInFondo() {
+        Oggetto dieci = carta("Raichu", BASE, "10");
+        Oggetto due = carta("Blastoise", BASE, "2");
+        Oggetto uno = carta("Aerodactyl", FOSSIL, "1");
+        Oggetto senzaSet = carta("Promo", null, "1");
+
+        assertThat(ordinaAlContrario(CriterioOrdine.SET_NUMERO, senzaSet, due, uno, dieci)).containsExactly(uno, dieci, due, senzaSet);
+    }
+
+    @Test
+    void pokedexDecrescenteConAllenatoriInFondo() {
+        Oggetto pikachu = carta("Pikachu", BASE, "58", 25);
+        Oggetto rattata = carta("Rattata", BASE, "61", 19);
+        Oggetto allenatore = carta("Professor Oak", BASE, "88");
+
+        assertThat(ordinaAlContrario(CriterioOrdine.POKEDEX, allenatore, rattata, pikachu)).containsExactly(pikachu, rattata, allenatore);
+    }
+
+    // a parità di nome resta l'ordine da album, anche al contrario
+    @Test
+    void nomeDecrescenteConSpareggioSetNumero() {
+        Oggetto abra = carta("abra", BASE, "43");
+        Oggetto pikachuJungle = carta("Pikachu", JUNGLE, "60");
+        Oggetto pikachuBase = carta("Pikachu", BASE, "58");
+
+        assertThat(ordinaAlContrario(CriterioOrdine.NOME, abra, pikachuJungle, pikachuBase))
+                .containsExactly(pikachuBase, pikachuJungle, abra);
+    }
+
+    @Test
+    void raritaDecrescenteConFuoriScalaInFondo() {
+        Oggetto common = rara("Common", "1");
+        Oggetto boh = rara("Boh", "2");
+        Oggetto hyper = rara("Hyper Rare", "3");
+        Oggetto nulla = rara(null, "4");
+        Oggetto rare = rara("Rare", "5");
+
+        assertThat(ordinaAlContrario(CriterioOrdine.RARITA, common, boh, hyper, nulla, rare))
+                .containsExactly(hyper, rare, common, boh, nulla);
+    }
+
     private static List<Oggetto> ordina(CriterioOrdine criterio, Oggetto... carte) {
         List<Oggetto> lista = new ArrayList<>(Arrays.asList(carte));
         lista.sort(OrdineCarte.comparatore(criterio));
+        return lista;
+    }
+
+    private static List<Oggetto> ordinaAlContrario(CriterioOrdine criterio, Oggetto... carte) {
+        List<Oggetto> lista = new ArrayList<>(Arrays.asList(carte));
+        lista.sort(OrdineCarte.comparatore(criterio, true));
         return lista;
     }
 
