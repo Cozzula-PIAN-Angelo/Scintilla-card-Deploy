@@ -1,6 +1,6 @@
 import { QueryStatus } from '@reduxjs/toolkit/query'
 import { api } from '../../app/api'
-import type { Copia, Variante } from '../../types/api'
+import type { Copia, Oggetto, Pagina, Variante } from '../../types/api'
 import { binderApi } from '../binder/binderApi'
 
 // pagina da cui si legge la collezione: un set, un Pokémon o un artista (slug)
@@ -37,6 +37,12 @@ export const collezioneApi = api.injectEndpoints({
       providesTags: ['Collezione'],
     }),
 
+    // carte possedute, una per carta, dall'ultima aggiunta o modificata (cassetto del binder); q filtra per nome
+    getCartePossedute: build.query<Pagina<Oggetto>, { q: string; page: number }>({
+      query: ({ q, page }) => ({ url: '/me/collezione/carte', params: { q, page, size: 24 } }),
+      providesTags: ['CartePossedute'],
+    }),
+
     // Aggiornamento ottimistico (tetto 0..999). Le risposte non si applicano finché altre richieste
     // della stessa copia sono in corso: possono arrivare fuori ordine e rimetterebbero un valore vecchio.
     // Una raffica (più di una richiesta, o un errore) si chiude rileggendo dal server, perché il client
@@ -50,8 +56,9 @@ export const collezioneApi = api.injectEndpoints({
         method: 'PATCH',
         body: { oggettoId, variante, delta },
       }),
-      // le statistiche (riquadro della pagina Binder, /collezione) si rileggono alla prossima apertura
-      invalidatesTags: ['Statistiche'],
+      // le statistiche (riquadro della pagina Binder, /collezione) si rileggono alla prossima apertura;
+      // le carte possedute del cassetto subito, se aperto: una carta segnata con Ce l'ho ci deve comparire
+      invalidatesTags: ['Statistiche', 'CartePossedute'],
       async onQueryStarted({ oggettoId, variante, delta, filtro, binderId }, { dispatch, getState, queryFulfilled }) {
         const applica = (copie: Copia[]) => {
           const attuale = copie.find((c) => c.oggettoId === oggettoId && c.variante === variante)?.quantita ?? 0
@@ -115,4 +122,4 @@ export const collezioneApi = api.injectEndpoints({
   }),
 })
 
-export const { useGetCollezioneQuery, useModificaCollezioneMutation } = collezioneApi
+export const { useGetCollezioneQuery, useGetCartePosseduteQuery, useModificaCollezioneMutation } = collezioneApi

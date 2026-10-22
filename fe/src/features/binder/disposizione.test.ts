@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Oggetto, SlotBinder, Variante } from '../../types/api'
-import { inserisci, sposta, togli } from './disposizione'
+import { inserisci, primaLibera, sposta, togli } from './disposizione'
 
 // stessi casi di DisposizioneTest nel backend; 9 tasche per pagina, indice = pagina * 9 + posizione
 const TASCHE = 9
@@ -38,6 +38,21 @@ describe('inserisci', () => {
     const lista = slot({ 0: 'A' })
     inserisci(lista, TASCHE, 1, pos(0), carta('X'))
     expect(mappa(lista)).toEqual({ 0: 'A' })
+  })
+})
+
+describe('primaLibera', () => {
+  it('il primo buco, anche in mezzo', () => {
+    expect(primaLibera(slot({ 0: 'A', 1: 'B', 3: 'C' }), TASCHE, 2)).toEqual(pos(2))
+  })
+  it('binder vuoto: la prima tasca', () => {
+    expect(primaLibera([], TASCHE, 2)).toEqual(pos(0))
+  })
+  it('pagina piena: sulla pagina dopo', () => {
+    expect(primaLibera(piene([]), TASCHE, 2)).toEqual(pos(9))
+  })
+  it('binder pieno: null', () => {
+    expect(primaLibera(piene([]), TASCHE, 1)).toBeNull()
   })
 })
 

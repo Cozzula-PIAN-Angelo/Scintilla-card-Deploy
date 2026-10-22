@@ -24,6 +24,8 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
   const [sopra, setSopra] = useState(false)
   const qui = { pagina, posizione }
   const menuAperto = oggetto !== null && stessaPosizione(binder.tascaAttiva, qui)
+  // appena riempita con un tocco dal cassetto
+  const evidenziata = stessaPosizione(binder.evidenziata, qui)
   const inMano = binder.inMano
   // la carta in mano è proprio questa: niente destinazione su se stessa
   const eOrigine = inMano?.tipo === 'tasca' && stessaPosizione(inMano, qui)
@@ -111,6 +113,7 @@ export function Tasca({ pagina, posizione, oggetto, variante }: Props) {
           oggetto ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
           inAttesa && 'ring-2 ring-giallo-400/70',
           eOrigine && 'opacity-40',
+          evidenziata && 'tasca-evidenziata',
           sopra && 'scale-[1.04] ring-4 ring-giallo-400',
         )}
       >

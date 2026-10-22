@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { messaggioErrore, statoErrore } from '../../app/errori'
 import { Button } from '../../components/Button'
 import { Loader } from '../../components/Loader'
@@ -121,6 +121,15 @@ function VistaBinder({ dettaglio, onChiuso, onImpostazioni }: { dettaglio: Binde
   // il più grande possibile nello spazio libero, senza deformarlo
   const larghezzaLibro = Math.max(0, Math.min(spazioLibero.larghezza, spazioLibero.altezza * rapporto))
   const puntatore = useSfoglioPuntatore({ attivo: fase === 'aperto', doppia, larghezzaLibro, sfoglio, onPresa: carte.chiudiMenu })
+
+  // carta aggiunta con un tocco dal cassetto: l'album gira fino alla sua pagina. vaiA cambia a ogni giro,
+  // l'effetto deve scattare solo quando cambia la tasca: si legge l'ultima dal ref
+  const evidenziata = carte.contesto.evidenziata
+  const giraA = useRef(vaiA)
+  giraA.current = vaiA
+  useEffect(() => {
+    if (evidenziata) giraA.current(doppia ? Math.ceil(evidenziata.pagina / 2) : evidenziata.pagina)
+  }, [evidenziata, doppia])
 
   // carta toccata: la sua tasca dice quale, carta e variante arrivano dalle tasche
   const tascaAttiva = carte.contesto.tascaAttiva

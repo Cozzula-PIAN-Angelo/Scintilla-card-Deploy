@@ -6,6 +6,9 @@ export interface Posizione {
   posizione: number
 }
 
+// tasca appena riempita con un tocco dal cassetto, con la carta (il cassetto fa "pop" sul suo segno)
+export type TascaEvidenziata = Posizione & { oggettoId: string }
+
 // una carta presa dal cassetto oppure da una tasca del binder
 export type Sorgente = { tipo: 'carta'; oggetto: Oggetto } | ({ tipo: 'tasca'; oggetto: Oggetto } & Posizione)
 
@@ -27,6 +30,12 @@ export interface ContestoBinder {
   togli: (posizione: Posizione) => void
   // carta ingrandita nel dettaglio, con la sua tasca (da lì si sfogliano le altre)
   guarda: (carta: CartaInTasca) => void
+  // copie di ogni carta già nelle tasche (id -> quante): il cassetto le segna
+  nelBinder: ReadonlyMap<string, number>
+  // tocco su una carta del cassetto: va nella prima tasca libera
+  aggiungi: (oggetto: Oggetto) => void
+  // tasca appena riempita con un tocco: l'album gira fin lì e la tasca si illumina per un attimo
+  evidenziata: TascaEvidenziata | null
 }
 
 export const Contesto = createContext<ContestoBinder | null>(null)

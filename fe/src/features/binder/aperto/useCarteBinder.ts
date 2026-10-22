@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { messaggioErrore } from '../../../app/errori'
 import type { Binder, SlotBinder } from '../../../types/api'
 import { useToast } from '../../toast/useToast'
 import { useInserisciCartaMutation, useSpostaCartaMutation, useSvuotaTascaMutation } from '../binderApi'
-import { inserisci as inserisciConSpazio } from '../disposizione'
-import { stessaPosizione, type CartaInTasca, type ContestoBinder, type Posizione, type Sorgente } from '../contesto'
+import { inserisci as inserisciConSpazio, primaLibera } from '../disposizione'
+import { stessaPosizione, type CartaInTasca, type ContestoBinder, type Posizione, type Sorgente, type TascaEvidenziata } from '../contesto'
 
 // carte: tocco, trascinamento, menu delle tasche. Con faiSpazio inserire e spostare fanno scalare le carte
 export function useCarteBinder(binder: Binder, slot: SlotBinder[], faiSpazio: boolean) {
@@ -15,10 +15,24 @@ export function useCarteBinder(binder: Binder, slot: SlotBinder[], faiSpazio: bo
   const [trascinata, setTrascinata] = useState<Sorgente | null>(null)
   const [tascaAttiva, setTascaAttiva] = useState<Posizione | null>(null)
   const [guardata, setGuardata] = useState<CartaInTasca | null>(null)
+  const [evidenziata, setEvidenziata] = useState<TascaEvidenziata | null>(null)
+
+  // la tasca riempita resta illuminata il tempo di trovarla con l'occhio
+  useEffect(() => {
+    if (!evidenziata) return
+    const timer = window.setTimeout(() => setEvidenziata(null), 1600)
+    return () => window.clearTimeout(timer)
+  }, [evidenziata])
 
   const [inserisci] = useInserisciCartaMutation()
   const [sposta] = useSpostaCartaMutation()
   const [svuota] = useSvuotaTascaMutation()
+
+  const nelBinder = useMemo(() => {
+    const conteggi = new Map<string, number>()
+    for (const s of slot) conteggi.set(s.oggetto.id, (conteggi.get(s.oggetto.id) ?? 0) + 1)
+    return conteggi
+  }, [slot])
 
   const contesto = useMemo<ContestoBinder>(() => {
     const errore = (e: unknown) => toast.errore(messaggioErrore(e, 'Operazione non riuscita, riprova'))
@@ -60,8 +74,23 @@ export function useCarteBinder(binder: Binder, slot: SlotBinder[], faiSpazio: bo
         setTascaAttiva(null)
         setGuardata(carta)
       },
+      nelBinder,
+      // niente "Fai spazio": la tasca è libera per definizione. Niente toast di conferma (con più carte di fila
+      // si accumulavano): bastano la tasca illuminata e il segno sulla carta nel cassetto. Si toglie con Togli
+      aggiungi: (oggetto) => {
+        const libera = primaLibera(slot, binder.tasche, binder.pagine)
+        if (!libera) {
+          toast.errore("Binder pieno: non c'è una tasca libera")
+          return
+        }
+        setInMano(null)
+        setTascaAttiva(null)
+        setEvidenziata({ ...libera, oggettoId: oggetto.id })
+        inserisci({ binderId, ...libera, oggetto }).unwrap().catch(errore)
+      },
+      evidenziata,
     }
-  }, [inMano, trascinata, tascaAttiva, binderId, binder.tasche, binder.pagine, slot, faiSpazio, inserisci, sposta, svuota, toast])
+  }, [inMano, trascinata, tascaAttiva, nelBinder, evidenziata, binderId, binder.tasche, binder.pagine, slot, faiSpazio, inserisci, sposta, svuota, toast])
 
   // chiude il menu della tasca
   const chiudiMenu = useCallback(() => setTascaAttiva(null), [])

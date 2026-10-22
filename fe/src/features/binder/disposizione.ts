@@ -59,6 +59,13 @@ export function inserisci(slot: SlotBinder[], tasche: number, pagine: number, do
   return nuova && inLista(nuova, tasche)
 }
 
+// prima tasca libera del binder, in ordine di pagina e posizione (un tocco su una carta del cassetto la mette lì).
+// null = binder pieno
+export function primaLibera(slot: SlotBinder[], tasche: number, pagine: number): Posizione | null {
+  const buco = primoBuco(inMappa(slot, tasche), -1, pagine * tasche)
+  return buco === pagine * tasche ? null : { pagina: Math.floor(buco / tasche), posizione: buco % tasche }
+}
+
 // le carte dopo arretrano fino al buco successivo
 export function togli(slot: SlotBinder[], tasche: number, pagine: number, dove: Posizione): SlotBinder[] {
   return inLista(togliDaMappa(inMappa(slot, tasche), pagine * tasche, indice(dove, tasche)), tasche)
