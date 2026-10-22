@@ -4,18 +4,23 @@ import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.repositories.OggettoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -93,6 +98,38 @@ class RiempimentoVariantiTest {
         verify(catalogoService).riempiVarianti("base1");
         verify(catalogoService).riempiVarianti("sv1");
         assertThat(log.getOut()).contains("WARN").contains("jungle");
+    }
+
+    // carte nei binder con prezzi mai letti o più vecchi di 7 giorni: al primo giro tutte, poi a blocchi
+    @Test
+    void terzoPassoRinfrescaIPrezzi() {
+        when(oggettoRepository.findSetConVariantiMancanti(anyInt())).thenReturn(List.of());
+        when(oggettoRepository.findIdEsterniConPrezziDaRinfrescare(eq(RiempimentoVarianti.PRIMO_GIRO_CARTE), any()))
+                .thenReturn(List.of("sv1-1"));
+        when(oggettoRepository.findIdEsterniConPrezziDaRinfrescare(eq(RiempimentoVarianti.CARTE_PER_GIRO), any()))
+                .thenReturn(List.of());
+
+        riempimento.esegui();
+        riempimento.esegui();
+
+        verify(catalogoService).rinfrescaPrezzi(List.of("sv1-1"));
+        verify(catalogoService, times(1)).rinfrescaPrezzi(anyList());
+        ArgumentCaptor<Instant> prima = ArgumentCaptor.forClass(Instant.class);
+        verify(oggettoRepository, times(2)).findIdEsterniConPrezziDaRinfrescare(anyInt(), prima.capture());
+        Instant setteGiorniFa = Instant.now().minus(Duration.ofDays(7));
+        assertThat(prima.getValue()).isBetween(setteGiorniFa.minusSeconds(60), setteGiorniFa);
+    }
+
+    @Test
+    void erroreNelRinfrescoNonFermaGliAltriPassi(CapturedOutput log) {
+        when(oggettoRepository.findSetConVariantiMancanti(anyInt())).thenReturn(List.of("base1"));
+        when(oggettoRepository.findIdEsterniConPrezziDaRinfrescare(anyInt(), any())).thenReturn(List.of("sv1-1"));
+        doThrow(new ServizioEsternoException("giù", null)).when(catalogoService).rinfrescaPrezzi(anyList());
+
+        riempimento.esegui();
+
+        verify(catalogoService).riempiVarianti("base1");
+        assertThat(log.getOut()).contains("WARN").contains("Prezzi delle carte nei binder non rinfrescati");
     }
 
     @Test

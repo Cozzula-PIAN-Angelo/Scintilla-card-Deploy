@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -82,6 +83,15 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
             + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL) ORDER BY random() LIMIT :limite",
             nativeQuery = true)
     List<String> findIdEsterniDaRiempireFuoriDaiSetImportati(@Param("limite") int limite);
+
+    // carte da rinfrescare nel job: in almeno un binder, con prezzi mai letti o letti prima di `prima`. Prima le mai
+    // lette, poi le più vecchie; gli oggetti creati a mano (senza id di TCGdex) mai
+    @Query(value = "SELECT o.id_esterno FROM oggetti o WHERE o.id_esterno IS NOT NULL "
+            + "AND EXISTS (SELECT 1 FROM binder_slot s WHERE s.id_oggetto = o.id) "
+            + "AND (o.prezzi_aggiornati_il IS NULL OR o.prezzi_aggiornati_il < :prima) "
+            + "ORDER BY o.prezzi_aggiornati_il NULLS FIRST, o.id LIMIT :limite",
+            nativeQuery = true)
+    List<String> findIdEsterniConPrezziDaRinfrescare(@Param("limite") int limite, @Param("prima") Instant prima);
 
     // le carte di un set ancora senza varianti, rarità o artista: dopo il riempimento sono quelle che TCGdex non restituisce più
     @Query("SELECT o FROM Oggetto o WHERE o.espansione.id = :espansioneId AND o.idEsterno IS NOT NULL "

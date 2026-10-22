@@ -86,6 +86,24 @@ public class Oggetto {
     @Column(length = 200)
     private String artista;
 
+    // minimo e massimo di Cardmarket (vedi PrezziService.fascia), normale e reverse ("-holo"), per il valore del
+    // binder come fascia. null = non ancora letti o non disponibili
+    @Column(name = "prezzo_minimo", precision = 8, scale = 2)
+    private BigDecimal prezzoMinimo;
+
+    @Column(name = "prezzo_massimo", precision = 8, scale = 2)
+    private BigDecimal prezzoMassimo;
+
+    @Column(name = "prezzo_minimo_reverse", precision = 8, scale = 2)
+    private BigDecimal prezzoMinimoReverse;
+
+    @Column(name = "prezzo_massimo_reverse", precision = 8, scale = 2)
+    private BigDecimal prezzoMassimoReverse;
+
+    // ultima lettura dei prezzi da TCGdex: null = mai letti. Il job rinfresca quelli delle carte nei binder
+    @Column(name = "prezzi_aggiornati_il")
+    private Instant prezziAggiornatiIl;
+
     public Oggetto(String nome, BigDecimal prezzo) {
         this.nome = nome;
         this.prezzo = prezzo;

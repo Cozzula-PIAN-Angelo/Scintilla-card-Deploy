@@ -64,6 +64,11 @@ export interface Oggetto {
   rarita: string | null
   // autori della carta, coautori divisi; vuota finché TCGdex non è stato letto
   artisti: ArtistaCarta[]
+  // minimo e massimo di Cardmarket salvati (normale e reverse) per il valore del binder; null = non letti o non disponibili
+  prezzoMinimo: number | null
+  prezzoMassimo: number | null
+  prezzoMinimoReverse: number | null
+  prezzoMassimoReverse: number | null
 }
 
 // un autore di una carta; slug null = artista non ancora nell'elenco (nome senza link)

@@ -2,7 +2,7 @@ import { ArrowDownWideNarrow, ArrowLeft, BetweenHorizontalStart, Book, BookOpen,
 import { Button } from '../../../components/Button'
 import type { Binder } from '../../../types/api'
 import { percentuale } from '../../statistiche/calcoli'
-import type { StatisticheBinder } from '../statisticheBinder'
+import { euroInteri, testoFascia, type StatisticheBinder } from '../statisticheBinder'
 import { BarraTasche } from './BarraTasche'
 import { cn } from '../../../utils/cn'
 import type { Fase } from './costanti'
@@ -72,7 +72,8 @@ export function BarraBinder({
           <BarraTasche statistiche={statistiche} possedute="bg-accento" daTrovare="bg-accento/35" className="h-1.5 w-12 shrink-0 bg-tenue" />
           <p className="truncate">
             <strong className="font-semibold text-testo">{statistiche.possedute}</strong> / {statistiche.piene} possedute ·{' '}
-            {percentuale(statistiche.possedute, statistiche.piene)}% · ≈ {Math.round(statistiche.valore).toLocaleString('it-IT')} €
+            {percentuale(statistiche.possedute, statistiche.piene)}% · ≈ {euroInteri(statistiche.valore)} €{' '}
+            <span className="text-testo/60">({testoFascia(statistiche).breve})</span>
           </p>
         </div>
       )}
