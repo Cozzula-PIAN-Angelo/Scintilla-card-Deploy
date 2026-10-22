@@ -87,7 +87,7 @@ class BinderServiceTest {
         metti(0, 7, due);
         metti(1, 3, cinque);
 
-        List<SlotBinderResponseDTO> slot = service.riordina(utente, binder, CriterioOrdine.SET_NUMERO);
+        List<SlotBinderResponseDTO> slot = service.riordina(utente, binder, CriterioOrdine.SET_NUMERO, false);
 
         assertThat(slot).extracting(s -> s.pagina() * 9 + s.posizione()).containsExactly(0, 1, 2);
         assertThat(slot).extracting(s -> s.oggetto().id()).containsExactly(due, cinque, dieci);
@@ -106,14 +106,14 @@ class BinderServiceTest {
         metti(0, 6, uno);
         metti(1, 0, due);
 
-        List<SlotBinderResponseDTO> slot = service.riordina(utente, binder, CriterioOrdine.SET_NUMERO);
+        List<SlotBinderResponseDTO> slot = service.riordina(utente, binder, CriterioOrdine.SET_NUMERO, false);
 
         assertThat(slot).extracting(s -> s.oggetto().id()).containsExactly(uno, due, due);
     }
 
     @Test
     void riordinaBinderVuoto() {
-        assertThat(service.riordina(utente, binder, CriterioOrdine.NOME)).isEmpty();
+        assertThat(service.riordina(utente, binder, CriterioOrdine.NOME, false)).isEmpty();
     }
 
     @Test
@@ -169,7 +169,7 @@ class BinderServiceTest {
 
     @Test
     void binderDiAltroUtente404() {
-        assertThatThrownBy(() -> service.riordina(altro, binder, CriterioOrdine.NOME)).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.riordina(altro, binder, CriterioOrdine.NOME, false)).isInstanceOf(NotFoundException.class);
         assertThatThrownBy(() -> service.ripristina(altro, binder, List.of())).isInstanceOf(NotFoundException.class);
     }
 
@@ -454,11 +454,27 @@ class BinderServiceTest {
                 new DisposizioneSlotDTO(0, 3, uno, Variante.REVERSE_HOLO),
                 new DisposizioneSlotDTO(0, 4, uno, Variante.NORMALE)));
 
-        service.riordina(utente, binder, CriterioOrdine.SET_NUMERO);
+        service.riordina(utente, binder, CriterioOrdine.SET_NUMERO, false);
 
         assertThat(disposizioneConVariante()).containsExactly(
                 "0:" + uno + ":NORMALE", "1:" + uno + ":NORMALE", "2:" + uno + ":REVERSE_HOLO", "3:" + uno + ":REVERSE_HOLO",
                 "4:" + due + ":NORMALE");
+    }
+
+    // al contrario si rovesciano le carte, non le coppie: la Normale resta prima della Reverse
+    @Test
+    void riordinoDecrescenteTieneLeCoppie() {
+        UUID uno = carta("Bulbasaur", "base1", "1");
+        UUID due = carta("Ivysaur", "base1", "2");
+        service.ripristina(utente, binder, List.of(
+                new DisposizioneSlotDTO(0, 0, uno, Variante.REVERSE_HOLO),
+                new DisposizioneSlotDTO(0, 1, due, Variante.NORMALE),
+                new DisposizioneSlotDTO(0, 2, uno, Variante.NORMALE)));
+
+        service.riordina(utente, binder, CriterioOrdine.SET_NUMERO, true);
+
+        assertThat(disposizioneConVariante()).containsExactly(
+                "0:" + due + ":NORMALE", "1:" + uno + ":NORMALE", "2:" + uno + ":REVERSE_HOLO");
     }
 
     @Test
@@ -564,7 +580,7 @@ class BinderServiceTest {
         em.clear();
         Statistics statistiche = em.getEntityManager().getEntityManagerFactory().unwrap(SessionFactory.class).getStatistics();
         statistiche.clear();
-        service.riordina(utente, id, CriterioOrdine.POKEDEX);
+        service.riordina(utente, id, CriterioOrdine.POKEDEX, false);
         em.flush();
         return statistiche.getPrepareStatementCount();
     }

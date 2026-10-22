@@ -254,13 +254,13 @@ public class BinderService {
                         });
     }
 
-    // tutte le carte, comprese le copie, tornano compatte dalla prima tasca nell'ordine del criterio
+    // tutte le carte, comprese le copie, tornano compatte dalla prima tasca nell'ordine del criterio, crescente o decrescente
     @Transactional
-    public List<SlotBinderResponseDTO> riordina(Utente utente, UUID id, CriterioOrdine criterio) {
+    public List<SlotBinderResponseDTO> riordina(Utente utente, UUID id, CriterioOrdine criterio, boolean decrescente) {
         Binder binder = findBinder(utente, id);
         TreeMap<Integer, TascaBinder> prima = perIndice(binder, slotRepository.findConCarteComplete(id));
         // a parità di carta prima la Normale (o nessuna variante), poi la Reverse: le coppie del master restano vicine
-        Comparator<TascaBinder> ordine = Comparator.comparing(TascaBinder::oggetto, OrdineCarte.comparatore(criterio))
+        Comparator<TascaBinder> ordine = Comparator.comparing(TascaBinder::oggetto, OrdineCarte.comparatore(criterio, decrescente))
                 .thenComparing(t -> t.variante() == Variante.REVERSE_HOLO);
         TreeMap<Integer, TascaBinder> dopo = compatte(prima.values().stream().sorted(ordine).toList());
         riscrivi(binder, prima, dopo);
