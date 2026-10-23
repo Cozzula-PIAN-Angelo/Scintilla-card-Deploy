@@ -88,6 +88,15 @@ public class EspansioneService {
         }
     }
 
+    // descrizione scritta dall'admin per la hero della home: spazi tolti, vuota = nessuna
+    public EspansioneResponseDTO modificaDescrizione(String id, String descrizione) {
+        Espansione espansione = espansioneRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Espansione " + id + " non trovata"));
+        String testo = descrizione == null ? null : descrizione.strip();
+        espansione.setDescrizione(testo == null || testo.isEmpty() ? null : testo);
+        return EspansioneResponseDTO.from(espansioneRepository.save(espansione));
+    }
+
     // carte del set, ordinate per numero. Alla prima apertura solo la pagina chiesta (da 0), presa al volo da
     // TCGdex, mentre il set intero si scarica in background. client: IP del visitatore, per il limite sugli import
     public CarteDTO carte(String id, Integer pagina, String client) {

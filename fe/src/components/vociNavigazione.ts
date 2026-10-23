@@ -25,7 +25,7 @@ export const VOCE_COLLEZIONE: VoceMenu = { a: '/collezione', etichetta: 'Collezi
 export const VOCE_PROFILO: VoceMenu = { a: '/profilo', etichetta: 'Profilo', icona: UserRound }
 export const VOCE_IMPOSTAZIONI: VoceMenu = { a: '/profilo/impostazioni', etichetta: 'Impostazioni', icona: Settings }
 
-// la pagina di un'espansione fa parte del catalogo
+// l'elenco delle espansioni e la pagina di un'espansione fanno parte del catalogo
 export function voceAttiva(voce: VoceMenu, isActive: boolean, pathname: string): boolean {
-  return isActive || (voce.a === '/' && pathname.startsWith('/espansioni/'))
+  return isActive || (voce.a === '/' && pathname.startsWith('/espansioni'))
 }

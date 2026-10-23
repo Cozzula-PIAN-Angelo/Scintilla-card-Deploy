@@ -26,7 +26,7 @@ export function EspansionePage() {
   const [listaMobileAperta, setListaMobileAperta] = useState(false)
   useTitolo(espansione?.nome ?? 'Espansione')
 
-  const { torna: tornaAllaVetrina, statoAvanti } = useRitornoElenco('/')
+  const { torna: tornaAllaVetrina, statoAvanti } = useRitornoElenco('/espansioni')
 
   useEffect(() => {
     if (espansione) memoriaElenco.ultimaAperta = espansione.id

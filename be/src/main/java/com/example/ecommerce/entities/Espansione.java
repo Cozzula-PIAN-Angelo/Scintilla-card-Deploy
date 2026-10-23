@@ -38,6 +38,10 @@ public class Espansione {
     @Column(name = "totale_carte")
     private Integer totaleCarte;
 
+    // carte ufficiali (cardCount.official di TCGdex): quelle oltre sono le segrete. null = non ancora lette
+    @Column(name = "carte_ufficiali")
+    private Integer carteUfficiali;
+
     @Column(name = "logo_url", length = 512)
     private String logoUrl;
 
@@ -47,6 +51,10 @@ public class Espansione {
     // true quando le carte del set sono già state importate nel catalogo
     @Column(nullable = false)
     private boolean importata;
+
+    // scritta dall'admin per la vetrina della home; la sincronizzazione non la tocca. null = nessuna
+    @Column(length = 600)
+    private String descrizione;
 
     public Espansione(String id) {
         this.id = id;

@@ -9,9 +9,13 @@ public record EspansioneResponseDTO(String id,
                                     String serie,
                                     LocalDate dataUscita,
                                     Integer totaleCarte,
+                                    // null = non ancora lette da TCGdex
+                                    Integer carteUfficiali,
                                     String logoUrl,
                                     String simboloUrl,
-                                    boolean importata) {
+                                    boolean importata,
+                                    // scritta dall'admin; null = nessuna
+                                    String descrizione) {
 
     public static EspansioneResponseDTO from(Espansione espansione) {
         return new EspansioneResponseDTO(
@@ -20,9 +24,11 @@ public record EspansioneResponseDTO(String id,
                 espansione.getSerie(),
                 espansione.getDataUscita(),
                 espansione.getTotaleCarte(),
+                espansione.getCarteUfficiali(),
                 espansione.getLogoUrl(),
                 espansione.getSimboloUrl(),
-                espansione.isImportata()
+                espansione.isImportata(),
+                espansione.getDescrizione()
         );
     }
 }

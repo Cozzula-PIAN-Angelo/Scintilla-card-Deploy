@@ -1,0 +1,147 @@
+package com.example.ecommerce.services;
+
+import com.example.ecommerce.entities.Espansione;
+import com.example.ecommerce.entities.Oggetto;
+import com.example.ecommerce.payloads.AnteprimaSetDTO;
+import com.example.ecommerce.payloads.CartaAnteprimaDTO;
+import com.example.ecommerce.payloads.RaritaContataDTO;
+import com.example.ecommerce.repositories.EspansioneRepository;
+import com.example.ecommerce.repositories.OggettoRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class VetrinaServiceTest {
+
+    @Mock
+    private EspansioneRepository espansioneRepository;
+    @Mock
+    private OggettoRepository oggettoRepository;
+    @InjectMocks
+    private VetrinaService service;
+
+    // solo i set già scaricati, con logo e data: degli altri le carte non sono in archivio
+    @Test
+    void inVetrinaSoloISetScaricatiConLogoEData() {
+        Espansione nuovo = set("me05", true, "logo", LocalDate.of(2026, 7, 17));
+        Espansione nonScaricato = set("me03", false, "logo", LocalDate.of(2026, 3, 27));
+        Espansione senzaLogo = set("mep", true, null, LocalDate.of(2025, 9, 26));
+        Espansione vecchio = set("sv10", true, "logo", LocalDate.of(2025, 5, 30));
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(List.of(nuovo, nonScaricato, senzaLogo, vecchio));
+        when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(List.of());
+
+        List<AnteprimaSetDTO> anteprime = service.anteprime();
+
+        assertThat(anteprime).extracting(a -> a.espansione().id()).containsExactly("me05", "sv10");
+    }
+
+    @Test
+    void alPiuNoveSet() {
+        List<Espansione> tanti = IntStream.range(0, 12).mapToObj(i -> set("s" + i, true, "logo", LocalDate.of(2026, 1, 1))).toList();
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(tanti);
+        when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(List.of());
+
+        assertThat(service.anteprime()).hasSize(VetrinaService.SET_IN_VETRINA);
+    }
+
+    // con abbastanza prezzi si ordina per prezzo massimo; un Pokémon compare una volta sola
+    @Test
+    void carteDiPuntaPerPrezzoSenzaDoppioni() {
+        List<Oggetto> carte = new ArrayList<>();
+        carte.add(carta("Mew (30th Celebration R/128)", "RGB Rare", "3009.79"));
+        carte.add(carta("Mew (30th Celebration G/128)", "RGB Rare", "2780.50"));
+        carte.add(carta("Gengar ex (30th Celebration 154/128)", "Special illustration rare", "112.42"));
+        carte.add(carta("Pikachu ex (30th Celebration 150/128)", "Special illustration rare", "94.24"));
+
+        List<Oggetto> diPunta = VetrinaService.carteDiPunta(carte, 3);
+
+        assertThat(diPunta).extracting(Oggetto::getNome).containsExactly(
+                "Mew (30th Celebration R/128)", "Gengar ex (30th Celebration 154/128)", "Pikachu ex (30th Celebration 150/128)");
+    }
+
+    // pochi prezzi letti: conta la rarità
+    @Test
+    void carteDiPuntaPerRaritaSenzaPrezzi() {
+        List<Oggetto> carte = List.of(
+                carta("Weedle (Chaos Rising 1/86)", "Common", null),
+                carta("Mega Darkrai ex (Chaos Rising 120/86)", "Mega Hyper Rare", null),
+                carta("Beedrill ex (Chaos Rising 3/86)", "Double rare", null));
+
+        assertThat(VetrinaService.carteDiPunta(carte, 2)).extracting(Oggetto::getRarita).containsExactly("Mega Hyper Rare", "Double rare");
+    }
+
+    @Test
+    void sfondoSenzaLeCarteDelTavolo() {
+        Oggetto rara = carta("Mew ex (S 152/128)", "Special illustration rare", null);
+        Oggetto illustrata = carta("Eevee (S 140/128)", "Illustration rare", null);
+        Oggetto comune = carta("Caterpie (S 1/128)", "Common", null);
+
+        List<Oggetto> sfondo = VetrinaService.carteSfondo(List.of(comune, rara, illustrata), List.of(rara));
+
+        assertThat(sfondo).containsExactly(illustrata, comune);
+    }
+
+    // dalle ultra rare in su, dalla più rara: grado più alto, poi meno copie
+    @Test
+    void raritaAmbiteDallaPiuRara() {
+        List<Oggetto> carte = new ArrayList<>();
+        carte.add(carta("A (S 1/1)", "Common", null));
+        carte.add(carta("B (S 2/1)", "Double rare", null));
+        IntStream.range(0, 10).forEach(i -> carte.add(carta("SIR" + i + " (S x/1)", "Special illustration rare", null)));
+        IntStream.range(0, 3).forEach(i -> carte.add(carta("RGB" + i + " (S x/1)", "RGB Rare", null)));
+        IntStream.range(0, 18).forEach(i -> carte.add(carta("IR" + i + " (S x/1)", "Illustration rare", null)));
+
+        assertThat(VetrinaService.raritaAmbite(carte)).containsExactly(
+                new RaritaContataDTO("RGB Rare", 3, 6),
+                new RaritaContataDTO("Special illustration rare", 10, 6),
+                new RaritaContataDTO("Illustration rare", 18, 5));
+    }
+
+    @Test
+    void nomeSenzaIlDettaglioDelSet() {
+        assertThat(CartaAnteprimaDTO.nomeSenzaDettaglio("Mew ex (30th Celebration 152/128)")).isEqualTo("Mew ex");
+        assertThat(CartaAnteprimaDTO.nomeSenzaDettaglio("Pikachu")).isEqualTo("Pikachu");
+    }
+
+    @Test
+    void gradiDelleRarita() {
+        assertThat(GradoRarita.di("Special illustration rare")).isEqualTo(6);
+        assertThat(GradoRarita.di("Illustration rare")).isEqualTo(5);
+        assertThat(GradoRarita.di("Ultra Rare")).isEqualTo(4);
+        assertThat(GradoRarita.di("Double rare")).isEqualTo(3);
+        assertThat(GradoRarita.di("Rare Holo")).isEqualTo(2);
+        assertThat(GradoRarita.di("Uncommon")).isEqualTo(1);
+        assertThat(GradoRarita.di("Common")).isZero();
+        assertThat(GradoRarita.di(null)).isZero();
+    }
+
+    private static Espansione set(String id, boolean importata, String logo, LocalDate uscita) {
+        Espansione set = new Espansione(id);
+        set.setNome(id);
+        set.setImportata(importata);
+        set.setLogoUrl(logo);
+        set.setDataUscita(uscita);
+        return set;
+    }
+
+    private static Oggetto carta(String nome, String rarita, String prezzoMassimo) {
+        Oggetto carta = new Oggetto(nome, BigDecimal.ONE);
+        carta.setRarita(rarita);
+        carta.setImmagineUrl("https://assets.tcgdex.net/x/high.webp");
+        carta.setPrezzoMassimo(prezzoMassimo == null ? null : new BigDecimal(prezzoMassimo));
+        return carta;
+    }
+}

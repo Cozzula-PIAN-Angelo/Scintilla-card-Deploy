@@ -358,6 +358,35 @@
   to { opacity: 1; }
 }
 
+/* angolo del bordo arcobaleno della rarità più rara (riquadro-iride): registrato per poterlo animare */
+@property --giro-iride {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@layer components {
+  /* ball della rarità più rara nella hero: i colori girano piano */
+  .ball-iride {
+    animation: ball-iride 6s linear infinite;
+  }
+  @keyframes ball-iride {
+    to { filter: hue-rotate(360deg); }
+  }
+  /* il suo riquadro: bordo arcobaleno che gira, con i colori del riflesso olografico delle carte */
+  .riquadro-iride {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--color-blu-900), var(--color-blu-900)) padding-box,
+      conic-gradient(from var(--giro-iride), #eb4696, #f0af1e, #28c8b4, #2a75bb, #9b5cff, #eb4696) border-box;
+    box-shadow: 0 6px 20px -6px rgb(155 92 255 / 0.7), 0 2px 10px -4px rgb(40 200 180 / 0.5);
+    animation: giro-iride 5s linear infinite;
+  }
+  @keyframes giro-iride {
+    to { --giro-iride: 360deg; }
+  }
+}
+
 /* con "riduci movimento" attivo restano solo dissolvenze */
 @media (prefers-reduced-motion: reduce) {
   *,

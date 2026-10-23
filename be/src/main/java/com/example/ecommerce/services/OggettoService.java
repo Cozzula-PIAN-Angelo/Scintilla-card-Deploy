@@ -23,7 +23,7 @@ public class OggettoService {
     private final OggettoRepository oggettoRepository;
 
     @Transactional(readOnly = true)
-    // conImmagine: solo le carte con un'immagine (l'hero della home: le ultime importate possono non averla)
+    // conImmagine: solo le carte con un'immagine (sfondo delle pagine di accesso: le ultime importate possono non averla)
     public PageResponse<OggettoResponseDTO> findAll(String q, boolean conImmagine, Pageable pageable) {
         boolean senzaRicerca = q == null || q.isBlank();
         Page<Oggetto> pagina;

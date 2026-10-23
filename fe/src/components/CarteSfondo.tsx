@@ -37,9 +37,9 @@ function opacita(sfocatura: number) {
   return 0.7
 }
 
-// carte vere sparse in profondità dietro l'hero e il login: lontane piccole, sfocate e tenui, vicine più nitide.
-// Colori un po' smorzati per non fare concorrenza al ventaglio
-export function CarteSfondo({ carte, className }: { carte: Oggetto[]; className?: string }) {
+// carte vere sparse in profondità dietro la hero (carte del set più nuovo) e il login: lontane piccole, sfocate e tenui, vicine più nitide.
+// Colori un po' smorzati per non fare concorrenza alle carte in primo piano
+export function CarteSfondo({ carte, className }: { carte: Pick<Oggetto, 'id' | 'immagineUrl' | 'immagineUrlPiccola'>[]; className?: string }) {
   return (
     <div aria-hidden className={cn('pointer-events-none absolute inset-0 overflow-hidden', className)}>
       {POSTI.map((posto, indice) => {

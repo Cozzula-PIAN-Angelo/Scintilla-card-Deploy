@@ -92,9 +92,39 @@ export interface Espansione {
   serie: string | null
   dataUscita: string | null
   totaleCarte: number | null
+  // carte ufficiali di TCGdex: quelle oltre sono le segrete. null = non ancora lette
+  carteUfficiali: number | null
   logoUrl: string | null
   simboloUrl: string | null
   importata: boolean
+  // scritta dall'admin per la hero della home; null = nessuna
+  descrizione: string | null
+}
+
+// carta nella vetrina della home (GET /espansioni/anteprime): nome senza il set tra parentesi, numero nel set
+export interface CartaAnteprima {
+  id: string
+  nome: string
+  numero: string | null
+  rarita: string | null
+  immagineUrl: string | null
+  immagineUrlPiccola: string | null
+}
+
+// una rarità del set, quante carte ne ha e quanto è ambita (6 la più alta, vedi GradoRarita nel backend)
+export interface RaritaContata {
+  rarita: string
+  quante: number
+  grado: number
+}
+
+// un set della vetrina: il primo è la hero. Carte di punta dalla più preziosa, con qualcuna di riserva per le
+// immagini che TCGdex non ha; carte di sfondo solo per il primo; rarità dalle ultra rare in su
+export interface AnteprimaSet {
+  espansione: Espansione
+  carteDiPunta: CartaAnteprima[]
+  carteSfondo: CartaAnteprima[]
+  raritaAmbite: RaritaContata[]
 }
 
 // carte di un set, di un Pokémon o di un artista (GET .../carte?pagina=). completo: tutte quelle del catalogo;
