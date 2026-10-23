@@ -4,6 +4,9 @@ import { useEffect, useLayoutEffect, useRef, useState, type Ref } from 'react'
 import { Button } from '../../../components/Button'
 import { ImmagineOPlaceholder } from '../../../components/ImmagineCarta'
 import { useSpazioAvviso } from '../../../hooks/useSpazioAvviso'
+import { varianteMostrata } from '../../collezione/conteggi'
+import { fasciaDellaVariante, testoFascia } from '../../oggetti/fasciaPrezzo'
+import { useGetPrezziCartaQuery } from '../../oggetti/oggettiApi'
 import type { SlotBinder } from '../../../types/api'
 import { cn } from '../../../utils/cn'
 import { ID_BARRA_TASCA, useContestoBinder, type Sorgente } from '../contesto'
@@ -15,12 +18,21 @@ export function BarraTasca({ carta, onChiudi }: { carta: SlotBinder; onChiudi: (
   const collezione = useCollezioneBinder()
   const { oggetto, variante, pagina, posizione } = carta
   // mentre esce la barra resta com'era: dopo Togli il dettaglio si rilegge senza la carta, e la sua collezione
-  // (solo le carte nel binder) non la conta più. Ricalcolando, "Ce l'ho" ricomparirebbe per un attimo
+  // (solo le carte nel binder) non la conta più. Ricalcolando, "Ce l'ho" ricomparirebbe per un attimo, e la fascia
+  // di prezzo passerebbe dalla Reverse alla normale
   const presente = useIsPresent()
-  const ultimoMancante = useRef(false)
-  if (presente) ultimoMancante.current = !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id, variante)
-  const mancante = ultimoMancante.current
+  const ultimo = useRef({ mancante: false, haReverse: false })
+  if (presente) {
+    ultimo.current = {
+      mancante: !!collezione?.mostraMancanti && !collezione.possiede(oggetto.id, variante),
+      haReverse: !!collezione?.possiede(oggetto.id, 'REVERSE_HOLO'),
+    }
+  }
+  const { mancante, haReverse } = ultimo.current
   const dettagli = [oggetto.rarita, variante === 'REVERSE_HOLO' && 'Reverse holo', mancante && "Non ce l'hai"].filter(Boolean).join(' · ')
+  // fascia di Cardmarket per la stessa variante che mostra il dettaglio aperto dal binder; senza dati niente riga
+  const { data: prezzi } = useGetPrezziCartaQuery(oggetto.id, { skip: !oggetto.idEsterno })
+  const fascia = prezzi ? fasciaDellaVariante(prezzi, varianteMostrata(variante, haReverse)) : null
   const barra = useRef<HTMLDivElement>(null)
   const prima = useRef<HTMLButtonElement>(null)
   useSpazioAvviso(barra)
@@ -74,6 +86,11 @@ export function BarraTasca({ carta, onChiudi }: { carta: SlotBinder; onChiudi: (
       <div className="min-w-0 sm:max-w-64">
         <p className="truncate font-semibold">{oggetto.nome}</p>
         {dettagli && <p className="truncate text-xs text-white/70">{dettagli}</p>}
+        {fascia && (
+          <p className="truncate text-xs font-semibold tabular-nums text-giallo-400">
+            {testoFascia(fascia).fascia} <span className="font-normal text-white/70">su Cardmarket</span>
+          </p>
+        )}
       </div>
       <div className="col-span-full row-start-2 flex items-stretch gap-1 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:gap-0.5">
         <AzioneBarra

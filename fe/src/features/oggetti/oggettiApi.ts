@@ -1,5 +1,5 @@
 import { api } from '../../app/api'
-import type { DatiOggetto, Oggetto, Pagina, ParametriPagina } from '../../types/api'
+import type { DatiOggetto, Oggetto, Pagina, ParametriPagina, PrezziCarta } from '../../types/api'
 
 export const oggettiApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -7,6 +7,10 @@ export const oggettiApi = api.injectEndpoints({
     getOggetti: build.query<Pagina<Oggetto>, ParametriPagina & { conImmagine?: boolean }>({
       query: (params) => ({ url: '/oggetti', params }),
       providesTags: ['Oggetti'],
+    }),
+    // fascia di prezzo di Cardmarket nel dettaglio della carta (il backend la tiene qualche ora in memoria)
+    getPrezziCarta: build.query<PrezziCarta, string>({
+      query: (id) => `/oggetti/${id}/prezzi`,
     }),
     creaOggetto: build.mutation<Oggetto, DatiOggetto>({
       query: (body) => ({ url: '/oggetti', method: 'POST', body }),
@@ -25,5 +29,5 @@ export const oggettiApi = api.injectEndpoints({
   }),
 })
 
-export const { useGetOggettiQuery, useCreaOggettoMutation, useModificaOggettoMutation, useCancellaOggettoMutation } =
+export const { useGetOggettiQuery, useGetPrezziCartaQuery, useCreaOggettoMutation, useModificaOggettoMutation, useCancellaOggettoMutation } =
   oggettiApi

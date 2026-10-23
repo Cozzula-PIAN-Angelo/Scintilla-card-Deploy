@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 // Legge da TCGdex varianti, rarità e artista delle carte già nel catalogo, qualche set alla volta.
@@ -24,6 +26,8 @@ public class RiempimentoVarianti {
     // carte fuori dai set importati (arrivate da Pokédex e artisti): al primo giro tutte, poi qualche blocco
     static final int PRIMO_GIRO_CARTE = 20000;
     static final int CARTE_PER_GIRO = 240;
+    // i prezzi delle carte nei binder si rileggono quando hanno più di una settimana (Cardmarket li aggiorna ogni giorno)
+    static final Duration ETA_PREZZI = Duration.ofDays(7);
 
     private final CatalogoService catalogoService;
     private final OggettoRepository oggettoRepository;
@@ -49,6 +53,15 @@ public class RiempimentoVarianti {
             }
         } catch (RuntimeException ex) {
             log.warn("Carte fuori dai set importati non rilette: {}", ex.getMessage());
+        }
+        // prezzi delle carte nei binder (valore del binder come fascia): stessi limiti delle carte fuori dai set
+        try {
+            List<String> carte = oggettoRepository.findIdEsterniConPrezziDaRinfrescare(limiteCarte, Instant.now().minus(ETA_PREZZI));
+            if (!carte.isEmpty()) {
+                catalogoService.rinfrescaPrezzi(carte);
+            }
+        } catch (RuntimeException ex) {
+            log.warn("Prezzi delle carte nei binder non rinfrescati: {}", ex.getMessage());
         }
     }
 }

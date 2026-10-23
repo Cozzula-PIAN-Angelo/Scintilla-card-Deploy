@@ -42,6 +42,18 @@ export function spriteUrl(numero: number): string {
   return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${numero}.png`
 }
 
+// ultimo Pokémon con la GIF di Black/White (fine della quinta generazione)
+const ULTIMO_BLACK_WHITE = 649
+
+// sprite animato, ritagliato attorno al Pokémon (non 96x96 come quello fermo): pixel art di Black/White
+// fino alla Gen 5, poi quelli di Pokémon Showdown, a cui mancano diversi Pokémon della Gen 9 (404)
+export function spriteAnimatoUrl(numero: number): string {
+  const base = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+  return numero <= ULTIMO_BLACK_WHITE
+    ? `${base}/versions/generation-v/black-white/animated/${numero}.gif`
+    : `${base}/other/showdown/${numero}.gif`
+}
+
 export function numeroFormattato(numero: number): string {
   return `#${String(numero).padStart(3, '0')}`
 }

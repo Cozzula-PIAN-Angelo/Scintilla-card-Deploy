@@ -2,7 +2,7 @@ import { ArrowDownWideNarrow, ArrowLeft, BetweenHorizontalStart, Book, BookOpen,
 import { Button } from '../../../components/Button'
 import type { Binder } from '../../../types/api'
 import { percentuale } from '../../statistiche/calcoli'
-import type { StatisticheBinder } from '../statisticheBinder'
+import { euroInteri, testoFascia, type StatisticheBinder } from '../statisticheBinder'
 import { BarraTasche } from './BarraTasche'
 import { cn } from '../../../utils/cn'
 import type { Fase } from './costanti'
@@ -27,7 +27,8 @@ interface Props {
 }
 
 // barra sopra il binder aperto: ritorno ai binder, nome e conteggio, Apri/Chiudi, carte, Fai spazio,
-// mancanti in grigio, Ordina per, schermo intero e impostazioni
+// mancanti in grigio, Ordina per, schermo intero e impostazioni. Da telefono i 7 bottoni non stanno accanto al
+// titolo (lo coprivano e la pagina scorreva di lato): vanno su una riga loro, larga quanto lo schermo
 export function BarraBinder({
   binder,
   carteInserite,
@@ -47,7 +48,7 @@ export function BarraBinder({
   onOrdina,
 }: Props) {
   return (
-  <div className="flex shrink-0 items-center gap-3">
+  <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
     <Button
       variante="chiaro"
       dimensione="sm"
@@ -71,12 +72,14 @@ export function BarraBinder({
           <BarraTasche statistiche={statistiche} possedute="bg-accento" daTrovare="bg-accento/35" className="h-1.5 w-12 shrink-0 bg-tenue" />
           <p className="truncate">
             <strong className="font-semibold text-testo">{statistiche.possedute}</strong> / {statistiche.piene} possedute ·{' '}
-            {percentuale(statistiche.possedute, statistiche.piene)}% · ≈ {Math.round(statistiche.valore).toLocaleString('it-IT')} €
+            {percentuale(statistiche.possedute, statistiche.piene)}% · ≈ {euroInteri(statistiche.valore)} €{' '}
+            <span className="text-testo/60">({testoFascia(statistiche).breve})</span>
           </p>
         </div>
       )}
     </div>
-    <div className="flex gap-2">
+    {/* da sm in su sta accanto al titolo; se non c'è spazio (tablet, etichette lunghe) va a capo, a destra */}
+    <div className="flex w-full justify-between gap-1 sm:ml-auto sm:w-auto sm:justify-end sm:gap-2">
       <Button
         variante="chiaro"
         dimensione="sm"

@@ -4,11 +4,12 @@ import { percentuale } from '../../statistiche/calcoli'
 import { BarraTasche } from './BarraTasche'
 import { RAGGIO_ESTERNO, scuro } from '../aspetto'
 import { FoderaBinder } from '../CopertinaBinder'
-import type { StatisticheBinder } from '../statisticheBinder'
+import { euroInteri, testoFascia, type StatisticheBinder } from '../statisticheBinder'
 import type { Lato } from './costanti'
 
 export function InternoCopertina({ binder, statistiche }: { binder: Binder; statistiche: StatisticheBinder }) {
-  const { piene, totale, possedute, valore } = statistiche
+  const { piene, totale, possedute, valore, valoreMinimo, valoreMassimo } = statistiche
+  const fascia = testoFascia({ valoreMinimo, valoreMassimo })
   return (
     <FoderaBinder colore={binder.colore}>
       <div className="absolute inset-x-[12%] top-1/2 -translate-y-1/2 rounded-[3cqw] border-[0.5cqw] border-white/25 px-[6cqw] py-[7cqw] text-center text-white/85">
@@ -46,10 +47,16 @@ export function InternoCopertina({ binder, statistiche }: { binder: Binder; stat
               </span>
             </li>
           </ul>
-          <p className="mt-[3.4cqw] flex items-baseline justify-between border-t border-white/15 pt-[2.6cqw]">
-            <span className="text-white/65">Valore stimato</span>
-            <span className="font-titolo text-[4.8cqw] font-bold">≈ {Math.round(valore).toLocaleString('it-IT')} €</span>
-          </p>
+          {/* in grande la stima di sempre; sotto, in piccolo, minimi e massimi di Cardmarket delle carte possedute */}
+          <div className="mt-[3.4cqw] border-t border-white/15 pt-[2.6cqw]">
+            <p className="flex items-baseline justify-between">
+              <span className="text-white/65">Valore stimato</span>
+              <span className="font-titolo text-[4.8cqw] font-bold">≈ {euroInteri(valore)} €</span>
+            </p>
+            <p className="mt-[0.6cqw] text-right text-[3cqw] tabular-nums text-white/65" title="Minimo e massimo di Cardmarket delle carte possedute">
+              {fascia.lungo} su Cardmarket
+            </p>
+          </div>
         </div>
       </div>
     </FoderaBinder>

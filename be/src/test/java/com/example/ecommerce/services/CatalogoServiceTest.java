@@ -24,6 +24,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -288,6 +289,130 @@ class CatalogoServiceTest {
         assertThat(sparita.getVarianti()).isEmpty();
         assertThat(sparita.getRarita()).isEmpty();
         assertThat(sparita.getArtista()).isEqualTo("Già letto");
+    }
+
+    // --- minimo e massimo di Cardmarket (valore del binder come fascia)
+
+    // pezzo vero di swsh3-136: normale da 0,02 a 0,15, reverse ("-holo") da 0,08 a 0,28
+    private static final TcgdexApi.Cardmarket CARDMARKET = new TcgdexApi.Cardmarket("2026-10-22T13:13:24.189Z",
+            new BigDecimal("0.05"), new BigDecimal("0.07"), new BigDecimal("0.02"), new BigDecimal("0.15"),
+            new BigDecimal("0.06"), new BigDecimal("0.06"), new BigDecimal("0.25"), new BigDecimal("0.28"),
+            new BigDecimal("0.08"), new BigDecimal("0.25"), new BigDecimal("0.25"), new BigDecimal("0.26"));
+
+    private static TcgdexApi.Carta conPrezzi(TcgdexApi.Carta carta, TcgdexApi.Cardmarket cardmarket) {
+        return new TcgdexApi.Carta(carta.id(), carta.localId(), carta.name(), carta.rarity(), carta.illustrator(),
+                carta.image(), carta.dexId(), carta.set(), carta.variants(), new TcgdexApi.Prezzi(cardmarket));
+    }
+
+    @Test
+    void importSalvaMinimoEMassimo() {
+        risponde(FiltroCarte.diPokemon(25), List.of(conPrezzi(carta("sv1-1", "Uno"), CARDMARKET)));
+
+        service.importaPokemon(25);
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        Oggetto salvato = salvati.getValue().iterator().next();
+        assertThat(salvato.getPrezzoMinimo()).isEqualByComparingTo("0.02");
+        assertThat(salvato.getPrezzoMassimo()).isEqualByComparingTo("0.15");
+        assertThat(salvato.getPrezzoMinimoReverse()).isEqualByComparingTo("0.08");
+        assertThat(salvato.getPrezzoMassimoReverse()).isEqualByComparingTo("0.28");
+        assertThat(salvato.getPrezziAggiornatiIl()).isNotNull();
+    }
+
+    // senza prezzi di Cardmarket: letti comunque (la data c'è), valori vuoti
+    @Test
+    void importSenzaCardmarketLasciaVuoto() {
+        risponde(FiltroCarte.diPokemon(25), List.of(carta("sv1-1", "Uno", "Scarlet", 198, NORMALE_E_REVERSE, null, "Common", "A")));
+
+        service.importaPokemon(25);
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        Oggetto salvato = salvati.getValue().iterator().next();
+        assertThat(salvato.getPrezzoMinimo()).isNull();
+        assertThat(salvato.getPrezzoMassimoReverse()).isNull();
+        assertThat(salvato.getPrezziAggiornatiIl()).isNotNull();
+    }
+
+    // un massimo oltre la colonna (numeric 8,2) si salva vuoto: la carta entra lo stesso
+    @Test
+    void massimoOltreIlTettoSalvatoVuoto() {
+        risponde(FiltroCarte.diPokemon(25), List.of(conPrezzi(carta("sv1-1", "Uno"),
+                new TcgdexApi.Cardmarket(new BigDecimal("5"), new BigDecimal("1000000")))));
+
+        service.importaPokemon(25);
+
+        verify(oggettoRepository).saveAll(salvati.capture());
+        Oggetto salvato = salvati.getValue().iterator().next();
+        assertThat(salvato.getPrezzo()).isEqualByComparingTo("5");
+        assertThat(salvato.getPrezzoMinimo()).isEqualByComparingTo("5");
+        assertThat(salvato.getPrezzoMassimo()).isNull();
+    }
+
+    // carte già nel catalogo rilette: i prezzi solo se mai letti, e il prezzo singolo non cambia
+    @Test
+    void completaScriveIPrezziSoloSeMaiLetti() {
+        risponde(FiltroCarte.diSet("sv1"), List.of(conPrezzi(carta("sv1-1", "Uno"), CARDMARKET),
+                conPrezzi(carta("sv1-2", "Due"), CARDMARKET)));
+        Oggetto maiLetta = esistente("Uno", "sv1-1");
+        Oggetto giaLetta = esistente("Due", "sv1-2");
+        giaLetta.setPrezzoMinimo(new BigDecimal("9.00"));
+        giaLetta.setPrezziAggiornatiIl(Instant.parse("2026-10-20T10:00:00Z"));
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(maiLetta, giaLetta));
+
+        service.riempiCarte(List.of("sv1-1", "sv1-2"));
+
+        assertThat(maiLetta.getPrezzoMinimo()).isEqualByComparingTo("0.02");
+        assertThat(maiLetta.getPrezzoMassimoReverse()).isEqualByComparingTo("0.28");
+        assertThat(maiLetta.getPrezziAggiornatiIl()).isNotNull();
+        assertThat(maiLetta.getPrezzo()).isEqualByComparingTo("0.50");
+        assertThat(giaLetta.getPrezzoMinimo()).isEqualByComparingTo("9.00");
+        assertThat(giaLetta.getPrezziAggiornatiIl()).isEqualTo(Instant.parse("2026-10-20T10:00:00Z"));
+    }
+
+    // rinfresco settimanale delle carte nei binder: valori, data e anche il prezzo singolo (trend)
+    @Test
+    void rinfrescaPrezziAggiornaValoriDataEPrezzo() {
+        risponde(FiltroCarte.diSet("sv1"), List.of(conPrezzi(carta("sv1-1", "Uno"), CARDMARKET)));
+        Oggetto vecchia = esistente("Uno", "sv1-1");
+        vecchia.setPrezzoMinimo(new BigDecimal("9.00"));
+        vecchia.setPrezziAggiornatiIl(Instant.parse("2026-10-01T10:00:00Z"));
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(vecchia));
+
+        int arrivate = service.rinfrescaPrezzi(List.of("sv1-1"));
+
+        assertThat(arrivate).isEqualTo(1);
+        assertThat(vecchia.getPrezzoMinimo()).isEqualByComparingTo("0.02");
+        assertThat(vecchia.getPrezzoMassimoReverse()).isEqualByComparingTo("0.28");
+        assertThat(vecchia.getPrezzo()).isEqualByComparingTo("0.05");
+        assertThat(vecchia.getPrezziAggiornatiIl()).isAfter(Instant.parse("2026-10-01T10:00:00Z"));
+    }
+
+    // carta che TCGdex non ha più (404): solo la data, così il giro dopo non la ripropone
+    @Test
+    void rinfrescaPrezziSegnaLeSparite() {
+        risponde(FiltroCarte.diSet("sv1"), List.of());
+        Oggetto sparita = esistente("Sparita", "sv1-3");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(sparita));
+
+        int arrivate = service.rinfrescaPrezzi(List.of("sv1-3"));
+
+        assertThat(arrivate).isZero();
+        assertThat(sparita.getPrezziAggiornatiIl()).isNotNull();
+        assertThat(sparita.getPrezzoMinimo()).isNull();
+        assertThat(sparita.getPrezzo()).isEqualByComparingTo("0.50");
+    }
+
+    // errore temporaneo: la carta resta com'era e si riprova al giro dopo
+    @Test
+    void rinfrescaPrezziLasciaLeFallite() {
+        risponde(FiltroCarte.diSet("sv1"), List.of(), "sv1-2");
+        Oggetto fallita = esistente("Fallita", "sv1-2");
+        fallita.setPrezziAggiornatiIl(Instant.parse("2026-10-01T10:00:00Z"));
+        lenient().when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(fallita));
+
+        service.rinfrescaPrezzi(List.of("sv1-2"));
+
+        assertThat(fallita.getPrezziAggiornatiIl()).isEqualTo(Instant.parse("2026-10-01T10:00:00Z"));
     }
 
     // --- nomi (come con pokemontcg.io)

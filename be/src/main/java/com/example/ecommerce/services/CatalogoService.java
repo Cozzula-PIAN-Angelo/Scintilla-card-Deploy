@@ -8,6 +8,7 @@ import com.example.ecommerce.exceptions.ConflictException;
 import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.payloads.CartaEsternaDTO;
+import com.example.ecommerce.payloads.FasciaPrezzoDTO;
 import com.example.ecommerce.payloads.ImportaCartaDTO;
 import com.example.ecommerce.payloads.ImportaSetResponseDTO;
 import com.example.ecommerce.payloads.OggettoResponseDTO;
@@ -184,6 +185,42 @@ public class CatalogoService {
         }
         log.info("Carte fuori dai set importati rilette: {} su {}", lette, idEsterni.size());
         return lette;
+    }
+
+    // rinfresco settimanale delle carte nei binder: rilegge da TCGdex, a blocchi, minimo, massimo e anche il prezzo
+    // singolo (trend), che con l'import resterebbe fermo. Il prezzo corretto a mano dall'admin su una carta importata
+    // viene sovrascritto. Le carte che TCGdex non ha più ricevono solo la data (non si ripropongono a ogni giro);
+    // quelle fallite per un errore temporaneo restano com'erano. Restituisce quante ne sono arrivate
+    public int rinfrescaPrezzi(List<String> idEsterni) {
+        int arrivate = 0;
+        for (int da = 0; da < idEsterni.size(); da += BLOCCO) {
+            List<String> blocco = idEsterni.subList(da, Math.min(da + BLOCCO, idEsterni.size()));
+            TcgdexClient.Dettagli dettagli = tcgdex.dettagli(blocco);
+            Map<String, Carta> perId = dettagli.carte().stream().collect(Collectors.toMap(Carta::id, Function.identity()));
+            Set<String> falliti = new HashSet<>(dettagli.falliti());
+            List<String> daSalvare = blocco.stream().filter(id -> !falliti.contains(id)).toList();
+            if (!daSalvare.isEmpty()) {
+                Instant adesso = Instant.now();
+                // come salvaCarte: un import in parallelo non scrive le stesse carte a metà
+                synchronized (lockScrittura) {
+                    transazione.executeWithoutResult(stato -> oggettoRepository.findByIdEsternoIn(daSalvare).forEach(oggetto -> {
+                        Carta carta = perId.get(oggetto.getIdEsterno());
+                        if (carta == null) {
+                            oggetto.setPrezziAggiornatiIl(adesso);
+                            return;
+                        }
+                        applicaPrezzi(oggetto, carta, adesso);
+                        BigDecimal prezzo = prezzoSuggerito(carta);
+                        if (prezzo != null && prezzo.compareTo(PREZZO_MASSIMO) <= 0) {
+                            oggetto.setPrezzo(prezzo);
+                        }
+                    }));
+                }
+            }
+            arrivate += dettagli.carte().size();
+        }
+        log.info("Prezzi delle carte nei binder rinfrescati: {} su {}", arrivate, idEsterni.size());
+        return arrivate;
     }
 
     // carte che TCGdex non restituisce più: lista vuota, rarità '' e artista '' dove mancano (entity gestite,
@@ -406,6 +443,10 @@ public class CatalogoService {
         if (esistente.getArtista() == null || (esistente.getArtista().isEmpty() && carta.illustrator() != null)) {
             esistente.setArtista(artista(carta));
         }
+        // i prezzi si aggiornano col rinfresco delle carte nei binder; qui solo quelli mai letti
+        if (esistente.getPrezziAggiornatiIl() == null) {
+            applicaPrezzi(esistente, carta, Instant.now());
+        }
     }
 
     // scarica tutti i set di TCGdex (senza TCG Pocket) e li salva; restituisce quanti sono. La chiamata HTTP sta
@@ -480,7 +521,27 @@ public class CatalogoService {
         oggetto.setVarianti(Variante.daVariantiTcgdex(carta.variants()));
         oggetto.setRarita(rarita(carta));
         oggetto.setArtista(artista(carta));
+        applicaPrezzi(oggetto, carta, Instant.now());
         return oggetto;
+    }
+
+    // minimo e massimo di Cardmarket, normale e reverse ("-holo"), con la regola del dettaglio della carta
+    // (PrezziService.fascia); oltre il massimo della colonna restano vuoti. La data segna la lettura anche quando
+    // Cardmarket non ha prezzi, così il rinfresco non ripropone la carta a ogni giro
+    private static void applicaPrezzi(Oggetto oggetto, Carta carta, Instant adesso) {
+        TcgdexApi.Cardmarket cm = carta.pricing() == null ? null : carta.pricing().cardmarket();
+        FasciaPrezzoDTO normale = cm == null ? null : PrezziService.fascia(cm.low(), cm.trend(), cm.avg(), cm.avg1(), cm.avg7(), cm.avg30());
+        FasciaPrezzoDTO reverse = cm == null ? null
+                : PrezziService.fascia(cm.lowHolo(), cm.trendHolo(), cm.avgHolo(), cm.avg1Holo(), cm.avg7Holo(), cm.avg30Holo());
+        oggetto.setPrezzoMinimo(entroIlTetto(normale == null ? null : normale.minimo()));
+        oggetto.setPrezzoMassimo(entroIlTetto(normale == null ? null : normale.massimo()));
+        oggetto.setPrezzoMinimoReverse(entroIlTetto(reverse == null ? null : reverse.minimo()));
+        oggetto.setPrezzoMassimoReverse(entroIlTetto(reverse == null ? null : reverse.massimo()));
+        oggetto.setPrezziAggiornatiIl(adesso);
+    }
+
+    private static BigDecimal entroIlTetto(BigDecimal prezzo) {
+        return prezzo == null || prezzo.compareTo(PREZZO_MASSIMO) > 0 ? null : prezzo;
     }
 
     // il numero come lo scrivevano le carte già nel catalogo: senza zeri davanti se fatto solo di cifre

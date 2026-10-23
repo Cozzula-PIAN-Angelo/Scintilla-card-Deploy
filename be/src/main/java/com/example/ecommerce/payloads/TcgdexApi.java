@@ -1,6 +1,7 @@
 package com.example.ecommerce.payloads;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -65,8 +66,22 @@ public final class TcgdexApi {
     public record Prezzi(Cardmarket cardmarket) {
     }
 
-    // prezzi in euro; 0 o null quando un valore non è disponibile
+    // prezzi in euro; 0 o null quando un valore non è disponibile. low: l'offerta più bassa; avg1/7/30: medie
+    // degli ultimi 1, 7, 30 giorni. I "-holo" sono gli stessi valori per la versione holo (la Reverse delle carte
+    // base). updated: data ISO dell'ultimo aggiornamento di TCGdex
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record Cardmarket(BigDecimal trend, BigDecimal avg) {
+    public record Cardmarket(String updated, BigDecimal trend, BigDecimal avg, BigDecimal low,
+                             BigDecimal avg1, BigDecimal avg7, BigDecimal avg30,
+                             @JsonProperty("trend-holo") BigDecimal trendHolo,
+                             @JsonProperty("avg-holo") BigDecimal avgHolo,
+                             @JsonProperty("low-holo") BigDecimal lowHolo,
+                             @JsonProperty("avg1-holo") BigDecimal avg1Holo,
+                             @JsonProperty("avg7-holo") BigDecimal avg7Holo,
+                             @JsonProperty("avg30-holo") BigDecimal avg30Holo) {
+
+        // all'import bastano trend e media
+        public Cardmarket(BigDecimal trend, BigDecimal avg) {
+            this(null, trend, avg, null, null, null, null, null, null, null, null, null, null);
+        }
     }
 }

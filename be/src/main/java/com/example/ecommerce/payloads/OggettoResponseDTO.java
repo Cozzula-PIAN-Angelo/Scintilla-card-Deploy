@@ -22,7 +22,12 @@ public record OggettoResponseDTO(UUID id,
                                  // null = non ancora letta da TCGdex
                                  String rarita,
                                  // autori (coautori divisi) con lo slug per il link alla loro pagina; vuota = non ancora letti
-                                 List<ArtistaCartaDTO> artisti) {
+                                 List<ArtistaCartaDTO> artisti,
+                                 // minimo e massimo di Cardmarket, normale e reverse: null = non letti o non disponibili
+                                 BigDecimal prezzoMinimo,
+                                 BigDecimal prezzoMassimo,
+                                 BigDecimal prezzoMinimoReverse,
+                                 BigDecimal prezzoMassimoReverse) {
 
     public static OggettoResponseDTO from(Oggetto oggetto) {
         return new OggettoResponseDTO(
@@ -35,7 +40,11 @@ public record OggettoResponseDTO(UUID id,
                 oggetto.getIdEsterno(),
                 oggetto.getVarianti(),
                 oggetto.getRarita(),
-                ElencoArtisti.get().artistiDi(oggetto.getArtista())
+                ElencoArtisti.get().artistiDi(oggetto.getArtista()),
+                oggetto.getPrezzoMinimo(),
+                oggetto.getPrezzoMassimo(),
+                oggetto.getPrezzoMinimoReverse(),
+                oggetto.getPrezzoMassimoReverse()
         );
     }
 

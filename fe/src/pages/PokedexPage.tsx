@@ -4,7 +4,7 @@ import { Link, useNavigationType } from 'react-router'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { StatoVuoto } from '../components/StatiPagina'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
-import { corrisponde, GENERAZIONI, numeroFormattato, POKEDEX, spriteUrl, type Pokemon } from '../features/pokedex/pokedex'
+import { corrisponde, GENERAZIONI, numeroFormattato, POKEDEX, spriteAnimatoUrl, spriteUrl, type Pokemon } from '../features/pokedex/pokedex'
 import { useDebounce } from '../hooks/useDebounce'
 import { DALL_ELENCO } from '../hooks/useRitornoElenco'
 import { useTitolo } from '../hooks/useTitolo'
@@ -108,6 +108,12 @@ export function PokedexPage() {
 
 function TilePokemon({ pokemon }: { pokemon: Pokemon }) {
   const evidenziato = pokemon.numero === memoriaPokedex.ultimo
+  // la GIF si scarica solo al primo passaggio del mouse e prende il posto dello sprite fermo quando è pronta;
+  // se manca (404) non si riprova e resta lo sprite fermo
+  const [inHover, setInHover] = useState(false)
+  const [gifPronta, setGifPronta] = useState(false)
+  const [gifMancante, setGifMancante] = useState(false)
+  const mostraGif = inHover && gifPronta
   return (
     <li>
       <Link
@@ -118,21 +124,36 @@ function TilePokemon({ pokemon }: { pokemon: Pokemon }) {
           memoriaPokedex.posizione = window.scrollY
           memoriaPokedex.ultimo = pokemon.numero
         }}
+        onMouseEnter={() => setInHover(true)}
+        onMouseLeave={() => setInHover(false)}
         className={cn(
           'group flex flex-col items-center rounded-2xl bg-superficie px-2 pb-3 pt-1 text-center shadow-md shadow-ombra/10 ring-1 ring-linea/5 transition',
           'hover:-translate-y-1 hover:shadow-xl hover:shadow-ombra/25',
           evidenziato && 'ring-4 ring-giallo-400',
         )}
       >
-        <img
-          src={spriteUrl(pokemon.numero)}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          width={96}
-          height={96}
-          className="sprite-pixel size-24 transition-transform group-hover:scale-110"
-        />
+        <span className="relative size-24 transition-transform group-hover:scale-110">
+          <img
+            src={spriteUrl(pokemon.numero)}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            width={96}
+            height={96}
+            // con "riduci movimento" la GIF non si vede e resta lo sprite fermo
+            className={cn('sprite-pixel size-24', mostraGif && 'motion-safe:invisible')}
+          />
+          {inHover && !gifMancante && (
+            <img
+              src={spriteAnimatoUrl(pokemon.numero)}
+              alt=""
+              onLoad={() => setGifPronta(true)}
+              onError={() => setGifMancante(true)}
+              // le GIF più grandi del riquadro si rimpiccioliscono, le altre restano alla loro misura
+              className={cn('sprite-pixel absolute inset-0 m-auto max-h-full motion-reduce:hidden', !gifPronta && 'invisible')}
+            />
+          )}
+        </span>
         <span className="text-xs font-semibold text-testo/50">{numeroFormattato(pokemon.numero)}</span>
         <span className="w-full truncate text-sm font-semibold text-testo">{pokemon.nome}</span>
       </Link>

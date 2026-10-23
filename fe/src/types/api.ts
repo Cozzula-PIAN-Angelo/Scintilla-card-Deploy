@@ -33,6 +33,22 @@ export interface Copia {
   quantita: number
 }
 
+// prezzi di Cardmarket in euro per una variante, nel dettaglio della carta. minimo: l'offerta più bassa;
+// massimo: il più alto tra media, trend e medie a 1/7/30 giorni
+export interface FasciaPrezzo {
+  minimo: number
+  massimo: number
+  trend: number | null
+  media30: number | null
+}
+
+// letti al momento da TCGdex; tutto null per le carte senza dati (o create a mano)
+export interface PrezziCarta {
+  normale: FasciaPrezzo | null
+  reverse: FasciaPrezzo | null
+  aggiornatoIl: string | null
+}
+
 export interface Oggetto {
   id: string
   nome: string
@@ -48,6 +64,11 @@ export interface Oggetto {
   rarita: string | null
   // autori della carta, coautori divisi; vuota finché TCGdex non è stato letto
   artisti: ArtistaCarta[]
+  // minimo e massimo di Cardmarket salvati (normale e reverse) per il valore del binder; null = non letti o non disponibili
+  prezzoMinimo: number | null
+  prezzoMassimo: number | null
+  prezzoMinimoReverse: number | null
+  prezzoMassimoReverse: number | null
 }
 
 // un autore di una carta; slug null = artista non ancora nell'elenco (nome senza link)
