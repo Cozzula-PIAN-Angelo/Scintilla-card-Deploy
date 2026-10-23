@@ -31,7 +31,8 @@ export function HeroSet() {
   return (
     <section aria-labelledby="hero-set" className="sfondo-hero relative animate-gradiente overflow-hidden text-white">
       {hero && <CarteSfondo carte={hero.carteSfondo} />}
-      <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_23rem] xl:gap-16">
+      {/* minmax(0,1fr) anche da telefono: la fila di carte da scorrere allargherebbe la colonna oltre lo schermo */}
+      <div className="relative mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-4 py-16 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_23rem] xl:gap-16">
         {hero ? <ContenutoHero hero={hero} /> : <HeroSenzaSet inAttesa={isLoading} />}
       </div>
     </section>

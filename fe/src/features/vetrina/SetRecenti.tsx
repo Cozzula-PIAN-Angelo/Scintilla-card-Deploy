@@ -26,7 +26,7 @@ export function SetRecenti() {
       {isLoading ? (
         <div role="status" aria-label="Caricamento dei set recenti" className={CLASSI_GRIGLIA}>
           {Array.from({ length: 8 }, (_, i) => (
-            <Skeleton key={i} className="mt-36 h-40 rounded-3xl" />
+            <Skeleton key={i} className="mt-28 h-40 rounded-3xl sm:mt-36" />
           ))}
         </div>
       ) : (
@@ -59,7 +59,7 @@ function SetConCarteDietro({ anteprima }: { anteprima: AnteprimaSet }) {
         to={`/espansioni/${encodeURIComponent(espansione.id)}`}
         state={DALL_ELENCO}
         aria-label={`Apri ${espansione.nome}`}
-        className="relative block rounded-3xl pt-36"
+        className="relative block rounded-3xl pt-28 sm:pt-36"
       >
         <div aria-hidden className="absolute inset-x-0 top-0 flex justify-center">
           {ordine.map((carta, i) =>
@@ -68,7 +68,8 @@ function SetConCarteDietro({ anteprima }: { anteprima: AnteprimaSet }) {
                 key={carta.id}
                 variants={{ chiusa: VENTAGLIO[i].chiusa, aperta: VENTAGLIO[i].aperta }}
                 transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-                className="absolute w-32"
+                // da telefono più piccole: con due colonne il ventaglio uscirebbe dallo schermo
+                className="absolute w-24 sm:w-32"
               >
                 <ImmagineCarta src={carta.immagineUrlPiccola} alt="" className={cn('aspect-[63/88] w-full shadow-lg shadow-ombra/40', FORMA_CARTA)} />
               </motion.div>
