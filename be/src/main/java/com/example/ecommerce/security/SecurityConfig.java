@@ -47,6 +47,8 @@ public class SecurityConfig {
             get("/oggetti/*/prezzi"),
             // vetrina per espansioni: la prima apertura di un set lo importa, ma è pubblica
             get("/espansioni"),
+            // vetrina della home: set recenti con carte di punta e rarità
+            get("/espansioni/anteprime"),
             get("/espansioni/*/carte"),
             get("/espansioni/*/carte/stato"),
             // indice per Pokémon, anch'esso pubblico

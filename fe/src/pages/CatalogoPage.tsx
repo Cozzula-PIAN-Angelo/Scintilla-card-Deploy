@@ -1,30 +1,43 @@
-import { useRef } from 'react'
+import { Layers } from 'lucide-react'
+import { LinkBottone } from '../components/Button'
 import { PaginaAnimata } from '../components/PaginaAnimata'
-import { VetrinaEspansioni } from '../features/espansioni/VetrinaEspansioni'
-import { Hero } from '../features/oggetti/Hero'
-import { useUltimeCarte } from '../features/oggetti/useUltimeCarte'
+import { useGetEspansioniQuery } from '../features/espansioni/espansioniApi'
+import { HeroSet } from '../features/vetrina/HeroSet'
+import { SetRecenti } from '../features/vetrina/SetRecenti'
 import { useTitolo } from '../hooks/useTitolo'
 
+// home: il set più nuovo come hero, i set recenti col ventaglio e la strada per l'elenco completo (/espansioni)
 export function CatalogoPage() {
   useTitolo('Catalogo')
-  // solo per l'hero: le prime tre nel ventaglio, le altre sparse sullo sfondo
-  const ultime = useUltimeCarte()
-  const sezione = useRef<HTMLElement>(null)
-
-  const scorriAlCatalogo = () => sezione.current?.scrollIntoView({ block: 'start' })
+  const { data } = useGetEspansioniQuery()
 
   return (
     <PaginaAnimata>
-      <Hero vetrina={ultime.slice(0, 3)} sfondo={ultime.slice(3)} onEsplora={scorriAlCatalogo} />
+      <HeroSet />
 
-      <section ref={sezione} id="catalogo" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6">
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold text-testo">Le espansioni</h2>
-          <p className="mt-1 text-testo/70">Da Base Set a oggi: apri un set e guarda quante carte ti mancano.</p>
-        </div>
+      <div className="mx-auto max-w-7xl space-y-20 px-4 py-20 sm:px-6">
+        <SetRecenti />
 
-        <VetrinaEspansioni />
-      </section>
+        <section
+          aria-labelledby="tutte-espansioni"
+          className="flex flex-col items-start gap-6 rounded-3xl bg-superficie p-8 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 sm:flex-row sm:items-center sm:justify-between sm:p-10"
+        >
+          <div className="flex items-center gap-5">
+            <Layers aria-hidden className="size-12 shrink-0 text-accento" />
+            <div>
+              <h2 id="tutte-espansioni" className="text-3xl font-bold text-testo">
+                Tutte le espansioni
+              </h2>
+              <p className="mt-1 text-testo/70">
+                {data ? `${data.length} set` : 'I set'} da Base Set a oggi, divisi per serie e da cercare per nome.
+              </p>
+            </div>
+          </div>
+          <LinkBottone to="/espansioni" dimensione="lg" className="shrink-0">
+            Vedi tutte le espansioni
+          </LinkBottone>
+        </section>
+      </div>
     </PaginaAnimata>
   )
 }

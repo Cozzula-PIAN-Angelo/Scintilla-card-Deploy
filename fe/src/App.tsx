@@ -14,6 +14,7 @@ import { BinderPage } from './pages/BinderPage'
 import { CollezionePage } from './pages/CollezionePage'
 import { CatalogoPage } from './pages/CatalogoPage'
 import { EspansionePage } from './pages/EspansionePage'
+import { EspansioniPage } from './pages/EspansioniPage'
 import { ImpostazioniPage } from './pages/ImpostazioniPage'
 import { LoginPage } from './pages/LoginPage'
 import { NonTrovataPage } from './pages/NonTrovataPage'
@@ -56,6 +57,7 @@ export function App() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={chiavePagina}>
             <Route path="/" element={<CatalogoPage />} />
+            <Route path="/espansioni" element={<EspansioniPage />} />
             <Route path="/espansioni/:id" element={<EspansionePage />} />
             <Route path="/pokedex" element={<PokedexPage />} />
             <Route path="/pokedex/:numero" element={<PokemonPage />} />

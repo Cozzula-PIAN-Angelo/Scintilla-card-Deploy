@@ -3,6 +3,7 @@ package com.example.ecommerce.services;
 import com.example.ecommerce.entities.Espansione;
 import com.example.ecommerce.entities.Oggetto;
 import com.example.ecommerce.exceptions.BadRequestException;
+import com.example.ecommerce.exceptions.NotFoundException;
 import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.EspansioneResponseDTO;
@@ -154,6 +155,24 @@ class EspansioneServiceTest {
 
         assertThatThrownBy(() -> service.carte("sv8", -1, "1.2.3.4"))
                 .isInstanceOf(BadRequestException.class).hasMessage("La pagina non può essere negativa");
+    }
+
+    // descrizione della hero: spazi tolti, vuota = nessuna
+    @Test
+    void descrizioneSenzaSpaziEVuotaLaToglie() {
+        Espansione set = set("me05", true);
+        when(espansioneRepository.findById("me05")).thenReturn(Optional.of(set));
+        when(espansioneRepository.save(set)).thenReturn(set);
+
+        assertThat(service.modificaDescrizione("me05", "  Il set del buio.  ").descrizione()).isEqualTo("Il set del buio.");
+        assertThat(service.modificaDescrizione("me05", "   ").descrizione()).isNull();
+    }
+
+    @Test
+    void descrizioneDiUnSetCheNonCe() {
+        when(espansioneRepository.findById("nessuno")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.modificaDescrizione("nessuno", "x")).isInstanceOf(NotFoundException.class);
     }
 
     private static Espansione set(String id, boolean importata) {

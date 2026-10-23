@@ -45,7 +45,7 @@ public class OggettoController {
                                                     @RequestParam(required = false) String sort,
                                                     // ricerca per nome, facoltativa
                                                     @RequestParam(required = false) String q,
-                                                    // solo carte con un'immagine (hero della home)
+                                                    // solo carte con un'immagine (sfondo delle pagine di accesso)
                                                     @RequestParam(defaultValue = "false") boolean conImmagine) {
         return oggettoService.findAll(q, conImmagine, paginationHelper.perOggetti(page, size, sort));
     }

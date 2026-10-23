@@ -1,5 +1,5 @@
 import { api } from '../../app/api'
-import type { CarteProgressive, Espansione, RichiestaCarte, StatoCarte } from '../../types/api'
+import type { AnteprimaSet, CarteProgressive, Espansione, RichiestaCarte, StatoCarte } from '../../types/api'
 
 export const espansioniApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -7,6 +7,17 @@ export const espansioniApi = api.injectEndpoints({
       query: () => '/espansioni',
       providesTags: ['Espansioni'],
       extraOptions: { maxRetries: 2 },
+    }),
+    // vetrina della home: i set più recenti già scaricati, con carte di punta e rarità. Si aggiorna con la descrizione
+    getAnteprime: build.query<AnteprimaSet[], void>({
+      query: () => '/espansioni/anteprime',
+      providesTags: ['Espansioni'],
+      extraOptions: { maxRetries: 2 },
+    }),
+    // descrizione del set nella hero (solo admin); null o vuota la toglie
+    modificaEspansione: build.mutation<Espansione, { id: string; descrizione: string | null }>({
+      query: ({ id, descrizione }) => ({ url: `/espansioni/${encodeURIComponent(id)}`, method: 'PATCH', body: { descrizione } }),
+      invalidatesTags: ['Espansioni'],
     }),
     // alla prima apertura il backend risponde a pezzi (la pagina chiesta, presa al volo da TCGdex) e scarica
     // il resto in background (vedi useCarteProgressive). Niente maxRetries: il backend ritenta già da solo.
@@ -25,4 +36,10 @@ export const espansioniApi = api.injectEndpoints({
   }),
 })
 
-export const { useGetEspansioniQuery, useGetCarteEspansioneQuery, useGetStatoCarteEspansioneQuery } = espansioniApi
+export const {
+  useGetEspansioniQuery,
+  useGetAnteprimeQuery,
+  useModificaEspansioneMutation,
+  useGetCarteEspansioneQuery,
+  useGetStatoCarteEspansioneQuery,
+} = espansioniApi

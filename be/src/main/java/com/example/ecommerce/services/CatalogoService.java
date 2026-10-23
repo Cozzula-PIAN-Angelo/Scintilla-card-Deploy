@@ -466,6 +466,7 @@ public class CatalogoService {
         espansione.setNome(dati.name());
         espansione.setSerie(dati.serie() == null ? null : dati.serie().name());
         espansione.setTotaleCarte(totale(dati.cardCount()));
+        espansione.setCarteUfficiali(dati.cardCount() == null ? null : dati.cardCount().official());
         espansione.setDataUscita(dataUscita(dati.releaseDate()));
         AbbinamentoTcgdex abbinamento = AbbinamentoTcgdex.get();
         if (dati.logo() != null) {
