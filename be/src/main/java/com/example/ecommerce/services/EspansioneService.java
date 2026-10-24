@@ -29,6 +29,7 @@ public class EspansioneService {
     private final OggettoRepository oggettoRepository;
     private final CatalogoService catalogoService;
     private final ImportInBackground importInBackground;
+    private final AllineamentoTcgdex allineamentoTcgdex;
 
     // set trovati senza carte: dopo quanto si richiedono a TCGdex
     private static final Duration ATTESA_SET_VUOTO = Duration.ofHours(6);
@@ -49,9 +50,19 @@ public class EspansioneService {
     private final PromemoriaTemporaneo<String> sincronizzazioneFallita =
             new PromemoriaTemporaneo<>(ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA);
 
-    // aggiorna l'elenco delle espansioni da TCGdex: all'avvio e ogni notte (nuovi set)
+    // aggiorna l'elenco delle espansioni da TCGdex, poi nomi e numeri delle carte (che usano nome e carte ufficiali
+    // dei set appena scritti): all'avvio e ogni notte. Se l'allineamento fallisce i set restano salvati
     @Scheduled(cron = "0 30 4 * * *")
     public void sincronizza() {
+        sincronizzaSet();
+        try {
+            allineamentoTcgdex.allinea();
+        } catch (RuntimeException ex) {
+            log.warn("Allineamento dei nomi delle carte fallito, si riprova la notte dopo: {}", ex.getMessage());
+        }
+    }
+
+    private void sincronizzaSet() {
         log.info("Espansioni sincronizzate: {}", catalogoService.sincronizzaEspansioni());
     }
 
@@ -79,7 +90,7 @@ public class EspansioneService {
                         + ATTESA_DOPO_SINCRONIZZAZIONE_FALLITA.toMinutes() + " minuti", null);
             }
             try {
-                sincronizza();
+                sincronizzaSet();
                 sincronizzazioneFallita.dimentica(ELENCO);
             } catch (ServizioEsternoException ex) {
                 sincronizzazioneFallita.annota(ELENCO);

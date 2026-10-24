@@ -36,6 +36,8 @@ public class TcgdexClient {
     private static final int DETTAGLI_IN_PARALLELO = 8;
     private static final String QUERY_SET =
             "{ sets { id name releaseDate logo symbol serie { id name } cardCount { total official } } }";
+    // tutte le carte (circa 23.000, 3,3 MB): per allineare il catalogo (nomi, numeri, immagini e rarità arrivate dopo)
+    private static final String QUERY_CARTE = "{ cards { id name localId image rarity set { id } } }";
 
     private final RestClient tcgdexRestClient;
     private final long attesaBaseMs;
@@ -65,18 +67,35 @@ public class TcgdexClient {
 
     // tutti i set in una chiamata (la GraphQL dà data e serie, l'elenco REST no), anche quelli di TCG Pocket
     public List<TcgdexApi.Set> set() {
-        TcgdexApi.RispostaSet risposta = conTentativi(() -> chiama(() -> tcgdexRestClient.post()
+        TcgdexApi.RispostaSet risposta = graphql(QUERY_SET, TcgdexApi.RispostaSet.class, "elenco dei set");
+        controllaErrori(risposta.errors());
+        return risposta.data() == null || risposta.data().sets() == null ? List.of() : risposta.data().sets();
+    }
+
+    // tutte le carte di TCGdex in una chiamata, con id, nome, numero e set
+    public List<TcgdexApi.CartaDelCatalogo> carteDelCatalogo() {
+        TcgdexApi.RispostaCarte risposta = graphql(QUERY_CARTE, TcgdexApi.RispostaCarte.class, "elenco delle carte");
+        controllaErrori(risposta.errors());
+        return risposta.data() == null || risposta.data().cards() == null ? List.of() : risposta.data().cards();
+    }
+
+    private <R> R graphql(String query, Class<R> tipo, String descrizione) {
+        return conTentativi(() -> chiama(() -> tcgdexRestClient.post()
                         .uri("/graphql")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .body(Map.of("query", QUERY_SET))
+                        .body(Map.of("query", query))
                         .retrieve()
-                        .body(TcgdexApi.RispostaSet.class),
-                "Elenco dei set non trovato su TCGdex"), "elenco dei set");
-        if (risposta.errors() != null && !risposta.errors().isEmpty()) {
+                        .body(tipo),
+                Character.toUpperCase(descrizione.charAt(0)) + descrizione.substring(1) + " non trovato su TCGdex"),
+                descrizione);
+    }
+
+    // errori della query: TCGdex risponde comunque 200
+    private static void controllaErrori(List<TcgdexApi.ErroreGraphql> errori) {
+        if (errori != null && !errori.isEmpty()) {
             throw new ServizioEsternoException("La GraphQL di TCGdex ha risposto con errori: "
-                    + risposta.errors().stream().map(TcgdexApi.ErroreGraphql::message).toList(), null);
+                    + errori.stream().map(TcgdexApi.ErroreGraphql::message).toList(), null);
         }
-        return risposta.data() == null || risposta.data().sets() == null ? List.of() : risposta.data().sets();
     }
 
     // elenco breve di tutte le carte del filtro, senza paginazione; più chiamate unite per id, nell'ordine di arrivo

@@ -59,7 +59,11 @@ Cliccando il logo di un'espansione si aprono le sue carte. I set di TCG Pocket (
 sono segnati come digitali: stanno nella serie «TCG Pocket», in home hanno una riga a parte sotto i set
 recenti (`GET /espansioni/anteprime?digitali=true`) e per il resto le loro carte sono carte come le altre.
 
-- **Elenco espansioni**: si sincronizza all'avvio e ogni notte (`GET /espansioni`, pubblico).
+- **Elenco espansioni**: si sincronizza all'avvio e ogni notte (`GET /espansioni`, pubblico). Subito dopo,
+  le carte già nel catalogo si allineano a TCGdex (una chiamata GraphQL con tutte le carte, circa 3 MB): nomi e
+  numeri come all'import, e immagini e rarità che TCGdex ha aggiunto dopo (un set scaricato il giorno dell'uscita
+  prende le immagini appena TCGdex le pubblica). Un nome cambiato a mano dall'admin su una carta di TCGdex torna
+  quello di TCGdex la notte dopo; immagini e rarità già salvate non si toccano.
 - **Carte di un'espansione** (`GET /espansioni/{id}/carte`, pubblico): alla prima apertura
   il backend importa il set nel catalogo (qualche secondo), dalle volte successive legge
   dal database. Prezzi, preferiti e modifica admin funzionano su tutte le carte.

@@ -14,6 +14,7 @@ import com.example.ecommerce.repositories.OggettoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,6 +46,8 @@ class EspansioneServiceTest {
     private OggettoRepository oggettoRepository;
     @Mock
     private CatalogoService catalogoService;
+    @Mock
+    private AllineamentoTcgdex allineamentoTcgdex;
 
     // l'import in background finisce in una coda che i test non eseguono
     private final List<Runnable> coda = new ArrayList<>();
@@ -52,7 +56,8 @@ class EspansioneServiceTest {
     @BeforeEach
     void prepara() {
         ImportInBackground background = new ImportInBackground(coda::add, new LimitatoreImport(10, 1000), Clock.systemUTC());
-        service = new EspansioneService(espansioneRepository, oggettoRepository, catalogoService, background);
+        service = new EspansioneService(espansioneRepository, oggettoRepository, catalogoService, background,
+                allineamentoTcgdex);
     }
 
     // vetrina vuota e pokemontcg.io giù: dopo un fallimento le visite successive rispondono subito con
@@ -81,6 +86,28 @@ class EspansioneServiceTest {
 
         assertThat(espansioni).extracting(EspansioneResponseDTO::id).containsExactly("base1");
         verify(catalogoService, times(1)).sincronizzaEspansioni();
+        // la visita aspetta solo i set: i nomi delle carte li allinea la sincronizzazione notturna
+        verifyNoInteractions(allineamentoTcgdex);
+    }
+
+    // all'avvio e ogni notte: prima i set (nome e carte ufficiali servono ai nomi), poi i nomi delle carte
+    @Test
+    void sincronizzaAllineaINomiDopoISet() {
+        service.sincronizza();
+
+        InOrder ordine = inOrder(catalogoService, allineamentoTcgdex);
+        ordine.verify(catalogoService).sincronizzaEspansioni();
+        ordine.verify(allineamentoTcgdex).allinea();
+    }
+
+    // TCGdex giù per l'elenco delle carte: i set sono già salvati, si riprova la notte dopo
+    @Test
+    void allineamentoFallitoNonFermaLaSincronizzazione() {
+        when(allineamentoTcgdex.allinea()).thenThrow(new ServizioEsternoException("TCGdex ha risposto 502 BAD_GATEWAY", null));
+
+        service.sincronizza();
+
+        verify(catalogoService).sincronizzaEspansioni();
     }
 
     // vetrina già popolata: nessuna chiamata esterna
