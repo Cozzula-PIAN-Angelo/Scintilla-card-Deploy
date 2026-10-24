@@ -192,6 +192,22 @@ public class CatalogoService {
     // viene sovrascritto. Le carte che TCGdex non ha più ricevono solo la data (non si ripropongono a ogni giro);
     // quelle fallite per un errore temporaneo restano com'erano. Restituisce quante ne sono arrivate
     public int rinfrescaPrezzi(List<String> idEsterni) {
+        int arrivate = leggiPrezzi(idEsterni, true);
+        log.info("Prezzi delle carte nei binder rinfrescati: {} su {}", arrivate, idEsterni.size());
+        return arrivate;
+    }
+
+    // carte con i prezzi mai letti: le colonne arrivate con la V12 sono vuote sulle carte importate prima, e l'import
+    // non ripassa sui set già scaricati. Come il rinfresco, ma il prezzo singolo resta quello dell'import (o quello
+    // corretto a mano dall'admin)
+    public int riempiPrezzi(List<String> idEsterni) {
+        int arrivate = leggiPrezzi(idEsterni, false);
+        log.info("Prezzi mai letti riempiti: {} su {}", arrivate, idEsterni.size());
+        return arrivate;
+    }
+
+    // minimo e massimo (e, con ancheIlPrezzo, il prezzo singolo) da TCGdex, a blocchi; restituisce quante sono arrivate
+    private int leggiPrezzi(List<String> idEsterni, boolean ancheIlPrezzo) {
         int arrivate = 0;
         for (int da = 0; da < idEsterni.size(); da += BLOCCO) {
             List<String> blocco = idEsterni.subList(da, Math.min(da + BLOCCO, idEsterni.size()));
@@ -210,7 +226,7 @@ public class CatalogoService {
                             return;
                         }
                         applicaPrezzi(oggetto, carta, adesso);
-                        BigDecimal prezzo = prezzoSuggerito(carta);
+                        BigDecimal prezzo = ancheIlPrezzo ? prezzoSuggerito(carta) : null;
                         if (prezzo != null && prezzo.compareTo(PREZZO_MASSIMO) <= 0) {
                             oggetto.setPrezzo(prezzo);
                         }
@@ -219,7 +235,6 @@ public class CatalogoService {
             }
             arrivate += dettagli.carte().size();
         }
-        log.info("Prezzi delle carte nei binder rinfrescati: {} su {}", arrivate, idEsterni.size());
         return arrivate;
     }
 

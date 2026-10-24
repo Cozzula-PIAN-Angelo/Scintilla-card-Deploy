@@ -29,6 +29,22 @@ export const NUMERI_ALTROVE = { ex10: 'exu' }
 // TCGdex "CC001" e "001"): le carte si abbinano solo per nome, il numero porterebbe su un'altra carta
 export const SET_PER_NOME = new Set(['cel25c', 'me55c'])
 
+// carte che le regole non abbinano o abbinano male, verificate a mano su nome, PS, illustratore e immagine
+// (2026-10-24): le due metà di Darkrai & Cresselia LEGEND hanno lo stesso nome, "Palkia LV.X" su TCGdex è "Palkia",
+// pokemontcg.io dà ad Antique Cover Fossil di Black Bolt il numero 60 (quello di Escavalier), le quattro carte di
+// Aquapolis che TCGdex divide in a e b su pokemontcg.io sono una sola, la versione a. Vincono sulle regole.
+// Le stesse sono in UnioneDoppioniTcgdex (V14) per i database già convertiti
+export const CARTE_A_MANO = {
+  'me55c-99': '30th-c-019',
+  'me55c-100': '30th-c-020',
+  'me55c-106p': '30th-c-022',
+  'zsv10pt5-80': 'sv10.5b-080',
+  'ecard2-50': 'ecard2-50a',
+  'ecard2-74': 'ecard2-74a',
+  'ecard2-95': 'ecard2-95a',
+  'ecard2-103': 'ecard2-103a',
+}
+
 // vecchie e nuove: carte {id, name} di due set abbinati; usate: id nuovi già presi. Solo i nomi che compaiono una
 // volta sola tra le vecchie e una sola tra le nuove libere: un doppione resterebbe un'ipotesi
 export function abbinaPerNome(vecchie, nuove, usate) {

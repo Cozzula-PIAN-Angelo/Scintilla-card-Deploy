@@ -387,6 +387,23 @@ class CatalogoServiceTest {
         assertThat(vecchia.getPrezziAggiornatiIl()).isAfter(Instant.parse("2026-10-01T10:00:00Z"));
     }
 
+    // carte mai lette (colonne arrivate con la V12): minimo, massimo e data, ma il prezzo singolo resta quello
+    // dell'import (o quello corretto a mano dall'admin): lo aggiorna solo il rinfresco delle carte nei binder
+    @Test
+    void riempiPrezziScriveLaFasciaMaNonIlPrezzo() {
+        risponde(FiltroCarte.diSet("sv1"), List.of(conPrezzi(carta("sv1-1", "Uno"), CARDMARKET)));
+        Oggetto vecchia = esistente("Uno", "sv1-1");
+        when(oggettoRepository.findByIdEsternoIn(any())).thenReturn(List.of(vecchia));
+
+        int arrivate = service.riempiPrezzi(List.of("sv1-1"));
+
+        assertThat(arrivate).isEqualTo(1);
+        assertThat(vecchia.getPrezzoMinimo()).isEqualByComparingTo("0.02");
+        assertThat(vecchia.getPrezzoMassimoReverse()).isEqualByComparingTo("0.28");
+        assertThat(vecchia.getPrezzo()).isEqualByComparingTo("0.50");
+        assertThat(vecchia.getPrezziAggiornatiIl()).isNotNull();
+    }
+
     // carta che TCGdex non ha più (404): solo la data, così il giro dopo non la ripropone
     @Test
     void rinfrescaPrezziSegnaLeSparite() {

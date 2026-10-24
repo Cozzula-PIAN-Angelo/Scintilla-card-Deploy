@@ -4,6 +4,7 @@ import com.example.ecommerce.exceptions.ServizioEsternoException;
 import com.example.ecommerce.repositories.OggettoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -22,6 +23,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -130,6 +132,35 @@ class RiempimentoVariantiTest {
 
         verify(catalogoService).riempiVarianti("base1");
         assertThat(log.getOut()).contains("WARN").contains("Prezzi delle carte nei binder non rinfrescati");
+    }
+
+    // carte con prezzi mai letti (le colonne arrivate con la V12 sono vuote su quelle importate prima): al primo giro
+    // tutte, poi a blocchi; dopo il rinfresco dei binder, che legge già le sue
+    @Test
+    void quartoPassoLeggeIPrezziMaiLetti() {
+        when(oggettoRepository.findSetConVariantiMancanti(anyInt())).thenReturn(List.of());
+        when(oggettoRepository.findIdEsterniConPrezziDaRinfrescare(anyInt(), any())).thenReturn(List.of("sv1-1"));
+        when(oggettoRepository.findIdEsterniSenzaPrezzi(RiempimentoVarianti.PRIMO_GIRO_CARTE)).thenReturn(List.of("sv1-2"));
+        when(oggettoRepository.findIdEsterniSenzaPrezzi(RiempimentoVarianti.CARTE_PER_GIRO)).thenReturn(List.of());
+
+        riempimento.esegui();
+        riempimento.esegui();
+
+        InOrder ordine = inOrder(catalogoService);
+        ordine.verify(catalogoService).rinfrescaPrezzi(List.of("sv1-1"));
+        ordine.verify(catalogoService).riempiPrezzi(List.of("sv1-2"));
+        verify(catalogoService, times(1)).riempiPrezzi(anyList());
+    }
+
+    @Test
+    void erroreNeiPrezziMaiLettiFinisceNelLog(CapturedOutput log) {
+        when(oggettoRepository.findSetConVariantiMancanti(anyInt())).thenReturn(List.of());
+        when(oggettoRepository.findIdEsterniSenzaPrezzi(anyInt())).thenReturn(List.of("sv1-2"));
+        doThrow(new ServizioEsternoException("giù", null)).when(catalogoService).riempiPrezzi(anyList());
+
+        riempimento.esegui();
+
+        assertThat(log.getOut()).contains("WARN").contains("Prezzi mai letti non riempiti");
     }
 
     @Test
