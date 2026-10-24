@@ -57,6 +57,8 @@ class AbbinamentoTcgdexTest {
             assertThat(abbinamento.riserva("30th-c-019")).contains("/immagini/carte/me55c-99.webp");
             assertThat(abbinamento.riserva("30th-c-020")).contains("/immagini/carte/me55c-100.webp");
             assertThat(abbinamento.riserva("30th-c-022")).contains("/immagini/carte/me55c-106p.webp");
+            assertThat(abbinamento.riserva("ecard2-50a")).contains("/immagini/carte/ecard2-50.webp");
+            assertThat(abbinamento.riserva("ecard2-50b")).isEmpty();
         }
     }
 

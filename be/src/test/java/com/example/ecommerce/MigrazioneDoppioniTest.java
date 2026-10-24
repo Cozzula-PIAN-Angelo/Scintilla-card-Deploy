@@ -36,6 +36,7 @@ class MigrazioneDoppioniTest {
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('30th-c', '30th Classic Collection', true)");
         jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('sv10.5b', 'Black Bolt', true)");
+        jdbc.update("INSERT INTO espansioni (id, nome, importata) VALUES ('ecard2', 'Aquapolis', true)");
         UUID mario = utente(jdbc, "mario");
         UUID luigi = utente(jdbc, "luigi");
 
@@ -47,6 +48,11 @@ class MigrazioneDoppioniTest {
         UUID fossile = carta(jdbc, "sv10.5b-080", "sv10.5b", IMMAGINE_TCGDEX);
         // Palkia LV.X: solo la vecchia (set non ancora riscaricato da TCGdex)
         UUID palkia = carta(jdbc, "me55c-106p", "30th-c", "/immagini/carte/me55c-106p.webp");
+        // Golduck di Aquapolis: la vecchia è la versione a; la b, senza immagine, non si tocca
+        UUID golduckVecchio = carta(jdbc, "ecard2-50", "ecard2", "/immagini/carte/ecard2-50.webp");
+        UUID golduckA = carta(jdbc, "ecard2-50a", "ecard2", null);
+        UUID golduckB = carta(jdbc, "ecard2-50b", "ecard2", null);
+        copia(jdbc, luigi, golduckVecchio, 1);
         jdbc.update("INSERT INTO oggetti_pokedex (numero_pokedex, oggetto_id) VALUES (491, ?)", darkraiVecchia);
 
         // mario ha la stessa carta sotto i due id: le copie si sommano; luigi solo la vecchia: passa alla nuova
@@ -63,7 +69,10 @@ class MigrazioneDoppioniTest {
         Flyway.configure().dataSource(dataSource).load().migrate();
 
         assertThat(jdbc.queryForList("SELECT id_esterno FROM oggetti ORDER BY id_esterno", String.class))
-                .containsExactly("30th-c-019", "30th-c-022", "sv10.5b-080");
+                .containsExactly("30th-c-019", "30th-c-022", "ecard2-50a", "ecard2-50b", "sv10.5b-080");
+        assertThat(immagine(jdbc, golduckA)).isEqualTo("/immagini/carte/ecard2-50.webp");
+        assertThat(immagine(jdbc, golduckB)).isNull();
+        assertThat(quantita(jdbc, luigi, golduckA)).isEqualTo(1);
         // la carta di TCGdex senza immagine prende quella locale della vecchia; chi ce l'ha la tiene
         assertThat(immagine(jdbc, darkrai)).isEqualTo(IMMAGINE_VECCHIA);
         assertThat(immagine(jdbc, fossile)).isEqualTo(IMMAGINE_TCGDEX);
