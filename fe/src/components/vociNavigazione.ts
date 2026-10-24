@@ -15,10 +15,10 @@ export const VOCI_PRINCIPALI: VoceMenu[] = [
   { a: '/binder', etichetta: 'Binder', icona: Album },
 ]
 
-// solo per gli admin: nella navbar da desktop, nel pannello account da telefono
+// solo per gli admin: nel pannello account
 export const VOCE_ADMIN: VoceMenu = { a: '/admin', etichetta: 'Admin', icona: ShieldCheck }
 
-// statistiche della collezione: nel pannello account (telefono) e accanto a Esci (desktop)
+// statistiche della collezione: nel pannello account
 export const VOCE_COLLEZIONE: VoceMenu = { a: '/collezione', etichetta: 'Collezione', icona: ChartPie }
 
 // profilo e impostazioni dell'account: nel pannello account

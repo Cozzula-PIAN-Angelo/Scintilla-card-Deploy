@@ -5,6 +5,7 @@ import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
 import { selectIsAdmin, selectToken, selectUtente } from '../features/auth/authSlice'
 import { useLogout } from '../features/auth/useLogout'
+import { useGetStatisticheQuery } from '../features/statistiche/statisticheApi'
 import { cn } from '../utils/cn'
 import { Avatar } from './Avatar'
 import { LinkBottone } from './Button'
@@ -13,12 +14,19 @@ import { VOCE_ADMIN, VOCE_COLLEZIONE, VOCE_IMPOSTAZIONI, VOCE_PROFILO, type Voce
 // le voci del pannello account in fila: stessa forma per link e bottoni
 const RIGA = 'flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-semibold transition-colors'
 
+// "1.240 carte · 3 binder"
+function riassunto(carte: number, binder: number): string {
+  return `${carte.toLocaleString('it-IT')} ${carte === 1 ? 'carta' : 'carte'} · ${binder} binder`
+}
+
 // contenuto del pannello account: lo stesso nel menu a tendina da desktop e nel pannello da telefono
 export function ContenutoAccount() {
   const token = useAppSelector(selectToken)
   const utente = useAppSelector(selectUtente)
   const isAdmin = useAppSelector(selectIsAdmin)
   const { esci, inUscita } = useLogout()
+  // sotto il nome quante carte e quanti binder: si chiede solo con il pannello aperto (poi resta in cache)
+  const { data: statistiche } = useGetStatisticheQuery(undefined, { skip: !utente })
 
   if (!utente) {
     // token senza utente: il profilo sta ancora arrivando, meglio non mostrare Accedi
@@ -43,7 +51,9 @@ export function ContenutoAccount() {
         <Avatar utente={utente} className="size-10 text-lg" />
         <div className="min-w-0">
           <p className="truncate font-semibold text-white">{utente.username}</p>
-          <p className="text-xs text-white/70">{isAdmin ? 'Amministratore' : 'Collezionista'} · vedi il profilo</p>
+          <p className="text-xs text-white/70">
+            {statistiche ? riassunto(statistiche.totali.carteDiverse, statistiche.totali.binder) : isAdmin ? 'Amministratore' : 'Collezionista'}
+          </p>
         </div>
       </NavLink>
 
@@ -127,7 +137,8 @@ export function MenuAccount() {
         )}
       >
         <Avatar utente={utente} className="size-8 text-base" />
-        <span className="max-w-[12ch] truncate">{utente.username}</span>
+        {/* fra lg e xl solo l'avatar: col nome la barra uscirebbe dallo schermo a 1024 px */}
+        <span className="hidden max-w-[12ch] truncate xl:block">{utente.username}</span>
         <ChevronDown aria-hidden className={cn('size-4 text-white/70 transition-transform duration-200', aperto && 'rotate-180')} />
       </button>
 
