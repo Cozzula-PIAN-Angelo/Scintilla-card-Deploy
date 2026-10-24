@@ -16,22 +16,22 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-// AllineamentoNomi su un PostgreSQL vero: il vincolo di unicità sul nome è quello del database
+// AllineamentoTcgdex su un PostgreSQL vero: il vincolo di unicità sul nome è quello del database
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @AutoConfigureEmbeddedDatabase(provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.ZONKY)
-class AllineamentoNomiTest {
+class AllineamentoTcgdexTest {
 
     @Autowired
     private DataSource dataSource;
 
     private JdbcTemplate jdbc;
-    private AllineamentoNomi allineamento;
+    private AllineamentoTcgdex allineamento;
 
     @BeforeEach
     void prepara() {
         jdbc = new JdbcTemplate(dataSource);
-        allineamento = new AllineamentoNomi(mock(TcgdexClient.class), jdbc, null);
+        allineamento = new AllineamentoTcgdex(mock(TcgdexClient.class), jdbc, null);
         jdbc.update("INSERT INTO espansioni (id, nome, importata, carte_ufficiali) VALUES ('30th-c', '30th Classic Collection', true, 30)");
         jdbc.update("INSERT INTO espansioni (id, nome, importata, carte_ufficiali) VALUES ('sm2', 'Guardians Rising', true, 145)");
     }
@@ -100,6 +100,49 @@ class AllineamentoNomiTest {
         assertThat(numero(scizor)).isEqualTo("25");
     }
 
+    // set scaricato prima che TCGdex avesse le immagini (Paldean Wonders il giorno dell'uscita): arrivano la notte dopo
+    @Test
+    void immagineArrivataDopoSiRiempie() {
+        UUID scizor = inserisci("30th-c-025", "Scizor ex (30th Classic Collection 25/30)", "25", "30th-c");
+
+        int allineate = allineamento.allinea(List.of(carta("30th-c-025", "025", "Scizor ex", "30th-c",
+                "https://assets.tcgdex.net/en/me/30th-c/025", null)));
+
+        assertThat(allineate).isEqualTo(1);
+        assertThat(campo(scizor, "immagine_url")).isEqualTo("https://assets.tcgdex.net/en/me/30th-c/025/high.webp");
+    }
+
+    // un'immagine già salvata (anche la copia locale di una riserva) resta
+    @Test
+    void immagineGiaSalvataNonSiTocca() {
+        UUID lele = inserisci("sm2-60", "Tapu Lele GX (Guardians Rising 60/145)", "60", "sm2");
+        jdbc.update("UPDATE oggetti SET immagine_url = '/immagini/carte/sm2-60.webp' WHERE id = ?", lele);
+
+        int allineate = allineamento.allinea(List.of(carta("sm2-60", "60", "Tapu Lele GX", "sm2",
+                "https://assets.tcgdex.net/en/sm/sm2/60", "Ultra Rare")));
+
+        assertThat(allineate).isZero();
+        assertThat(campo(lele, "immagine_url")).isEqualTo("/immagini/carte/sm2-60.webp");
+    }
+
+    // rarità letta e vuota (''): arriva quando TCGdex la aggiunge; "None" vale ancora come nessuna. Una rarità mai
+    // letta (null) la riempie RiempimentoVarianti, che conosce le varianti (regola della Rare Holo)
+    @Test
+    void raritaVuotaSiRiempieQuandoTcgdexLaAggiunge() {
+        UUID scizor = inserisci("30th-c-025", "Scizor ex (30th Classic Collection 25/30)", "25", "30th-c");
+        UUID charizard = inserisci("30th-c-001", "Charizard (30th Classic Collection 1/30)", "1", "30th-c");
+        UUID mai = inserisci("30th-c-002", "Delcatty (30th Classic Collection 2/30)", "2", "30th-c");
+        jdbc.update("UPDATE oggetti SET rarita = '' WHERE id IN (?, ?)", scizor, charizard);
+
+        allineamento.allinea(List.of(carta("30th-c-025", "025", "Scizor ex", "30th-c", null, "Double rare"),
+                carta("30th-c-001", "001", "Charizard", "30th-c", null, "None"),
+                carta("30th-c-002", "002", "Delcatty", "30th-c", null, "Rare")));
+
+        assertThat(campo(scizor, "rarita")).isEqualTo("Double rare");
+        assertThat(campo(charizard, "rarita")).isEmpty();
+        assertThat(campo(mai, "rarita")).isNull();
+    }
+
     private UUID inserisci(String idEsterno, String nome, String numero, String espansione) {
         UUID id = UUID.randomUUID();
         jdbc.update("INSERT INTO oggetti (id, nome, prezzo, created_at, id_esterno, numero, espansione_id) "
@@ -108,14 +151,23 @@ class AllineamentoNomiTest {
     }
 
     private static TcgdexApi.CartaDelCatalogo carta(String id, String localId, String nome, String set) {
-        return new TcgdexApi.CartaDelCatalogo(id, localId, nome, new TcgdexApi.SetDellaCarta(set, null, null));
+        return carta(id, localId, nome, set, null, null);
+    }
+
+    private static TcgdexApi.CartaDelCatalogo carta(String id, String localId, String nome, String set, String immagine,
+                                                    String rarita) {
+        return new TcgdexApi.CartaDelCatalogo(id, localId, nome, immagine, rarita, new TcgdexApi.SetDellaCarta(set, null, null));
     }
 
     private String nome(UUID id) {
-        return jdbc.queryForObject("SELECT nome FROM oggetti WHERE id = ?", String.class, id);
+        return campo(id, "nome");
     }
 
     private String numero(UUID id) {
-        return jdbc.queryForObject("SELECT numero FROM oggetti WHERE id = ?", String.class, id);
+        return campo(id, "numero");
+    }
+
+    private String campo(UUID id, String colonna) {
+        return jdbc.queryForObject("SELECT " + colonna + " FROM oggetti WHERE id = ?", String.class, id);
     }
 }

@@ -47,7 +47,7 @@ class EspansioneServiceTest {
     @Mock
     private CatalogoService catalogoService;
     @Mock
-    private AllineamentoNomi allineamentoNomi;
+    private AllineamentoTcgdex allineamentoTcgdex;
 
     // l'import in background finisce in una coda che i test non eseguono
     private final List<Runnable> coda = new ArrayList<>();
@@ -57,7 +57,7 @@ class EspansioneServiceTest {
     void prepara() {
         ImportInBackground background = new ImportInBackground(coda::add, new LimitatoreImport(10, 1000), Clock.systemUTC());
         service = new EspansioneService(espansioneRepository, oggettoRepository, catalogoService, background,
-                allineamentoNomi);
+                allineamentoTcgdex);
     }
 
     // vetrina vuota e pokemontcg.io giù: dopo un fallimento le visite successive rispondono subito con
@@ -87,7 +87,7 @@ class EspansioneServiceTest {
         assertThat(espansioni).extracting(EspansioneResponseDTO::id).containsExactly("base1");
         verify(catalogoService, times(1)).sincronizzaEspansioni();
         // la visita aspetta solo i set: i nomi delle carte li allinea la sincronizzazione notturna
-        verifyNoInteractions(allineamentoNomi);
+        verifyNoInteractions(allineamentoTcgdex);
     }
 
     // all'avvio e ogni notte: prima i set (nome e carte ufficiali servono ai nomi), poi i nomi delle carte
@@ -95,15 +95,15 @@ class EspansioneServiceTest {
     void sincronizzaAllineaINomiDopoISet() {
         service.sincronizza();
 
-        InOrder ordine = inOrder(catalogoService, allineamentoNomi);
+        InOrder ordine = inOrder(catalogoService, allineamentoTcgdex);
         ordine.verify(catalogoService).sincronizzaEspansioni();
-        ordine.verify(allineamentoNomi).allinea();
+        ordine.verify(allineamentoTcgdex).allinea();
     }
 
     // TCGdex giù per l'elenco delle carte: i set sono già salvati, si riprova la notte dopo
     @Test
     void allineamentoFallitoNonFermaLaSincronizzazione() {
-        when(allineamentoNomi.allinea()).thenThrow(new ServizioEsternoException("TCGdex ha risposto 502 BAD_GATEWAY", null));
+        when(allineamentoTcgdex.allinea()).thenThrow(new ServizioEsternoException("TCGdex ha risposto 502 BAD_GATEWAY", null));
 
         service.sincronizza();
 

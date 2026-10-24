@@ -55,9 +55,9 @@ public final class TcgdexApi {
     public record DatiCarte(List<CartaDelCatalogo> cards) {
     }
 
-    // carta dell'elenco completo: solo quel che serve a nome e numero (del set arriva solo l'id)
+    // carta dell'elenco completo: solo quel che serve a nome, numero, immagine e rarità (del set arriva solo l'id)
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record CartaDelCatalogo(String id, String localId, String name, SetDellaCarta set) {
+    public record CartaDelCatalogo(String id, String localId, String name, String image, String rarity, SetDellaCarta set) {
     }
 
     // elemento di GET /cards: image manca nelle carte senza immagine

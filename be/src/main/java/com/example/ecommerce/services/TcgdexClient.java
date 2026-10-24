@@ -36,8 +36,8 @@ public class TcgdexClient {
     private static final int DETTAGLI_IN_PARALLELO = 8;
     private static final String QUERY_SET =
             "{ sets { id name releaseDate logo symbol serie { id name } cardCount { total official } } }";
-    // tutte le carte (circa 23.000, 1,7 MB): per allineare nomi e numeri del catalogo
-    private static final String QUERY_CARTE = "{ cards { id name localId set { id } } }";
+    // tutte le carte (circa 23.000, 3,3 MB): per allineare il catalogo (nomi, numeri, immagini e rarità arrivate dopo)
+    private static final String QUERY_CARTE = "{ cards { id name localId image rarity set { id } } }";
 
     private final RestClient tcgdexRestClient;
     private final long attesaBaseMs;

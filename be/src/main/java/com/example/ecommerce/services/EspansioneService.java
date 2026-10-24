@@ -29,7 +29,7 @@ public class EspansioneService {
     private final OggettoRepository oggettoRepository;
     private final CatalogoService catalogoService;
     private final ImportInBackground importInBackground;
-    private final AllineamentoNomi allineamentoNomi;
+    private final AllineamentoTcgdex allineamentoTcgdex;
 
     // set trovati senza carte: dopo quanto si richiedono a TCGdex
     private static final Duration ATTESA_SET_VUOTO = Duration.ofHours(6);
@@ -56,7 +56,7 @@ public class EspansioneService {
     public void sincronizza() {
         sincronizzaSet();
         try {
-            allineamentoNomi.allinea();
+            allineamentoTcgdex.allinea();
         } catch (RuntimeException ex) {
             log.warn("Allineamento dei nomi delle carte fallito, si riprova la notte dopo: {}", ex.getMessage());
         }

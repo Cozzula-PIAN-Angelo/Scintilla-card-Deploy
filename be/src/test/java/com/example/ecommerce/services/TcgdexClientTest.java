@@ -88,10 +88,11 @@ class TcgdexClientTest {
     void carteDelCatalogoInUnaChiamata() {
         tcgdex.expect(requestTo(BASE_URL + "/graphql"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(content().string(containsString("localId")))
+                .andExpect(content().string(containsString("rarity")))
                 .andRespond(withSuccess("""
                         {"data": {"cards": [
-                          {"id": "30th-c-025", "name": "Scizor ex", "localId": "025", "set": {"id": "30th-c"}}
+                          {"id": "30th-c-025", "name": "Scizor ex", "localId": "025", "set": {"id": "30th-c"},
+                           "image": "https://assets.tcgdex.net/en/me/30th-c/025", "rarity": "Double rare"}
                         ]}}
                         """, MediaType.APPLICATION_JSON));
 
@@ -102,6 +103,8 @@ class TcgdexClientTest {
             assertThat(carta.name()).isEqualTo("Scizor ex");
             assertThat(carta.localId()).isEqualTo("025");
             assertThat(carta.set().id()).isEqualTo("30th-c");
+            assertThat(carta.image()).isEqualTo("https://assets.tcgdex.net/en/me/30th-c/025");
+            assertThat(carta.rarity()).isEqualTo("Double rare");
         });
         tcgdex.verify();
     }
