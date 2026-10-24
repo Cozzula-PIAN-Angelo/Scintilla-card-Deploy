@@ -56,6 +56,8 @@ public class CatalogoService {
     private static final BigDecimal PREZZO_MASSIMO = new BigDecimal("999999.99");
     // import in blocco: le carte senza prezzo Cardmarket entrano con questo prezzo, modificabile dall'admin
     private static final BigDecimal PREZZO_RIPIEGO = new BigDecimal("1.00");
+    // nome della serie dei set digitali (su TCGdex "Pokémon TCG Pocket"); lo stesso della V15
+    private static final String SERIE_POCKET = "TCG Pocket";
     // dettagli chiesti e salvati a blocchi: un errore a metà non butta via quelli già salvati
     static final int BLOCCO = 24;
     // pagina della vista (la griglia ne mostra 24)
@@ -132,8 +134,11 @@ public class CatalogoService {
     // importa tutte le carte di un set (es. sv03.5) saltando quelle già complete nel catalogo. Salva a blocchi:
     // interrotto a metà (TCGdex giù), i blocchi salvati restano e il tentativo dopo li salta
     public ImportaSetResponseDTO importaSet(String setId) {
-        String id = setId == null ? "" : setId.trim().toLowerCase();
-        if (!id.matches("[a-z0-9.-]{2,30}")) {
+        String scritto = setId == null ? "" : setId.trim();
+        // TCGdex distingue le maiuscole: quelle degli id di TCG Pocket (A2b, P-A) restano se il set è nel catalogo,
+        // altrimenti l'id va in minuscolo come gli altri ("Base1" -> base1)
+        String id = espansioneRepository.findById(scritto).isPresent() ? scritto : scritto.toLowerCase();
+        if (!id.matches("[A-Za-z0-9.-]{2,30}")) {
             throw new BadRequestException("Id del set non valido: usa l'id di TCGdex, es. base1, sv03.5, swsh1");
         }
 
@@ -464,7 +469,7 @@ public class CatalogoService {
         }
     }
 
-    // scarica tutti i set di TCGdex (senza TCG Pocket) e li salva; restituisce quanti sono. La chiamata HTTP sta
+    // scarica tutti i set di TCGdex (anche quelli digitali di TCG Pocket) e li salva; restituisce quanti sono. La chiamata HTTP sta
     // fuori dalla transazione, il salvataggio dentro: le entity restano gestite e, con @DynamicUpdate, si scrivono
     // solo i campi davvero cambiati (mai "importata")
     public int sincronizzaEspansioni() {
@@ -479,7 +484,9 @@ public class CatalogoService {
     private Espansione aggiornaDa(TcgdexApi.Set dati) {
         Espansione espansione = espansioneRepository.findById(dati.id()).orElseGet(() -> new Espansione(dati.id()));
         espansione.setNome(dati.name());
-        espansione.setSerie(dati.serie() == null ? null : dati.serie().name());
+        boolean pocket = dati.serie() != null && dati.serie().isPocket();
+        espansione.setSerie(pocket ? SERIE_POCKET : dati.serie() == null ? null : dati.serie().name());
+        espansione.setDigitale(pocket);
         espansione.setTotaleCarte(totale(dati.cardCount()));
         espansione.setCarteUfficiali(dati.cardCount() == null ? null : dati.cardCount().official());
         espansione.setDataUscita(dataUscita(dati.releaseDate()));

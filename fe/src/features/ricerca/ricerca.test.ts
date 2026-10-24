@@ -12,6 +12,7 @@ const set = (id: string, nome: string, dataUscita: string | null, serie: string 
   logoUrl: null,
   simboloUrl: null,
   importata: true,
+  digitale: false,
   descrizione: null,
 })
 

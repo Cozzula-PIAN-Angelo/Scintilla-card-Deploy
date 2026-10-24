@@ -168,6 +168,26 @@ class CatalogoServiceTest {
                 .containsExactly("/immagini/carte/sm7.5-1.webp", null);
     }
 
+    // gli id di TCG Pocket hanno le maiuscole (A2b) e TCGdex li distingue: "a2b" non ha carte
+    @Test
+    void importaSetDiTcgPocketConLeMaiuscole() {
+        Espansione pocket = new Espansione("A2b");
+        when(espansioneRepository.findById("A2b")).thenReturn(Optional.of(pocket));
+        risponde(FiltroCarte.diSet("A2b"), List.of(carta("A2b-1", "Weedle")));
+
+        service.importaSet("A2b");
+
+        assertThat(pocket.isImportata()).isTrue();
+    }
+
+    // un id scritto a mano dall'admin con le maiuscole, che nel catalogo non c'è, va in minuscolo come prima
+    @Test
+    void importaSetScrittoConLeMaiuscoleVaInMinuscolo() {
+        risponde(FiltroCarte.diSet("base1"), List.of(carta("base1-4", "Charizard")));
+
+        assertThat(service.importaSet(" Base1 ").setId()).isEqualTo("base1");
+    }
+
     private static TcgdexApi.Carta senzaImmagine(TcgdexApi.Carta c) {
         return new TcgdexApi.Carta(c.id(), c.localId(), c.name(), c.rarity(), c.illustrator(), null, c.dexId(), c.set(),
                 c.variants(), c.pricing());
@@ -709,6 +729,26 @@ class CatalogoServiceTest {
         assertThat(nuova.getLogoUrl()).isNull();
         // i simboli di TCGdex non si caricano: senza copia locale il set resta senza
         assertThat(nuova.getSimboloUrl()).isNull();
+    }
+
+    // i set di TCG Pocket (gioco per telefono) entrano come set digitali, nella serie "TCG Pocket"
+    @Test
+    void sincronizzaSegnaTcgPocketComeDigitale() {
+        when(client.set()).thenReturn(List.of(
+                new TcgdexApi.Set("A1", "Genetic Apex", "2024-10-30", "https://assets.tcgdex.net/en/tcgp/A1/logo", null,
+                        new TcgdexApi.Serie("tcgp", "Pokémon TCG Pocket"), new TcgdexApi.CardCount(286, 226)),
+                new TcgdexApi.Set("me04", "Chaos Rising", "2026-05-22", null, null,
+                        new TcgdexApi.Serie("me", "Mega Evolution"), new TcgdexApi.CardCount(122, 86))));
+
+        service.sincronizzaEspansioni();
+
+        ArgumentCaptor<Espansione> salvate = ArgumentCaptor.forClass(Espansione.class);
+        verify(espansioneRepository, times(2)).save(salvate.capture());
+        Espansione pocket = salvate.getAllValues().get(0);
+        assertThat(pocket.getSerie()).isEqualTo("TCG Pocket");
+        assertThat(pocket.isDigitale()).isTrue();
+        assertThat(pocket.getDataUscita()).isEqualTo(LocalDate.of(2024, 10, 30));
+        assertThat(salvate.getAllValues().get(1).isDigitale()).isFalse();
     }
 
     // 59 set su TCGdex non hanno logo (30th, Temporal Forces, promo...): senza copia locale resta quello salvato

@@ -9,7 +9,7 @@ import { useGetAnteprimeQuery } from '../espansioni/espansioniApi'
 import { LogoSet } from '../espansioni/LogoSet'
 import { useCarteCaricate } from './useCarteCaricate'
 
-const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4'
+export const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4'
 
 // i set usciti prima di quello della hero (due righe da quattro), ognuno con le sue tre carte più cercate dietro al logo
 export function SetRecenti() {
@@ -47,7 +47,7 @@ const VENTAGLIO = [
   { chiusa: { x: 0, y: 6, rotate: 0 }, aperta: { x: 0, y: -26, rotate: 0 } },
 ]
 
-function SetConCarteDietro({ anteprima }: { anteprima: AnteprimaSet }) {
+export function SetConCarteDietro({ anteprima }: { anteprima: AnteprimaSet }) {
   const { espansione } = anteprima
   const carte = useCarteCaricate(anteprima.carteDiPunta, 3)
   // la più preziosa al centro, davanti alle altre due

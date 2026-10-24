@@ -36,8 +36,6 @@ public class TcgdexClient {
     private static final int DETTAGLI_IN_PARALLELO = 8;
     private static final String QUERY_SET =
             "{ sets { id name releaseDate logo symbol serie { id name } cardCount { total official } } }";
-    // i set di Pokémon TCG Pocket (gioco per telefono) non sono carte da collezionare
-    private static final String SERIE_POCKET = "tcgp";
 
     private final RestClient tcgdexRestClient;
     private final long attesaBaseMs;
@@ -65,7 +63,7 @@ public class TcgdexClient {
         dettagliExecutor.shutdownNow();
     }
 
-    // tutti i set in una chiamata (la GraphQL dà data e serie, l'elenco REST no), senza TCG Pocket
+    // tutti i set in una chiamata (la GraphQL dà data e serie, l'elenco REST no), anche quelli di TCG Pocket
     public List<TcgdexApi.Set> set() {
         TcgdexApi.RispostaSet risposta = conTentativi(() -> chiama(() -> tcgdexRestClient.post()
                         .uri("/graphql")
@@ -78,8 +76,7 @@ public class TcgdexClient {
             throw new ServizioEsternoException("La GraphQL di TCGdex ha risposto con errori: "
                     + risposta.errors().stream().map(TcgdexApi.ErroreGraphql::message).toList(), null);
         }
-        List<TcgdexApi.Set> set = risposta.data() == null || risposta.data().sets() == null ? List.of() : risposta.data().sets();
-        return set.stream().filter(s -> s.serie() == null || !SERIE_POCKET.equals(s.serie().id())).toList();
+        return risposta.data() == null || risposta.data().sets() == null ? List.of() : risposta.data().sets();
     }
 
     // elenco breve di tutte le carte del filtro, senza paginazione; più chiamate unite per id, nell'ordine di arrivo

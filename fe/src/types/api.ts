@@ -97,6 +97,8 @@ export interface Espansione {
   logoUrl: string | null
   simboloUrl: string | null
   importata: boolean
+  // set di un gioco digitale (TCG Pocket): in home ha la sua riga
+  digitale: boolean
   // scritta dall'admin per la hero della home; null = nessuna
   descrizione: string | null
 }

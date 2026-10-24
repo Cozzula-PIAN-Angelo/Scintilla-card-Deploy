@@ -21,6 +21,11 @@ public final class TcgdexApi {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Serie(String id, String name) {
+
+        // Pokémon TCG Pocket, il gioco per telefono: l'unica serie digitale di TCGdex
+        public boolean isPocket() {
+            return "tcgp".equals(id);
+        }
     }
 
     // official: il totale stampato sulle carte (es. 165 in "6/165"); total comprende le segrete

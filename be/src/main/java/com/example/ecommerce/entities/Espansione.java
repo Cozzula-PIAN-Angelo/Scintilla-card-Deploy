@@ -48,6 +48,10 @@ public class Espansione {
     @Column(name = "simbolo_url", length = 512)
     private String simboloUrl;
 
+    // set di un gioco digitale (TCG Pocket): nella home ha la sua riga, per il resto è un set come gli altri
+    @Column(nullable = false)
+    private boolean digitale;
+
     // true quando le carte del set sono già state importate nel catalogo
     @Column(nullable = false)
     private boolean importata;

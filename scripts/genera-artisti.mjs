@@ -9,8 +9,6 @@ const GRAPHQL = 'https://api.tcgdex.net/v2/graphql'
 const DESTINAZIONE = new URL('../be/src/main/resources/artisti.json', import.meta.url)
 // riservato alla pagina delle carte senza artista
 const SLUG_SCONOSCIUTO = 'sconosciuto'
-// i set di Pokémon TCG Pocket (gioco per telefono) non sono carte da collezionare
-const SERIE_POCKET = 'tcgp'
 const TENTATIVI = 5
 
 const attendi = (ms) => new Promise((risolvi) => setTimeout(risolvi, ms))
@@ -35,10 +33,11 @@ async function graphql(query) {
   }
 }
 
-// la GraphQL non risolve la serie del set dentro la carta: set e carte si chiedono a parte e si uniscono per id
+// la GraphQL non risolve la data del set dentro la carta: set e carte si chiedono a parte e si uniscono per id. Anche
+// i set digitali di TCG Pocket: le loro carte sono carte come le altre
 async function scaricaTutte() {
-  const { sets } = await graphql('{ sets { id releaseDate serie { id } } }')
-  const perId = new Map(sets.filter((set) => set.serie?.id !== SERIE_POCKET).map((set) => [set.id, set]))
+  const { sets } = await graphql('{ sets { id releaseDate } }')
+  const perId = new Map(sets.map((set) => [set.id, set]))
   const { cards } = await graphql('{ cards { id illustrator rarity image set { id } } }')
   return cards
     .filter((carta) => perId.has(carta.set?.id))

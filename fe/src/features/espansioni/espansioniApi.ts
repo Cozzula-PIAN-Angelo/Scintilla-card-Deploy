@@ -8,9 +8,15 @@ export const espansioniApi = api.injectEndpoints({
       providesTags: ['Espansioni'],
       extraOptions: { maxRetries: 2 },
     }),
-    // vetrina della home: i set più recenti già scaricati, con carte di punta e rarità. Si aggiorna con la descrizione
+    // vetrina della home: i set fisici più recenti già scaricati, con carte di punta e rarità. Si aggiorna con la descrizione
     getAnteprime: build.query<AnteprimaSet[], void>({
       query: () => '/espansioni/anteprime',
+      providesTags: ['Espansioni'],
+      extraOptions: { maxRetries: 2 },
+    }),
+    // la riga dei set digitali (TCG Pocket): al più quattro, senza hero
+    getAnteprimeDigitali: build.query<AnteprimaSet[], void>({
+      query: () => ({ url: '/espansioni/anteprime', params: { digitali: true } }),
       providesTags: ['Espansioni'],
       extraOptions: { maxRetries: 2 },
     }),
@@ -39,6 +45,7 @@ export const espansioniApi = api.injectEndpoints({
 export const {
   useGetEspansioniQuery,
   useGetAnteprimeQuery,
+  useGetAnteprimeDigitaliQuery,
   useModificaEspansioneMutation,
   useGetCarteEspansioneQuery,
   useGetStatoCarteEspansioneQuery,
