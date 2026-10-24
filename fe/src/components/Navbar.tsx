@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router'
 import { useAppSelector } from '../app/hooks'
 import { selectToken, selectUtente } from '../features/auth/authSlice'
+import { PulsanteRicerca, RicercaGlobale, useScorciatoiaRicerca } from '../features/ricerca/RicercaGlobale'
 import { useScrollato } from '../hooks/useScrollato'
 import { molla } from '../theme/motion'
 import { useTema } from '../theme/tema'
@@ -20,14 +21,26 @@ export function Navbar() {
   const utente = useAppSelector(selectUtente)
   const { tema, alterna } = useTema()
   const [menuAperto, setMenuAperto] = useState(false)
+  const [ricercaAperta, setRicercaAperta] = useState(false)
   const { pathname } = useLocation()
 
-  useEffect(() => setMenuAperto(false), [pathname])
+  useEffect(() => {
+    setMenuAperto(false)
+    setRicercaAperta(false)
+  }, [pathname])
+
+  const apriRicerca = () => {
+    setMenuAperto(false)
+    setRicercaAperta(true)
+  }
+  useScorciatoiaRicerca(apriRicerca)
 
   const attiva = (voce: VoceMenu, isActive: boolean) => voceAttiva(voce, isActive, pathname)
 
   // da desktop le sezioni stanno qui; sotto lg (telefono e tablet) nella barra in basso (BarraNavigazione).
-  // Collezione e Admin stanno nel pannello account (MenuAccount), uguale ovunque
+  // Collezione e Admin stanno nel pannello account (MenuAccount), uguale ovunque.
+  // Il marchio e i comandi stanno ai bordi dello schermo, non della colonna del contenuto; da desktop la griglia
+  // a tre colonne (1fr auto 1fr) tiene le voci al centro esatto qualunque sia la larghezza dei lati
 
   return (
     <header
@@ -36,7 +49,7 @@ export function Navbar() {
         scrollato ? 'bg-notte/95 py-2 shadow-xl shadow-ombra/30 backdrop-blur-md' : 'bg-notte py-4',
       )}
     >
-      <nav aria-label="Principale" className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+      <nav aria-label="Principale" className="flex items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:justify-items-start xl:px-8">
         <Logo compatto={scrollato} />
 
         <ul className="hidden items-center gap-1 lg:flex">
@@ -45,7 +58,14 @@ export function Navbar() {
               <NavLink
                 to={voce.a}
                 end={voce.a === '/'}
-                className="relative block rounded-full px-4 py-2 text-sm font-semibold text-white"
+                // al passaggio una pillola più tenue di quella della voce attiva. px-3 fra lg e xl: con la
+                // lente e l'avatar la barra sta in 1024 px
+                className={({ isActive }) =>
+                  cn(
+                    'relative block rounded-full px-3 py-2 text-sm font-semibold text-white transition-colors xl:px-4',
+                    !attiva(voce, isActive) && 'hover:bg-white/8',
+                  )
+                }
               >
                 {({ isActive }) => (
                   <>
@@ -63,7 +83,8 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="flex items-center gap-1 lg:gap-2">
+        <div className="flex items-center sm:gap-1 lg:justify-self-end lg:gap-2">
+          <PulsanteRicerca onApri={apriRicerca} />
           <PulsanteTema tema={tema} onAlterna={alterna} />
 
           <div className="hidden lg:block">
@@ -122,6 +143,7 @@ export function Navbar() {
         )}
       </AnimatePresence>
 
+      <RicercaGlobale aperto={ricercaAperta} onChiudi={() => setRicercaAperta(false)} />
     </header>
   )
 }

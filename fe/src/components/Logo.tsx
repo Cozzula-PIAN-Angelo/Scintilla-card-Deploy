@@ -5,8 +5,8 @@ import { MarchioIcona, MarchioScritta } from './Marchio'
 export function Logo({ compatto = false }: { compatto?: boolean }) {
   return (
     <Link to="/" className="group flex items-center gap-2" aria-label="CeloManca, torna al catalogo">
-      <MarchioIcona className={cn('transition-all duration-300 group-hover:-rotate-6', compatto ? 'h-10' : 'h-[52px]')} />
-      <MarchioScritta className={cn('transition-all duration-300', compatto ? 'h-[26px]' : 'h-[33px]')} />
+      <MarchioIcona className={cn('transition-all duration-300 group-hover:-rotate-6', compatto ? 'h-10' : 'h-10 sm:h-[52px]')} />
+      <MarchioScritta className={cn('transition-all duration-300', compatto ? 'h-[26px]' : 'h-[26px] sm:h-[33px]')} />
     </Link>
   )
 }

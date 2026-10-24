@@ -7,7 +7,7 @@ interface Props {
   onAlterna: () => void
 }
 
-// pensato per le fasce scure (navbar): icona bianca, luna gialla quando è notte
+// pensato per le fasce scure (navbar): luna e sole gialli e pieni, così il bottone pesa uguale nei due temi
 export function PulsanteTema({ tema, onAlterna }: Props) {
   const scuro = tema === 'scuro'
 
@@ -27,7 +27,7 @@ export function PulsanteTema({ tema, onAlterna }: Props) {
           exit={{ rotate: 90, scale: 0.5, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
-          {scuro ? <Moon aria-hidden className="size-5 fill-giallo-400 text-giallo-400" /> : <Sun aria-hidden className="size-5" />}
+          {scuro ? <Moon aria-hidden className="size-5 fill-giallo-400 text-giallo-400" /> : <Sun aria-hidden className="size-5 fill-giallo-400 text-giallo-400" />}
         </motion.span>
       </AnimatePresence>
     </button>
