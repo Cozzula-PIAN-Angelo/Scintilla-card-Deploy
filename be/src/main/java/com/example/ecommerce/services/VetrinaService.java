@@ -23,14 +23,15 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 // vetrina della home: i set più recenti già scaricati (solo di quelli le carte sono in archivio, gli altri si
-// scaricherebbero da TCGdex), con le carte di punta e le rarità importanti. Il primo set fisico è la hero; i set
-// digitali (TCG Pocket) hanno una riga a parte sotto gli altri
+// scaricherebbero da TCGdex), con le carte di punta e le rarità importanti. I primi tre set fisici girano nella hero;
+// i set digitali (TCG Pocket) hanno una riga a parte sotto gli altri
 @Service
 @RequiredArgsConstructor
 public class VetrinaService {
 
-    // la hero più due righe da quattro
-    static final int SET_IN_VETRINA = 9;
+    // i set che girano nella hero, più due righe da quattro
+    static final int SET_IN_HERO = 3;
+    static final int SET_IN_VETRINA = SET_IN_HERO + 8;
     // la riga dei set digitali
     static final int SET_DIGITALI_IN_VETRINA = 4;
     // carte sul tavolo della hero (7) e dietro al logo degli altri set (3), più 4 di riserva per le immagini mancanti
@@ -52,7 +53,7 @@ public class VetrinaService {
                 .limit(digitali ? SET_DIGITALI_IN_VETRINA : SET_IN_VETRINA)
                 .toList();
         return IntStream.range(0, recenti.size())
-                .mapToObj(i -> anteprima(recenti.get(i), i == 0 && !digitali))
+                .mapToObj(i -> anteprima(recenti.get(i), i < SET_IN_HERO && !digitali))
                 .toList();
     }
 

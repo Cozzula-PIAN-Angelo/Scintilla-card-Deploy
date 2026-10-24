@@ -7,7 +7,7 @@ import { SetDigitaliRecenti } from '../features/vetrina/SetDigitaliRecenti'
 import { SetRecenti } from '../features/vetrina/SetRecenti'
 import { useTitolo } from '../hooks/useTitolo'
 
-// home: il set più nuovo come hero, i set recenti col ventaglio, una riga di set digitali (TCG Pocket) e la strada
+// home: i tre set più nuovi che girano nella hero, i set recenti col ventaglio, una riga di set digitali (TCG Pocket) e la strada
 // per l'elenco completo (/espansioni)
 export function CatalogoPage() {
   useTitolo('Catalogo')

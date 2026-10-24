@@ -7,14 +7,15 @@ import type { AnteprimaSet } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { useGetAnteprimeQuery } from '../espansioni/espansioniApi'
 import { LogoSet } from '../espansioni/LogoSet'
+import { SET_IN_HERO } from './HeroSet'
 import { useCarteCaricate } from './useCarteCaricate'
 
 export const CLASSI_GRIGLIA = 'grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-4'
 
-// i set usciti prima di quello della hero (due righe da quattro), ognuno con le sue tre carte più cercate dietro al logo
+// i set usciti prima di quelli che girano nella hero (due righe da quattro), ognuno con le sue tre carte più cercate dietro al logo
 export function SetRecenti() {
   const { data, isLoading } = useGetAnteprimeQuery()
-  const altri = data?.slice(1) ?? []
+  const altri = data?.slice(SET_IN_HERO) ?? []
   if (!isLoading && altri.length === 0) return null
 
   return (

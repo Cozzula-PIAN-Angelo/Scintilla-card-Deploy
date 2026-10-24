@@ -19,10 +19,23 @@ export const TAVOLO = [
   { x: 18, y: 64, w: 15, r: 7, z: 4 },
 ]
 
-const tavolo = { nascosto: {}, visibile: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } } }
+// quando la hero passa al set dopo, le carte vengono raccolte verso sinistra (prima l'ultima servita) e quelle
+// nuove servite una a una da destra
+const tavolo = {
+  nascosto: {},
+  visibile: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } },
+  uscita: { transition: { staggerChildren: 0.03, staggerDirection: -1 } },
+}
 const cartaSulTavolo = {
-  nascosto: { opacity: 0, y: 40 },
-  visibile: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 140, damping: 18 } },
+  nascosto: { opacity: 0, x: '45%', y: -24, rotate: 12 },
+  visibile: { opacity: 1, x: '0%', y: 0, rotate: 0, transition: { type: 'spring' as const, stiffness: 140, damping: 18 } },
+  uscita: { opacity: 0, x: '-70%', y: 24, rotate: -10, transition: { duration: 0.25, ease: [0.55, 0, 1, 0.45] as const } },
+}
+// da telefono la fila scorre via tutta insieme
+const fila = {
+  nascosto: { opacity: 0, x: 32 },
+  visibile: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
+  uscita: { opacity: 0, x: -32, transition: { duration: 0.2 } },
 }
 
 interface Props {
@@ -40,7 +53,13 @@ export function TavoloCarte({ espansione, carte, className }: Props) {
 
   return (
     <div className={className}>
-      <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pt-3 pb-4 sm:-mx-6 sm:px-6 lg:hidden">
+      <motion.div
+        variants={fila}
+        initial="nascosto"
+        animate="visibile"
+        exit="uscita"
+        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pt-3 pb-4 sm:-mx-6 sm:px-6 lg:hidden"
+      >
         {carte.length === 0
           ? Array.from({ length: 4 }, (_, i) => <SagomaCarta key={i} className="w-40 shrink-0" />)
           : carte.map((carta, i) => (
@@ -54,7 +73,7 @@ export function TavoloCarte({ espansione, carte, className }: Props) {
                 <CartaConNumero carta={carta} ufficiali={espansione.carteUfficiali} grande={i === 0} />
               </Link>
             ))}
-      </div>
+      </motion.div>
 
       {/* montato solo con le carte: figli arrivati dopo l'entrata resterebbero nascosti */}
       {carte.length === 0 ? (
@@ -64,7 +83,7 @@ export function TavoloCarte({ espansione, carte, className }: Props) {
           ))}
         </div>
       ) : (
-        <motion.div variants={tavolo} initial="nascosto" animate="visibile" className="relative hidden aspect-[3/2] lg:block">
+        <motion.div variants={tavolo} initial="nascosto" animate="visibile" exit="uscita" className="relative hidden aspect-[3/2] lg:block">
           {carte.map((carta, i) => {
             const p = TAVOLO[i]
             return (

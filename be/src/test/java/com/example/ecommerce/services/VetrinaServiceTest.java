@@ -49,12 +49,32 @@ class VetrinaServiceTest {
     }
 
     @Test
-    void alPiuNoveSet() {
-        List<Espansione> tanti = IntStream.range(0, 12).mapToObj(i -> set("s" + i, true, "logo", LocalDate.of(2026, 1, 1))).toList();
+    void alPiuUndiciSet() {
+        List<Espansione> tanti = IntStream.range(0, 14).mapToObj(i -> set("s" + i, true, "logo", LocalDate.of(2026, 1, 1))).toList();
         when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(tanti);
         when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(List.of());
 
         assertThat(service.anteprime(false)).hasSize(VetrinaService.SET_IN_VETRINA);
+    }
+
+    // i tre set che girano nella hero hanno le carte di sfondo e quelle in più per il tavolo, gli altri no
+    @Test
+    void sfondoSoloPerISetDellaHero() {
+        List<Espansione> cinque = IntStream.range(0, 5).mapToObj(i -> set("s" + i, true, "logo", LocalDate.of(2026, 1, 1))).toList();
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(cinque);
+        List<Oggetto> carte = IntStream.range(0, 30).mapToObj(i -> carta("Carta" + i + " (Set " + i + "/30)", "Rare", null)).toList();
+        when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(carte);
+
+        List<AnteprimaSetDTO> anteprime = service.anteprime(false);
+
+        assertThat(anteprime.subList(0, 3)).allSatisfy(a -> {
+            assertThat(a.carteDiPunta()).hasSize(VetrinaService.CARTE_HERO);
+            assertThat(a.carteSfondo()).hasSize(VetrinaService.CARTE_SFONDO);
+        });
+        assertThat(anteprime.subList(3, 5)).allSatisfy(a -> {
+            assertThat(a.carteDiPunta()).hasSize(VetrinaService.CARTE_ALTRI_SET);
+            assertThat(a.carteSfondo()).isEmpty();
+        });
     }
 
     // i set digitali (TCG Pocket) hanno la loro riga: mai nella hero né tra gli altri set appena usciti
