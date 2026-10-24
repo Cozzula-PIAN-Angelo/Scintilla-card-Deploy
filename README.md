@@ -54,8 +54,10 @@ I test delle migrazioni (`MigrazioniTest`) girano su un PostgreSQL vero scaricat
 ## Vetrina ed espansioni
 
 Le carte arrivano da [TCGdex](https://tcgdex.dev) (API gratuita, senza chiave), in inglese.
-La vetrina mostra tutte le sue espansioni (circa 200, senza quelle di TCG Pocket), raggruppate per
-serie e con un campo di ricerca. Cliccando il logo di un'espansione si aprono le sue carte.
+La vetrina mostra tutte le sue espansioni (circa 220), raggruppate per serie e con un campo di ricerca.
+Cliccando il logo di un'espansione si aprono le sue carte. I set di TCG Pocket (il gioco per telefono)
+sono segnati come digitali: stanno nella serie «TCG Pocket», in home hanno una riga a parte sotto i set
+recenti (`GET /espansioni/anteprime?digitali=true`) e per il resto le loro carte sono carte come le altre.
 
 - **Elenco espansioni**: si sincronizza all'avvio e ogni notte (`GET /espansioni`, pubblico).
 - **Carte di un'espansione** (`GET /espansioni/{id}/carte`, pubblico): alla prima apertura

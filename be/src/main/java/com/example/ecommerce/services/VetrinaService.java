@@ -23,13 +23,16 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 // vetrina della home: i set più recenti già scaricati (solo di quelli le carte sono in archivio, gli altri si
-// scaricherebbero da TCGdex), con le carte di punta e le rarità importanti. Il primo è la hero
+// scaricherebbero da TCGdex), con le carte di punta e le rarità importanti. Il primo set fisico è la hero; i set
+// digitali (TCG Pocket) hanno una riga a parte sotto gli altri
 @Service
 @RequiredArgsConstructor
 public class VetrinaService {
 
     // la hero più due righe da quattro
     static final int SET_IN_VETRINA = 9;
+    // la riga dei set digitali
+    static final int SET_DIGITALI_IN_VETRINA = 4;
     // carte sul tavolo della hero (7) e dietro al logo degli altri set (3), più 4 di riserva per le immagini mancanti
     static final int CARTE_HERO = 11;
     static final int CARTE_ALTRI_SET = 7;
@@ -41,13 +44,15 @@ public class VetrinaService {
     private final EspansioneRepository espansioneRepository;
     private final OggettoRepository oggettoRepository;
 
-    public List<AnteprimaSetDTO> anteprime() {
+    // digitali: solo i set digitali, senza hero; altrimenti solo quelli fisici
+    public List<AnteprimaSetDTO> anteprime(boolean digitali) {
         List<Espansione> recenti = espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc().stream()
+                .filter(e -> e.isDigitale() == digitali)
                 .filter(e -> e.isImportata() && e.getLogoUrl() != null && e.getDataUscita() != null)
-                .limit(SET_IN_VETRINA)
+                .limit(digitali ? SET_DIGITALI_IN_VETRINA : SET_IN_VETRINA)
                 .toList();
         return IntStream.range(0, recenti.size())
-                .mapToObj(i -> anteprima(recenti.get(i), i == 0))
+                .mapToObj(i -> anteprima(recenti.get(i), i == 0 && !digitali))
                 .toList();
     }
 

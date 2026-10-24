@@ -35,10 +35,11 @@ public class EspansioneController {
         return espansioneService.findAll();
     }
 
-    // vetrina della home: i set più recenti già scaricati, con carte di punta e rarità (vedi VetrinaService)
+    // vetrina della home: i set più recenti già scaricati, con carte di punta e rarità (vedi VetrinaService);
+    // ?digitali=true per la riga dei set digitali
     @GetMapping("/anteprime")
-    public List<AnteprimaSetDTO> anteprime() {
-        return vetrinaService.anteprime();
+    public List<AnteprimaSetDTO> anteprime(@RequestParam(defaultValue = "false") boolean digitali) {
+        return vetrinaService.anteprime(digitali);
     }
 
     // descrizione del set mostrata nella hero della home

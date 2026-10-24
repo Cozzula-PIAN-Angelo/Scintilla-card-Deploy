@@ -61,7 +61,7 @@ class TcgdexClientTest {
     }
 
     @Test
-    void setEscludeTcgPocket() {
+    void setComprendeTcgPocket() {
         tcgdex.expect(requestTo(BASE_URL + "/graphql"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().string(containsString("releaseDate")))
@@ -77,7 +77,7 @@ class TcgdexClientTest {
 
         List<TcgdexApi.Set> set = client.set();
 
-        assertThat(set).extracting(TcgdexApi.Set::id).containsExactly("me04");
+        assertThat(set).extracting(TcgdexApi.Set::id).containsExactly("me04", "A1");
         assertThat(set.getFirst().serie().name()).isEqualTo("Mega Evolution");
         assertThat(set.getFirst().cardCount().total()).isEqualTo(122);
         tcgdex.verify();

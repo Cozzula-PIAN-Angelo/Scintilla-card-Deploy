@@ -43,7 +43,7 @@ class VetrinaServiceTest {
         when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(List.of(nuovo, nonScaricato, senzaLogo, vecchio));
         when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(List.of());
 
-        List<AnteprimaSetDTO> anteprime = service.anteprime();
+        List<AnteprimaSetDTO> anteprime = service.anteprime(false);
 
         assertThat(anteprime).extracting(a -> a.espansione().id()).containsExactly("me05", "sv10");
     }
@@ -54,7 +54,38 @@ class VetrinaServiceTest {
         when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(tanti);
         when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(List.of());
 
-        assertThat(service.anteprime()).hasSize(VetrinaService.SET_IN_VETRINA);
+        assertThat(service.anteprime(false)).hasSize(VetrinaService.SET_IN_VETRINA);
+    }
+
+    // i set digitali (TCG Pocket) hanno la loro riga: mai nella hero né tra gli altri set appena usciti
+    @Test
+    void setDigitaliFuoriDallaVetrinaDeiSetFisici() {
+        Espansione pocket = digitale(set("B2a", true, "logo", LocalDate.of(2026, 2, 26)));
+        Espansione fisico = set("me02.5", true, "logo", LocalDate.of(2026, 1, 30));
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(List.of(pocket, fisico));
+        when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(List.of());
+
+        assertThat(service.anteprime(false)).extracting(a -> a.espansione().id()).containsExactly("me02.5");
+    }
+
+    @Test
+    void riprendeDigitaliAlPiuQuattroSenzaHero() {
+        List<Espansione> tutti = new ArrayList<>();
+        tutti.add(set("me05", true, "logo", LocalDate.of(2026, 7, 17)));
+        IntStream.range(0, 6).forEach(i -> tutti.add(digitale(set("A" + i, true, "logo", LocalDate.of(2025, 6 - i, 1)))));
+        tutti.add(digitale(set("A9", false, "logo", LocalDate.of(2026, 3, 1))));
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(tutti);
+        Oggetto carta = carta("Pikachu ex (Genetic Apex 1/226)", "Crown", null);
+        when(oggettoRepository.findByEspansioneId(anyString())).thenReturn(List.of(carta));
+
+        List<AnteprimaSetDTO> anteprime = service.anteprime(true);
+
+        assertThat(anteprime).extracting(a -> a.espansione().id()).containsExactly("A0", "A1", "A2", "A3");
+        assertThat(anteprime).allSatisfy(a -> {
+            assertThat(a.espansione().digitale()).isTrue();
+            assertThat(a.carteDiPunta()).hasSize(1);
+            assertThat(a.carteSfondo()).isEmpty();
+        });
     }
 
     // con abbastanza prezzi si ordina per prezzo massimo; un Pokémon compare una volta sola
@@ -126,6 +157,27 @@ class VetrinaServiceTest {
         assertThat(GradoRarita.di("Uncommon")).isEqualTo(1);
         assertThat(GradoRarita.di("Common")).isZero();
         assertThat(GradoRarita.di(null)).isZero();
+    }
+
+    @Test
+    void gradiDelleRaritaDiTcgPocket() {
+        assertThat(GradoRarita.di("Crown")).isEqualTo(6);
+        assertThat(GradoRarita.di("Three Star")).isEqualTo(6);
+        assertThat(GradoRarita.di("Two Shiny")).isEqualTo(6);
+        assertThat(GradoRarita.di("Two Star")).isEqualTo(5);
+        assertThat(GradoRarita.di("One Star")).isEqualTo(5);
+        assertThat(GradoRarita.di("One Shiny")).isEqualTo(4);
+        assertThat(GradoRarita.di("Four Diamond")).isEqualTo(3);
+        assertThat(GradoRarita.di("Three Diamond")).isEqualTo(2);
+        assertThat(GradoRarita.di("Two Diamond")).isEqualTo(1);
+        assertThat(GradoRarita.di("One Diamond")).isZero();
+        // le stelle d'oro dell'era EX restano holo
+        assertThat(GradoRarita.di("Rare Holo Star")).isEqualTo(2);
+    }
+
+    private static Espansione digitale(Espansione set) {
+        set.setDigitale(true);
+        return set;
     }
 
     private static Espansione set(String id, boolean importata, String logo, LocalDate uscita) {

@@ -6,13 +6,21 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 // quanto è ambita una rarità di TCGdex (testo libero, in inglese): 6 illustrazione speciale, iper, segrete, RGB;
-// 5 illustrate; 4 ultra rare e simili; 3 doppie rare; 2 rare e holo; 1 non comuni; 0 il resto
+// 5 illustrate; 4 ultra rare e simili; 3 doppie rare; 2 rare e holo; 1 non comuni; 0 il resto. TCG Pocket ha la
+// sua scala (rombi, stelle, shiny, corona), riportata sulla stessa
 public final class GradoRarita {
 
     // dalla più ambita: vince la prima regola che corrisponde ("special illustration" prima di "illustration")
     private static final Map<Pattern, Integer> REGOLE = new LinkedHashMap<>();
 
     static {
+        // TCG Pocket: nomi interi, perché "star" e "shiny" compaiono anche in rarità delle carte fisiche
+        REGOLE.put(Pattern.compile("^(crown|three star|two shiny)$"), 6);
+        REGOLE.put(Pattern.compile("^(one|two) star$"), 5);
+        REGOLE.put(Pattern.compile("^one shiny$"), 4);
+        REGOLE.put(Pattern.compile("^four diamond$"), 3);
+        REGOLE.put(Pattern.compile("^three diamond$"), 2);
+        REGOLE.put(Pattern.compile("^two diamond$"), 1);
         REGOLE.put(Pattern.compile("special illustration|hyper|secret|rgb|gold|rainbow"), 6);
         REGOLE.put(Pattern.compile("illustration"), 5);
         REGOLE.put(Pattern.compile("ultra|full art|ace|shiny|radiant"), 4);

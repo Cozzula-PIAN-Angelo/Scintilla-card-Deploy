@@ -14,6 +14,8 @@ public record EspansioneResponseDTO(String id,
                                     String logoUrl,
                                     String simboloUrl,
                                     boolean importata,
+                                    // set di un gioco digitale (TCG Pocket)
+                                    boolean digitale,
                                     // scritta dall'admin; null = nessuna
                                     String descrizione) {
 
@@ -28,6 +30,7 @@ public record EspansioneResponseDTO(String id,
                 espansione.getLogoUrl(),
                 espansione.getSimboloUrl(),
                 espansione.isImportata(),
+                espansione.isDigitale(),
                 espansione.getDescrizione()
         );
     }

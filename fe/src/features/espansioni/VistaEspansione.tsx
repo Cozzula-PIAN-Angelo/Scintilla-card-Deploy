@@ -16,6 +16,7 @@ import type { Espansione, Oggetto } from '../../types/api'
 import { useGetCarteEspansioneQuery, useGetStatoCarteEspansioneQuery } from './espansioniApi'
 import { SimboloSet } from '../../components/SimboloSet'
 import { LogoSet } from './LogoSet'
+import { SegnoDigitale } from './SegnoDigitale'
 
 interface Props {
   espansione: Espansione
@@ -53,9 +54,10 @@ export function VistaEspansione({ espansione, isPreferito, onTogglePreferito }: 
         </div>
         <div className="min-w-0">
           <h3 className="text-balance text-4xl font-bold text-testo">{espansione.nome}</h3>
-          <p className="mt-1 flex items-center gap-2 text-testo/70">
+          <p className="mt-1 flex flex-wrap items-center gap-2 text-testo/70">
             <SimboloSet src={espansione.simboloUrl} className="size-5" />
             {[espansione.serie, anno, totale != null && (totale === 1 ? '1 carta' : `${totale} carte`)].filter(Boolean).join(' · ')}
+            {espansione.digitale && <SegnoDigitale />}
           </p>
         </div>
         {/* collezione presente = utente loggato. A pezzi il bottone si vede ma aspetta tutte le carte */}
