@@ -27,7 +27,9 @@ export function Navbar() {
   const attiva = (voce: VoceMenu, isActive: boolean) => voceAttiva(voce, isActive, pathname)
 
   // da desktop le sezioni stanno qui; sotto lg (telefono e tablet) nella barra in basso (BarraNavigazione).
-  // Collezione e Admin stanno nel pannello account (MenuAccount), uguale ovunque
+  // Collezione e Admin stanno nel pannello account (MenuAccount), uguale ovunque.
+  // Il marchio e i comandi stanno ai bordi dello schermo, non della colonna del contenuto; da desktop la griglia
+  // a tre colonne (1fr auto 1fr) tiene le voci al centro esatto qualunque sia la larghezza dei lati
 
   return (
     <header
@@ -36,7 +38,7 @@ export function Navbar() {
         scrollato ? 'bg-notte/95 py-2 shadow-xl shadow-ombra/30 backdrop-blur-md' : 'bg-notte py-4',
       )}
     >
-      <nav aria-label="Principale" className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+      <nav aria-label="Principale" className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:justify-items-start xl:px-8">
         <Logo compatto={scrollato} />
 
         <ul className="hidden items-center gap-1 lg:flex">
@@ -63,7 +65,7 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="flex items-center gap-1 lg:gap-2">
+        <div className="flex items-center gap-1 lg:gap-2 lg:justify-self-end">
           <PulsanteTema tema={tema} onAlterna={alterna} />
 
           <div className="hidden lg:block">
