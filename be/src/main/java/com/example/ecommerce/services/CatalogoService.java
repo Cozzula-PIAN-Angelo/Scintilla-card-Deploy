@@ -668,8 +668,13 @@ public class CatalogoService {
     // es. "Charizard ex (151 6/165)", oppure "Energia (Set X 1)" se il totale non è disponibile
     private static String componiNome(Carta carta) {
         String espansione = carta.set() == null ? null : carta.set().name();
-        String numero = numeroDaLocalId(carta.localId());
         Integer ufficiali = carta.set() == null || carta.set().cardCount() == null ? null : carta.set().cardCount().official();
+        return componiNome(carta.name(), espansione, carta.localId(), ufficiali);
+    }
+
+    // "Pikachu (Base Set 58/102)": la regola di ogni nome del catalogo, all'import e nell'allineamento notturno
+    static String componiNome(String nomeCarta, String espansione, String localId, Integer ufficiali) {
+        String numero = numeroDaLocalId(localId);
         if (numero != null && ufficiali != null) {
             numero = numero + "/" + ufficiali;
         }
@@ -678,6 +683,6 @@ public class CatalogoService {
                 .filter(Objects::nonNull)
                 .reduce((a, b) -> a + " " + b)
                 .orElse(null);
-        return dettaglio == null ? carta.name() : carta.name() + " (" + dettaglio + ")";
+        return dettaglio == null ? nomeCarta : nomeCarta + " (" + dettaglio + ")";
     }
 }

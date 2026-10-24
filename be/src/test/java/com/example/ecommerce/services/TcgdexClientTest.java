@@ -83,6 +83,39 @@ class TcgdexClientTest {
         tcgdex.verify();
     }
 
+    // tutte le carte in una chiamata, solo id, nome, numero e set: per allineare i nomi del catalogo
+    @Test
+    void carteDelCatalogoInUnaChiamata() {
+        tcgdex.expect(requestTo(BASE_URL + "/graphql"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().string(containsString("localId")))
+                .andRespond(withSuccess("""
+                        {"data": {"cards": [
+                          {"id": "30th-c-025", "name": "Scizor ex", "localId": "025", "set": {"id": "30th-c"}}
+                        ]}}
+                        """, MediaType.APPLICATION_JSON));
+
+        List<TcgdexApi.CartaDelCatalogo> carte = client.carteDelCatalogo();
+
+        assertThat(carte).singleElement().satisfies(carta -> {
+            assertThat(carta.id()).isEqualTo("30th-c-025");
+            assertThat(carta.name()).isEqualTo("Scizor ex");
+            assertThat(carta.localId()).isEqualTo("025");
+            assertThat(carta.set().id()).isEqualTo("30th-c");
+        });
+        tcgdex.verify();
+    }
+
+    @Test
+    void carteDelCatalogoConErroriGraphqlSonoUnErroreEsterno() {
+        tcgdex.expect(requestTo(BASE_URL + "/graphql"))
+                .andRespond(withSuccess("{\"errors\": [{\"message\": \"query troppo grande\"}]}", MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> client.carteDelCatalogo())
+                .isInstanceOf(ServizioEsternoException.class)
+                .hasMessageContaining("query troppo grande");
+    }
+
     @Test
     void filtroDelPokemonDiventaDexId() {
         tcgdex.expect(requestTo(startsWith(BASE_URL + "/en/cards?")))

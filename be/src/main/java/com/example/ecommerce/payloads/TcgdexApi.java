@@ -46,6 +46,20 @@ public final class TcgdexApi {
     public record DatiSet(List<Set> sets) {
     }
 
+    // risposta della GraphQL di tutte le carte: {"data": {"cards": [...]}}
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record RispostaCarte(DatiCarte data, List<ErroreGraphql> errors) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record DatiCarte(List<CartaDelCatalogo> cards) {
+    }
+
+    // carta dell'elenco completo: solo quel che serve a nome e numero (del set arriva solo l'id)
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record CartaDelCatalogo(String id, String localId, String name, SetDellaCarta set) {
+    }
+
     // elemento di GET /cards: image manca nelle carte senza immagine
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record CartaBreve(String id, String localId, String name, String image) {
