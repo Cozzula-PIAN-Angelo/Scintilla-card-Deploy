@@ -47,6 +47,19 @@ class AbbinamentoTcgdexTest {
         }
     }
 
+    // i doppioni uniti dalla V14 sono abbinati allo stesso modo nel file vero, con l'immagine locale per le carte di
+    // TCGdex che non ce l'hanno: così anche un import nuovo o un vecchio export li converte giusti
+    @Test
+    void fileVeroConIDoppioniDellaV14() throws IOException {
+        try (InputStream json = Files.newInputStream(Path.of("src/main/resources/abbinamento-id.json"))) {
+            AbbinamentoTcgdex abbinamento = AbbinamentoTcgdex.da(json);
+            assertThat(abbinamento.carte()).containsAllEntriesOf(UnioneDoppioniTcgdex.DOPPIONI);
+            assertThat(abbinamento.riserva("30th-c-019")).contains("/immagini/carte/me55c-99.webp");
+            assertThat(abbinamento.riserva("30th-c-020")).contains("/immagini/carte/me55c-100.webp");
+            assertThat(abbinamento.riserva("30th-c-022")).contains("/immagini/carte/me55c-106p.webp");
+        }
+    }
+
     // un file generato prima delle copie locali non ha le mappe delle immagini: vuote, non un errore
     @Test
     void mappeDelleImmaginiFacoltative() {

@@ -93,6 +93,11 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
             nativeQuery = true)
     List<String> findIdEsterniConPrezziDaRinfrescare(@Param("limite") int limite, @Param("prima") Instant prima);
 
+    // carte di TCGdex con i prezzi mai letti (anche fuori dai binder); gli oggetti creati a mano mai
+    @Query(value = "SELECT o.id_esterno FROM oggetti o WHERE o.id_esterno IS NOT NULL AND o.prezzi_aggiornati_il IS NULL "
+            + "ORDER BY o.id LIMIT :limite", nativeQuery = true)
+    List<String> findIdEsterniSenzaPrezzi(@Param("limite") int limite);
+
     // le carte di un set ancora senza varianti, rarità o artista: dopo il riempimento sono quelle che TCGdex non restituisce più
     @Query("SELECT o FROM Oggetto o WHERE o.espansione.id = :espansioneId AND o.idEsterno IS NOT NULL "
             + "AND (o.varianti IS NULL OR o.rarita IS NULL OR o.artista IS NULL)")

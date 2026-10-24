@@ -7,7 +7,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { NUMERI_ALTROVE, SET_PER_NOME, abbinaPerNome, abbinaSet, normalizzaNumero } from './abbinamento-regole.mjs'
+import { CARTE_A_MANO, NUMERI_ALTROVE, SET_PER_NOME, abbinaPerNome, abbinaSet, normalizzaNumero } from './abbinamento-regole.mjs'
 
 const POKEMONTCG = 'https://api.pokemontcg.io/v2'
 const TCGDEX_GRAPHQL = 'https://api.tcgdex.net/v2/graphql'
@@ -119,6 +119,11 @@ for (const set of SET_PER_NOME) {
   for (const vecchia of daAbbinare) {
     if (perNome.has(vecchia.id)) abbina(vecchia, perId.get(perNome.get(vecchia.id)))
   }
+}
+// per ultime le carte a mano, che correggono anche un abbinamento già fatto dalle regole
+const vecchiePerId = new Map(vecchie.map((c) => [c.id, c]))
+for (const [vecchia, nuova] of Object.entries(CARTE_A_MANO)) {
+  if (vecchiePerId.has(vecchia) && perId.has(nuova)) abbina(vecchiePerId.get(vecchia), perId.get(nuova))
 }
 senzaAbbinamento = senzaAbbinamento.filter((c) => !carte.has(c.id)).map((c) => c.id)
 const immagini = new Map(nuove.filter((c) => c.image).map((c) => [c.id, c.image]))

@@ -90,7 +90,7 @@ class MigrazioniTest {
     // il contesto è partito: Flyway ha applicato le migrazioni e Hibernate (validate) non ha trovato differenze
     @Test
     void loSchemaCorrispondeAlleEntity() {
-        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13");
+        assertThat(versioniApplicate()).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14");
     }
 
     // pulizia notturna della blacklist sulla tabella della V2: via solo i jti già scaduti

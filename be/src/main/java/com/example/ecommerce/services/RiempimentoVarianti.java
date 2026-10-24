@@ -63,5 +63,14 @@ public class RiempimentoVarianti {
         } catch (RuntimeException ex) {
             log.warn("Prezzi delle carte nei binder non rinfrescati: {}", ex.getMessage());
         }
+        // prezzi mai letti delle altre carte (dopo i binder, che li hanno già letti): stessi limiti
+        try {
+            List<String> carte = oggettoRepository.findIdEsterniSenzaPrezzi(limiteCarte);
+            if (!carte.isEmpty()) {
+                catalogoService.riempiPrezzi(carte);
+            }
+        } catch (RuntimeException ex) {
+            log.warn("Prezzi mai letti non riempiti: {}", ex.getMessage());
+        }
     }
 }
