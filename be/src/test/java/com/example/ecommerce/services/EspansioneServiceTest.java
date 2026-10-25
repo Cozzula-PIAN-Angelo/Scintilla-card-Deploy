@@ -48,6 +48,8 @@ class EspansioneServiceTest {
     private CatalogoService catalogoService;
     @Mock
     private AllineamentoTcgdex allineamentoTcgdex;
+    @Mock
+    private VetrinaService vetrinaService;
 
     // l'import in background finisce in una coda che i test non eseguono
     private final List<Runnable> coda = new ArrayList<>();
@@ -57,7 +59,7 @@ class EspansioneServiceTest {
     void prepara() {
         ImportInBackground background = new ImportInBackground(coda::add, new LimitatoreImport(10, 1000), Clock.systemUTC());
         service = new EspansioneService(espansioneRepository, oggettoRepository, catalogoService, background,
-                allineamentoTcgdex);
+                allineamentoTcgdex, vetrinaService);
     }
 
     // vetrina vuota e pokemontcg.io giù: dopo un fallimento le visite successive rispondono subito con
@@ -235,5 +237,33 @@ class EspansioneServiceTest {
 
         verifyNoInteractions(catalogoService);
         assertThat(coda).hasSize(1);
+    }
+
+    // i set nuovi della home si scaricano senza aspettare la prima visita, nel thread del job (niente coda)
+    @Test
+    void scaricaISetNuoviDellaHome() {
+        when(vetrinaService.setDaScaricare()).thenReturn(List.of("me06", "B2"));
+        when(espansioneRepository.findById("me06")).thenReturn(Optional.of(set("me06", false)));
+        when(espansioneRepository.findById("B2")).thenReturn(Optional.of(set("B2", false)));
+
+        service.scaricaSetNuovi();
+
+        verify(catalogoService).importaSet("me06");
+        verify(catalogoService).importaSet("B2");
+        assertThat(coda).isEmpty();
+    }
+
+    // set annunciato ma ancora senza carte su TCGdex: al giro dopo non si richiede, e nemmeno da una visita
+    @Test
+    void setNuovoAncoraVuotoNonSiRichiedeSubito() {
+        when(vetrinaService.setDaScaricare()).thenReturn(List.of("me06"));
+        when(espansioneRepository.findById("me06")).thenReturn(Optional.of(set("me06", false)));
+        when(catalogoService.importaSet("me06")).thenThrow(new NotFoundException("Nessuna carta trovata per il set me06 su TCGdex"));
+
+        service.scaricaSetNuovi();
+        service.scaricaSetNuovi();
+
+        verify(catalogoService, times(1)).importaSet("me06");
+        assertThat(service.stato("me06", "1.2.3.4")).isEqualTo(new StatoCarteDTO(true, false));
     }
 }
