@@ -67,6 +67,10 @@ recenti (`GET /espansioni/anteprime?digitali=true`) e per il resto le loro carte
 - **Carte di un'espansione** (`GET /espansioni/{id}/carte`, pubblico): alla prima apertura
   il backend importa il set nel catalogo (qualche secondo), dalle volte successive legge
   dal database. Prezzi, preferiti e modifica admin funzionano su tutte le carte.
+- **Set nuovi della home**: la home mostra solo set con le carte già in archivio, quindi un job li scarica
+  senza aspettare la prima apertura (gli 11 set fisici e i 4 digitali più recenti con logo e data). Gira due
+  minuti dopo l'avvio e poi ogni ora, **solo mentre il backend è sveglio** (su Render gratuito si addormenta):
+  senza set da scaricare è una query sola. Un set annunciato ma ancora senza carte su TCGdex si ritenta dopo 6 ore.
 - **Import a mano** (admin): `POST /carte/importa-set/{setId}` importa un set intero e
   completa le carte mancanti di un set già importato. Risponde con `trovate`,
   `importate`, `saltate` (già nel catalogo), `scartate` (prezzo oltre il massimo) e

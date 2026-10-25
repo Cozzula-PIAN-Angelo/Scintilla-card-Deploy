@@ -117,6 +117,30 @@ class ImportInBackgroundTest {
         assertThat(background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet)).isTrue();
     }
 
+    // dai job: subito nel thread di chi chiama, senza consumare il limite (qui 0)
+    @Test
+    void eseguiOraSenzaLimiteENelThreadDiChiChiama() {
+        ImportInBackground background = conLimite(0);
+
+        background.eseguiOra(CHIAVE, () -> true, importazioni::incrementAndGet);
+
+        assertThat(importazioni).hasValue(1);
+        assertThat(coda).isEmpty();
+        assertThat(background.inCorso(CHIAVE)).isFalse();
+    }
+
+    // una visita sta già scaricando lo stesso set: il job non ne lancia un secondo
+    @Test
+    void eseguiOraSaltaUnImportGiaInCorso() {
+        ImportInBackground background = conLimite(1);
+        background.avvia(CHIAVE, CLIENT, () -> true, importazioni::incrementAndGet);
+
+        background.eseguiOra(CHIAVE, () -> true, importazioni::incrementAndGet);
+        eseguiCoda();
+
+        assertThat(importazioni).hasValue(1);
+    }
+
     private static final class OrologioFinto extends Clock {
         private Instant adesso;
 

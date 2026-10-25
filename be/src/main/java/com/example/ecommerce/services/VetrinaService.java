@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 // vetrina della home: i set più recenti già scaricati (solo di quelli le carte sono in archivio, gli altri si
 // scaricherebbero da TCGdex), con le carte di punta e le rarità importanti. I primi tre set fisici girano nella hero;
@@ -47,14 +48,34 @@ public class VetrinaService {
 
     // digitali: solo i set digitali, senza hero; altrimenti solo quelli fisici
     public List<AnteprimaSetDTO> anteprime(boolean digitali) {
-        List<Espansione> recenti = espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc().stream()
-                .filter(e -> e.isDigitale() == digitali)
-                .filter(e -> e.isImportata() && e.getLogoUrl() != null && e.getDataUscita() != null)
-                .limit(digitali ? SET_DIGITALI_IN_VETRINA : SET_IN_VETRINA)
+        List<Espansione> recenti = conLogoEData(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc(), digitali)
+                .filter(Espansione::isImportata)
+                .limit(quantiInVetrina(digitali))
                 .toList();
         return IntStream.range(0, recenti.size())
                 .mapToObj(i -> anteprima(recenti.get(i), i < SET_IN_HERO && !digitali))
                 .toList();
+    }
+
+    // i set che la home mostrerebbe (fisici e digitali) ancora senza carte in archivio: li scarica il job di
+    // EspansioneService, così un set appena uscito non aspetta la prima visita alla sua pagina
+    public List<String> setDaScaricare() {
+        List<Espansione> tutte = espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc();
+        return Stream.of(false, true)
+                .flatMap(digitali -> conLogoEData(tutte, digitali).limit(quantiInVetrina(digitali)))
+                .filter(e -> !e.isImportata())
+                .map(Espansione::getId)
+                .toList();
+    }
+
+    private static Stream<Espansione> conLogoEData(List<Espansione> espansioni, boolean digitali) {
+        return espansioni.stream()
+                .filter(e -> e.isDigitale() == digitali)
+                .filter(e -> e.getLogoUrl() != null && e.getDataUscita() != null);
+    }
+
+    private static int quantiInVetrina(boolean digitali) {
+        return digitali ? SET_DIGITALI_IN_VETRINA : SET_IN_VETRINA;
     }
 
     private AnteprimaSetDTO anteprima(Espansione espansione, boolean hero) {

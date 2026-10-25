@@ -73,6 +73,19 @@ public class ImportInBackground {
         }
     }
 
+    // per i job: lo stesso import nel thread di chi chiama, senza limite (il ritmo lo decide il job). Non parte se
+    // una visita lo sta già facendo o se non serve più; un errore si registra come per le visite
+    public void eseguiOra(String chiave, BooleanSupplier ancoraDaFare, Runnable importa) {
+        if (!inCorso.add(chiave)) {
+            return;
+        }
+        if (!ancoraDaFare.getAsBoolean()) {
+            inCorso.remove(chiave);
+            return;
+        }
+        esegui(chiave, importa);
+    }
+
     public boolean inCorso(String chiave) {
         return inCorso.contains(chiave);
     }

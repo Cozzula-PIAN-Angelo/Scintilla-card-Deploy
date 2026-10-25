@@ -108,6 +108,32 @@ class VetrinaServiceTest {
         });
     }
 
+    // da scaricare senza aspettare una visita: i set che la home mostrerebbe, fisici e digitali, ancora senza carte
+    @Test
+    void daScaricareISetDellaHomeAncoraSenzaCarte() {
+        Espansione nuovo = set("me06", false, "logo", LocalDate.of(2026, 9, 26));
+        Espansione senzaLogo = set("mep", false, null, LocalDate.of(2026, 9, 1));
+        Espansione scaricato = set("me05", true, "logo", LocalDate.of(2026, 7, 17));
+        Espansione pocket = digitale(set("B2", false, "logo", LocalDate.of(2026, 1, 29)));
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(List.of(nuovo, senzaLogo, scaricato, pocket));
+
+        assertThat(service.setDaScaricare()).containsExactly("me06", "B2");
+    }
+
+    // solo quanti ne entrano in home: undici fisici e quattro digitali
+    @Test
+    void daScaricareAlPiuQuantiNeMostraLaHome() {
+        List<Espansione> tutti = new ArrayList<>();
+        IntStream.range(0, 14).forEach(i -> tutti.add(set("s" + i, false, "logo", LocalDate.of(2026, 1, 1))));
+        IntStream.range(0, 6).forEach(i -> tutti.add(digitale(set("A" + i, false, "logo", LocalDate.of(2025, 1, 1)))));
+        when(espansioneRepository.findAllByOrderByDataUscitaDescNomeAsc()).thenReturn(tutti);
+
+        assertThat(service.setDaScaricare())
+                .hasSize(VetrinaService.SET_IN_VETRINA + VetrinaService.SET_DIGITALI_IN_VETRINA)
+                .contains("s10", "A3")
+                .doesNotContain("s11", "A4");
+    }
+
     // con abbastanza prezzi si ordina per prezzo massimo; un Pokémon compare una volta sola
     @Test
     void carteDiPuntaPerPrezzoSenzaDoppioni() {

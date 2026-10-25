@@ -30,6 +30,7 @@ public class EspansioneService {
     private final CatalogoService catalogoService;
     private final ImportInBackground importInBackground;
     private final AllineamentoTcgdex allineamentoTcgdex;
+    private final VetrinaService vetrinaService;
 
     // set trovati senza carte: dopo quanto si richiedono a TCGdex
     private static final Duration ATTESA_SET_VUOTO = Duration.ofHours(6);
@@ -59,6 +60,31 @@ public class EspansioneService {
             allineamentoTcgdex.allinea();
         } catch (RuntimeException ex) {
             log.warn("Allineamento dei nomi delle carte fallito, si riprova la notte dopo: {}", ex.getMessage());
+        }
+    }
+
+    // i set nuovi della home ancora senza carte (vedi VetrinaService.setDaScaricare) si scaricano senza aspettare la
+    // prima visita alla loro pagina. Non è notturno perché Render (piano free) dorme: come RiempimentoVarianti,
+    // poco dopo l'avvio e poi ogni ora. Senza niente da scaricare è una query sola
+    @Scheduled(fixedDelayString = "PT1H", initialDelayString = "PT2M")
+    public void scaricaSetNuovi() {
+        for (String id : vetrinaService.setDaScaricare()) {
+            if (setVuoti.isRecente(id)) {
+                continue;
+            }
+            importInBackground.eseguiOra("set:" + id,
+                    () -> !espansioneRepository.findById(id).map(Espansione::isImportata).orElse(false),
+                    () -> scaricaSetNuovo(id));
+        }
+    }
+
+    private void scaricaSetNuovo(String id) {
+        try {
+            log.info("Set nuovo della home scaricato: {}", catalogoService.importaSet(id));
+        } catch (NotFoundException ex) {
+            // annunciato ma ancora senza carte su TCGdex: come per le visite, per qualche ora non si richiede
+            log.info("Set {} ancora senza carte su TCGdex: si riprova tra {} ore", id, ATTESA_SET_VUOTO.toHours());
+            setVuoti.annota(id);
         }
     }
 
