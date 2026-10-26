@@ -82,6 +82,8 @@ export function ArtistaPage() {
   }
 
   const nome = artista?.nome ?? ''
+  const conChecklist =
+    !!collezione && slug !== SLUG_SCONOSCIUTO && (risposta.aPezzi ? (risposta.totaleServer ?? 0) > 0 : !!data && data.length > 0)
   const numeroCarte = data?.length ?? (risposta.totaleServer || undefined) ?? artista?.carte
 
   return (
@@ -108,9 +110,7 @@ export function ArtistaPage() {
         </div>
         {/* collezione presente = utente loggato. Illustratore sconosciuto: non è un illustratore vero, niente checklist.
             A pezzi il bottone si vede ma aspetta tutte le carte */}
-        {collezione &&
-          slug !== SLUG_SCONOSCIUTO &&
-          (risposta.aPezzi ? (risposta.totaleServer ?? 0) > 0 : data && data.length > 0) && (
+        {conChecklist && (
           <Button
             variante="chiaro"
             dimensione="sm"
@@ -130,7 +130,7 @@ export function ArtistaPage() {
             variante="chiaro"
             dimensione="sm"
             onClick={() => setSimboloAperto(true)}
-            className={cn(!collezione && 'sm:ml-auto')}
+            className={cn(!conChecklist && 'sm:ml-auto')}
             disabled={!data}
             title={!data ? 'Disponibile quando tutte le carte sono pronte' : undefined}
           >

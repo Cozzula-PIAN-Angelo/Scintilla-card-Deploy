@@ -103,7 +103,9 @@ export function ModaleCartaSimbolo({ aperto, slug, nome, carte, onChiudi }: Prop
                 ? 'La tua scelta, non ancora salvata.'
                 : simbolo?.scelta
                   ? 'Scelta da un admin.'
-                  : 'Scelta automatica: la carta da collezionista che vale di più.'}
+                  : simbolo?.sceltaSalvata
+                    ? 'La carta scelta da un admin non è più in archivio: per ora vale la scelta automatica.'
+                    : 'Scelta automatica: la carta da collezionista più preziosa, o la più preziosa se non ce ne sono.'}
             </p>
             {simbolo && (
               <p className="mt-1">
@@ -162,7 +164,7 @@ export function ModaleCartaSimbolo({ aperto, slug, nome, carte, onChiudi }: Prop
 
         <AvvisoForm messaggio={errore} />
         <div className="flex flex-wrap justify-end gap-3 pt-2">
-          {simbolo?.scelta && (
+          {simbolo?.sceltaSalvata && (
             <Button variante="fantasma" onClick={() => void tornaAutomatica()} disabled={togliInCorso} className="mr-auto">
               Torna alla scelta automatica
             </Button>

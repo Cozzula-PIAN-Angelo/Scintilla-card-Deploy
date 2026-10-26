@@ -127,7 +127,9 @@ export interface AnteprimaArtista {
 export interface CartaSimbolo {
   // scelta dall'admin e in archivio; null = vale quella automatica
   scelta: CartaAnteprima | null
-  // la carta da collezionista che vale di più; null = nessuna carta in archivio
+  // c'è una scelta salvata, anche se la sua carta non è più in archivio
+  sceltaSalvata: boolean
+  // la carta da collezionista che vale di più (o la più preziosa, se non ce ne sono); null = nessuna carta in archivio
   automatica: CartaAnteprima | null
   // l'illustratore è sul muro questa settimana
   sulMuro: boolean

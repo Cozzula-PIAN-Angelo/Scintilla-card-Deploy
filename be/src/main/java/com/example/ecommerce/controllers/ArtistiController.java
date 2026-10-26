@@ -46,11 +46,12 @@ public class ArtistiController {
     }
 
     // illustratori sul muro questa settimana e le prime carte di ognuno per l'indice, dalle carte già in archivio
-    // il backend la ricalcola al massimo una volta l'ora: il browser la tiene altrettanto
+    // il backend la ricalcola al massimo una volta l'ora, o subito dopo una scelta dell'admin: il browser la tiene
+    // 5 minuti, così anche quella arriva presto a tutti
     @GetMapping("/anteprime")
     public ResponseEntity<VetrinaArtistiDTO> anteprime() {
         return ResponseEntity.ok()
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
+                .cacheControl(CacheControl.maxAge(Duration.ofMinutes(5)).cachePublic())
                 .body(vetrinaArtistiService.vetrina());
     }
 

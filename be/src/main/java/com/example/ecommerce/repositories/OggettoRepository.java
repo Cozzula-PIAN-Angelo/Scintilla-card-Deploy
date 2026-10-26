@@ -107,19 +107,21 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista IN :grafie")
     List<Oggetto> findByArtistaIn(@Param("grafie") Collection<String> grafie);
 
-    // tutte le carte con artista e immagine, per il muro degli illustratori: una riga leggera per carta
-    @Query("SELECT o.artista AS artista, o.id AS id, o.idEsterno AS idEsterno, o.nome AS nome, o.numero AS numero, "
-            + "o.rarita AS rarita, o.immagineUrl AS immagineUrl, o.prezzoMassimo AS prezzoMassimo, "
-            + "SIZE(o.numeriPokedex) AS numeriPokedex "
-            + "FROM Oggetto o WHERE o.artista IS NOT NULL AND o.artista <> '' AND o.immagineUrl IS NOT NULL")
+    // una riga leggera per carta, per il muro degli illustratori (campi di CartaDiArtista)
+    String CARTA_DI_ARTISTA = "SELECT o.artista AS artista, o.id AS id, o.idEsterno AS idEsterno, o.nome AS nome, "
+            + "o.numero AS numero, o.rarita AS rarita, o.immagineUrl AS immagineUrl, o.prezzoMassimo AS prezzoMassimo, "
+            + "SIZE(o.numeriPokedex) AS numeriPokedex FROM Oggetto o ";
+
+    // tutte le carte con artista e immagine
+    @Query(CARTA_DI_ARTISTA + "WHERE o.artista IS NOT NULL AND o.artista <> '' AND o.immagineUrl IS NOT NULL")
     List<CartaDiArtista> findCarteConArtista();
 
-    // le stesse righe leggere, per un solo illustratore (tutte le grafie in cui compare)
-    @Query("SELECT o.artista AS artista, o.id AS id, o.idEsterno AS idEsterno, o.nome AS nome, o.numero AS numero, "
-            + "o.rarita AS rarita, o.immagineUrl AS immagineUrl, o.prezzoMassimo AS prezzoMassimo, "
-            + "SIZE(o.numeriPokedex) AS numeriPokedex "
-            + "FROM Oggetto o WHERE o.artista IN :grafie AND o.immagineUrl IS NOT NULL")
+    // le carte di un solo illustratore (tutte le grafie in cui compare)
+    @Query(CARTA_DI_ARTISTA + "WHERE o.artista IN :grafie AND o.immagineUrl IS NOT NULL")
     List<CartaDiArtista> findCarteDiArtista(@Param("grafie") Collection<String> grafie);
+
+    // la carta scelta dall'admin come simbolo è di quell'illustratore ed è in archivio con l'immagine
+    boolean existsByIdEsternoAndArtistaInAndImmagineUrlIsNotNull(String idEsterno, Collection<String> grafie);
 
     // carte per cui TCGdex non indica un artista (pagina "Illustratore sconosciuto")
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista = ''")
