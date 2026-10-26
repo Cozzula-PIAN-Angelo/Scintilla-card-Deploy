@@ -160,7 +160,7 @@ class VetrinaArtistiServiceTest {
     @Test
     void scegliereLaCartaSimboloLaSalvaERicalcolaIlMuro() {
         when(oggettoRepository.findCarteConArtista()).thenReturn(pokemon("Mitsuhiro Arita", VetrinaArtistiService.CARTE_MINIME_MURO));
-        when(oggettoRepository.findCarteDiArtista(anyCollection())).thenReturn(pokemon("Mitsuhiro Arita", 2));
+        when(oggettoRepository.existsByIdEsternoAndArtistaInAndImmagineUrlIsNotNull("id-Pokemon 1", List.of("Mitsuhiro Arita"))).thenReturn(true);
         service.vetrina();
 
         service.scegliCartaSimbolo("mitsuhiro-arita", "id-Pokemon 1");
@@ -176,7 +176,7 @@ class VetrinaArtistiServiceTest {
 
     @Test
     void cartaSimboloDiUnAltroIllustratoreRifiutata() {
-        when(oggettoRepository.findCarteDiArtista(anyCollection())).thenReturn(pokemon("Mitsuhiro Arita", 2));
+        when(oggettoRepository.existsByIdEsternoAndArtistaInAndImmagineUrlIsNotNull("id-Mew", List.of("Mitsuhiro Arita"))).thenReturn(false);
 
         assertThatThrownBy(() -> service.scegliCartaSimbolo("mitsuhiro-arita", "id-Mew"))
                 .isInstanceOf(BadRequestException.class);
@@ -202,11 +202,13 @@ class VetrinaArtistiServiceTest {
         CartaSimboloDTO simbolo = service.cartaSimbolo("mitsuhiro-arita");
 
         assertThat(simbolo.scelta().nome()).isEqualTo("Squirtle");
+        assertThat(simbolo.sceltaSalvata()).isTrue();
         assertThat(simbolo.automatica().nome()).isEqualTo("Charizard");
         assertThat(simbolo.sulMuro()).isTrue();
     }
 
-    // scelta di una carta non più in archivio (database ricreato): vale quella automatica
+    // scelta di una carta non più in archivio (database ricreato): vale quella automatica, ma la scelta salvata
+    // si vede, così l'admin la può togliere
     @Test
     void cartaSimboloSceltaNonInArchivio() {
         when(oggettoRepository.findCarteDiArtista(anyCollection())).thenReturn(List.of(carta("Mitsuhiro Arita", "Charizard", "250", "Rare Holo", 1)));
@@ -215,6 +217,7 @@ class VetrinaArtistiServiceTest {
         CartaSimboloDTO simbolo = service.cartaSimbolo("mitsuhiro-arita");
 
         assertThat(simbolo.scelta()).isNull();
+        assertThat(simbolo.sceltaSalvata()).isTrue();
         assertThat(simbolo.automatica().nome()).isEqualTo("Charizard");
         assertThat(simbolo.sulMuro()).isFalse();
     }

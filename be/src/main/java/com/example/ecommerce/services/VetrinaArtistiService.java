@@ -125,15 +125,13 @@ public class VetrinaArtistiService {
                 .findFirst().map(VetrinaArtistiService::anteprima).orElse(null);
         CartaAnteprimaDTO automatica = illustrazioni(carte, null).stream().findFirst().orElse(null);
         boolean sulMuro = vetrina().sulMuro().stream().anyMatch(a -> a.slug().equals(slug));
-        return new CartaSimboloDTO(sceltaInArchivio, automatica, sulMuro);
+        return new CartaSimboloDTO(sceltaInArchivio, scelta != null, automatica, sulMuro);
     }
 
     // solo una carta dell'illustratore già in archivio; il muro si ricalcola alla prossima richiesta
     public void scegliCartaSimbolo(String slug, String idEsterno) {
         ElencoArtisti.Artista artista = artista(slug);
-        boolean sua = oggettoRepository.findCarteDiArtista(artista.grafie()).stream()
-                .anyMatch(c -> idEsterno.equals(c.getIdEsterno()));
-        if (!sua) {
+        if (!oggettoRepository.existsByIdEsternoAndArtistaInAndImmagineUrlIsNotNull(idEsterno, artista.grafie())) {
             throw new BadRequestException("La carta " + idEsterno + " non è di " + artista.nome() + " o non è ancora in archivio");
         }
         cartaSimboloRepository.save(new CartaSimboloArtista(slug, idEsterno, Instant.now()));

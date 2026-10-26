@@ -53,7 +53,7 @@ export const {
   useTogliCartaSimboloMutation,
 } = artistiApi
 
-// dopo una scelta dell'admin: il browser tiene il muro un'ora (Cache-Control di /artisti/anteprime), quindi prima
+// dopo una scelta dell'admin: il browser tiene il muro 5 minuti (Cache-Control di /artisti/anteprime), quindi prima
 // lo si riscarica davvero, poi la pagina lo rilegge
 async function aggiornaMuro(fatto: Promise<unknown>, dispatch: (azione: unknown) => unknown) {
   try {
