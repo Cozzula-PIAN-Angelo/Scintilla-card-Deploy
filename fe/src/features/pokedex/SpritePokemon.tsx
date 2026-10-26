@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { cn } from '../../utils/cn'
+import { useIngombro, type Ingombro } from './ingombroSprite'
 import { spriteAnimatoUrl, spriteUrl } from './pokedex'
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
   sagoma?: boolean
   // la GIF è ritagliata attorno al Pokémon, alla sua misura: nei riquadri grandi si ingrandisce a pixel interi
   ingrandimento?: number
-  // appoggiato sul fondo del riquadro (su una pedana) invece che al centro
+  // appoggiato sul fondo del riquadro (su una pedana) invece che al centro, col disegno centrato davvero
   appoggiato?: boolean
   className?: string
 }
@@ -23,7 +24,11 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
   const [gifMancante, setGifMancante] = useState(false)
   const [richiesta, setRichiesta] = useState(false)
   if (attivo && !richiesta) setRichiesta(true)
-  const mostraGif = attivo && gifPronta
+  // sulla pedana si misura dove sta il disegno nell'immagine; finché non si sa, l'immagine aspetta invisibile
+  const ingombroFermo = useIngombro(appoggiato ? spriteUrl(numero) : null)
+  const ingombroGif = useIngombro(appoggiato && richiesta && !gifMancante ? spriteAnimatoUrl(numero) : null)
+  const mostraGif = attivo && gifPronta && (!appoggiato || ingombroGif !== undefined)
+  const fermoPronto = !appoggiato || ingombroFermo !== undefined
   return (
     <span className={cn('relative block', className)}>
       <img
@@ -33,24 +38,30 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
         decoding="async"
         width={96}
         height={96}
+        crossOrigin={appoggiato ? 'anonymous' : undefined}
+        // lo sprite fermo riempie il riquadro: i piedi vanno al 12% dal fondo, come quelli della GIF
+        style={appoggiato ? spostamento(ingombroFermo, 0.12) : undefined}
         className={cn(
           'sprite-pixel size-full object-contain transition-[filter,opacity] duration-300',
-          // nel riquadro 96x96 i piedi stanno un po' sopra il fondo: si abbassa sulla pedana
-          appoggiato && 'translate-y-[8%]',
           sagoma && !attivo && 'sprite-sagoma',
           mostraGif && 'motion-safe:invisible',
+          !fermoPronto && 'invisible',
         )}
       />
       {richiesta && !gifMancante && (
         <img
           src={spriteAnimatoUrl(numero)}
           alt=""
+          crossOrigin={appoggiato ? 'anonymous' : undefined}
           onLoad={(e) => {
             setLarghezzaGif(e.currentTarget.naturalWidth)
             setGifPronta(true)
           }}
           onError={() => setGifMancante(true)}
-          style={larghezzaGif && ingrandimento !== 1 ? { width: larghezzaGif * ingrandimento } : undefined}
+          style={{
+            ...(larghezzaGif && ingrandimento !== 1 && { width: larghezzaGif * ingrandimento }),
+            ...(appoggiato && spostamento(ingombroGif, 0)),
+          }}
           // le GIF più grandi del riquadro si rimpiccioliscono, le altre restano alla loro misura
           className={cn(
             'sprite-pixel absolute max-h-full max-w-full object-contain motion-reduce:hidden',
@@ -61,4 +72,12 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
       )}
     </span>
   )
+}
+
+// translate in percentuale della misura dell'immagine stessa: vale a qualunque ingrandimento. sollevato: quanto
+// il fondo del disegno deve restare sopra il fondo dell'immagine
+function spostamento(ingombro: Ingombro | null | undefined, sollevato: number): CSSProperties | undefined {
+  // senza misura (immagine non leggibile) lo spostamento medio degli sprite fermi
+  if (!ingombro) return sollevato ? { translate: '0 8%' } : undefined
+  return { translate: `${ingombro.dx * 100}% ${(ingombro.dy - sollevato) * 100}%` }
 }
