@@ -17,9 +17,9 @@ interface Props {
 
 // sulla pedana i piedi stanno all'8% dal fondo del riquadro, verso il bordo basso dell'ombra (che va dal 6% al 18%)
 const PIEDI = 0.08
-// sulla pedana un pixel dello sprite è grande 1/60 del riquadro: 4 volte in un riquadro da 240 px. Sprite fermo e
+// sulla pedana un pixel dello sprite è grande 1/72 del riquadro: 4 volte in un riquadro da 288 px. Sprite fermo e
 // GIF hanno la stessa scala (i loro pixel art sono alla stessa misura), così al cambio non c'è scatto
-const PIXEL_PER_LATO = 60
+const PIXEL_PER_LATO = 72
 
 // sprite fermo 96x96; al passaggio la GIF prende il suo posto quando è pronta. La GIF si scarica solo al primo
 // passaggio, e se manca (404) non si riprova e resta lo sprite fermo. Con "riduci movimento" niente GIF
