@@ -108,10 +108,18 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     List<Oggetto> findByArtistaIn(@Param("grafie") Collection<String> grafie);
 
     // tutte le carte con artista e immagine, per il muro degli illustratori: una riga leggera per carta
-    @Query("SELECT o.artista AS artista, o.id AS id, o.nome AS nome, o.numero AS numero, o.rarita AS rarita, "
-            + "o.immagineUrl AS immagineUrl, o.prezzoMassimo AS prezzoMassimo, SIZE(o.numeriPokedex) AS numeriPokedex "
+    @Query("SELECT o.artista AS artista, o.id AS id, o.idEsterno AS idEsterno, o.nome AS nome, o.numero AS numero, "
+            + "o.rarita AS rarita, o.immagineUrl AS immagineUrl, o.prezzoMassimo AS prezzoMassimo, "
+            + "SIZE(o.numeriPokedex) AS numeriPokedex "
             + "FROM Oggetto o WHERE o.artista IS NOT NULL AND o.artista <> '' AND o.immagineUrl IS NOT NULL")
     List<CartaDiArtista> findCarteConArtista();
+
+    // le stesse righe leggere, per un solo illustratore (tutte le grafie in cui compare)
+    @Query("SELECT o.artista AS artista, o.id AS id, o.idEsterno AS idEsterno, o.nome AS nome, o.numero AS numero, "
+            + "o.rarita AS rarita, o.immagineUrl AS immagineUrl, o.prezzoMassimo AS prezzoMassimo, "
+            + "SIZE(o.numeriPokedex) AS numeriPokedex "
+            + "FROM Oggetto o WHERE o.artista IN :grafie AND o.immagineUrl IS NOT NULL")
+    List<CartaDiArtista> findCarteDiArtista(@Param("grafie") Collection<String> grafie);
 
     // carte per cui TCGdex non indica un artista (pagina "Illustratore sconosciuto")
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista = ''")

@@ -44,7 +44,7 @@ public class DatiInizialiSeeder implements CommandLineRunner {
             "ruoli", "utenti", "ruoli_utenti", "espansioni", "oggetti", "oggetti_pokedex", "pokemon_importati",
             "artisti_importati", "utenti_oggetti_preferiti", "binder", "binder_slot", "binder_immagini",
             "collezione", "token_revocati", "profili", "profili_avatar", "profili_squadra", "profili_vetrina",
-            "profili_binder");
+            "profili_binder", "artisti_carta_simbolo");
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transazione;

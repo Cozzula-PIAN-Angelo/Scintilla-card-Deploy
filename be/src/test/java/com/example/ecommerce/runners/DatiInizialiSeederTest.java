@@ -309,6 +309,7 @@ class DatiInizialiSeederTest {
         dati.put("profili_squadra", lista(riga("id_utente", UTENTE, "posizione", 0, "numero", 25)));
         dati.put("profili_vetrina", lista(riga("id_utente", UTENTE, "posizione", 0, "id_oggetto", CARTA)));
         dati.put("profili_binder", lista(riga("id_utente", UTENTE, "posizione", 0, "id_binder", BINDER)));
+        dati.put("artisti_carta_simbolo", lista(riga("slug", "mitsuhiro-arita", "id_esterno", "base1-58", "scelta_il", QUANDO)));
         return dati;
     }
 

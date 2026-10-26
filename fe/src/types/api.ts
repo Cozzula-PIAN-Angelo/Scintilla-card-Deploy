@@ -123,6 +123,16 @@ export interface AnteprimaArtista {
   illustrazioni: CartaAnteprima[]
 }
 
+// per l'admin: la carta che il muro usa per un illustratore (GET /artisti/{slug}/carta-simbolo)
+export interface CartaSimbolo {
+  // scelta dall'admin e in archivio; null = vale quella automatica
+  scelta: CartaAnteprima | null
+  // la carta da collezionista che vale di più; null = nessuna carta in archivio
+  automatica: CartaAnteprima | null
+  // l'illustratore è sul muro questa settimana
+  sulMuro: boolean
+}
+
 export interface VetrinaArtisti {
   sulMuro: AnteprimaArtista[]
   // slug -> le immagini piccole delle sue tre carte più preziose già in archivio; manca chi non ne ha ancora
