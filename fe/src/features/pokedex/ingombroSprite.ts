@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react'
 // Dove sta davvero il Pokémon nella sua immagine. Gli sprite fermi hanno spazio vuoto non simmetrico e le GIF
 // sono larghe quanto tutta l'animazione: una coda o un'ala che si allarga da un lato (la fiamma di Charmeleon)
 // sposta il centro dell'immagine, e sulla pedana il corpo sembra fuori centro. Si centra quindi il "peso" del
-// disegno (la media dei pixel pieni di tutti i fotogrammi), non il riquadro. dx e dy sono gli spostamenti, in
-// frazioni della misura dell'immagine, che portano il peso al centro e i piedi sul fondo
+// disegno (la media dei pixel pieni di tutti i fotogrammi), non il riquadro. In verticale conta il fondo tipico
+// (la mediana dei fotogrammi): chi vola o saltella (Lugia, Butterfree) col fotogramma più basso resterebbe sospeso
+// quasi sempre. dx e dy sono gli spostamenti, in frazioni della misura dell'immagine, che portano il peso al
+// centro e i piedi sul fondo
 export interface Ingombro {
   dx: number
   dy: number
@@ -28,20 +30,24 @@ export function misuraIngombro(url: string): Promise<Ingombro | null> {
 
 async function calcola(url: string): Promise<Ingombro | null> {
   const blob = await (await fetch(url)).blob()
-  const riquadro = { sommaX: 0, pieni: 0, sotto: -1, larghezza: 0, altezza: 0 }
+  const riquadro = { sommaX: 0, pieni: 0, larghezza: 0, altezza: 0 }
+  // fondo del disegno in ogni fotogramma
+  const fondi: number[] = []
   const leggi = (immagine: CanvasImageSource, larghezza: number, altezza: number) => {
     const tela = new OffscreenCanvas(larghezza, altezza)
     const ctx = tela.getContext('2d', { willReadFrequently: true })
     if (!ctx) return
     ctx.drawImage(immagine, 0, 0)
     const dati = ctx.getImageData(0, 0, larghezza, altezza).data
+    let fondo = -1
     for (let y = 0; y < altezza; y++)
       for (let x = 0; x < larghezza; x++)
         if (dati[(y * larghezza + x) * 4 + 3] > SOGLIA_ALFA) {
           riquadro.sommaX += x + 0.5
           riquadro.pieni++
-          riquadro.sotto = Math.max(riquadro.sotto, y)
+          fondo = y
         }
+    if (fondo >= 0) fondi.push(fondo)
     riquadro.larghezza = larghezza
     riquadro.altezza = altezza
   }
@@ -64,8 +70,9 @@ async function calcola(url: string): Promise<Ingombro | null> {
     bitmap.close()
   }
 
-  const { sommaX, pieni, sotto, larghezza, altezza } = riquadro
+  const { sommaX, pieni, larghezza, altezza } = riquadro
   if (pieni === 0) return null
+  const sotto = fondi.sort((a, b) => a - b)[fondi.length >> 1]
   return {
     dx: (larghezza / 2 - sommaX / pieni) / larghezza,
     dy: (altezza - (sotto + 1)) / altezza,
