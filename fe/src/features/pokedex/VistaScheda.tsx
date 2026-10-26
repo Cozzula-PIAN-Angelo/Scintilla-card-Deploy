@@ -15,8 +15,6 @@ import { Pedana } from './Pedana'
 import { SpritePokemon } from './SpritePokemon'
 import { VentaglioCarte } from './VentaglioCarte'
 
-// pannelli attaccati sotto navbar e barra, alti fino in fondo allo schermo
-const ATTACCATO = 'lg:sticky lg:top-[calc(var(--alto-barra)+4.75rem)] lg:h-[calc(100dvh-var(--alto-barra)-5.75rem)]'
 
 // vista "scheda", come il Pokédex dei giochi: elenco numerato a sinistra, scheda del Pokémon scelto a destra con
 // le sue carte. Da telefono solo l'elenco, e un tocco apre il Pokémon
@@ -92,41 +90,44 @@ export function VistaScheda(props: PropsVista) {
       )}
 
       <div className={cn(CONTENITORE_POKEDEX, 'mt-6 grid gap-6 lg:grid-cols-[minmax(20rem,26rem)_1fr]')}>
-        <div className={cn(ATTACCATO, 'rounded-3xl bg-superficie lg:overflow-y-auto p-2 shadow-lg shadow-ombra/10 ring-1 ring-linea/5')}>
-          {lista.length === 0 ? (
-            <StatoVuoto icona={<Search aria-hidden className="size-16" />} titolo="Nessun Pokémon trovato" testo={`Nessun Pokémon corrisponde a "${props.ricerca}".`} />
-          ) : (
-            <ul ref={elenco} aria-label="Pokémon" onKeyDown={tasti} className="relative">
-              {gruppi.map(({ regione, pokemon }) => (
-                <li key={regione ?? 'risultati'}>
-                  {/* il nome della regione resta in cima al pannello (da telefono sotto la barra) finché si scorre lei */}
-                  {regione && (
-                    <p className="sticky top-[calc(var(--alto-barra)+3.75rem)] z-10 rounded-xl bg-superficie/95 px-3 pb-1 pt-3 font-titolo text-sm font-semibold text-accento backdrop-blur lg:top-0">
-                      {regione}
-                    </p>
-                  )}
-                  <ul>
-                    {pokemon.map((p) => (
-                      <li key={p.numero} id={`voce-${p.numero}`} className="scroll-mt-[calc(var(--alto-barra)+6rem)]">
-                        <VocePokemon
-                          pokemon={p}
-                          posseduti={posseduti}
-                          scelto={largo && p.numero === scelto}
-                          focalizzabile={p.numero === focalizzabile}
-                          largo={largo}
-                          onScegli={() => setScelto(p.numero)}
-                          onApri={() => {
-                            memoriaPokedex.ultimo = p.numero
-                            navigate(`/pokedex/${p.numero}`, { state: propsLinkPokemon(p.numero).state })
-                          }}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ul>
-          )}
+        {/* da desktop l'elenco è alto quanto la scheda accanto (non la allunga) e scorre al suo interno */}
+        <div className="lg:relative">
+          <div className="rounded-3xl bg-superficie p-2 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 lg:absolute lg:inset-0 lg:overflow-y-auto">
+            {lista.length === 0 ? (
+              <StatoVuoto icona={<Search aria-hidden className="size-16" />} titolo="Nessun Pokémon trovato" testo={`Nessun Pokémon corrisponde a "${props.ricerca}".`} />
+            ) : (
+              <ul ref={elenco} aria-label="Pokémon" onKeyDown={tasti} className="relative">
+                {gruppi.map(({ regione, pokemon }) => (
+                  <li key={regione ?? 'risultati'}>
+                    {/* il nome della regione resta in cima al pannello (da telefono sotto la barra) finché si scorre lei */}
+                    {regione && (
+                      <p className="sticky top-[calc(var(--alto-barra)+3.75rem)] z-10 rounded-xl bg-superficie/95 px-3 pb-1 pt-3 font-titolo text-sm font-semibold text-accento backdrop-blur lg:top-0">
+                        {regione}
+                      </p>
+                    )}
+                    <ul>
+                      {pokemon.map((p) => (
+                        <li key={p.numero} id={`voce-${p.numero}`} className="scroll-mt-[calc(var(--alto-barra)+6rem)]">
+                          <VocePokemon
+                            pokemon={p}
+                            posseduti={posseduti}
+                            scelto={largo && p.numero === scelto}
+                            focalizzabile={p.numero === focalizzabile}
+                            largo={largo}
+                            onScegli={() => setScelto(p.numero)}
+                            onApri={() => {
+                              memoriaPokedex.ultimo = p.numero
+                              navigate(`/pokedex/${p.numero}`, { state: propsLinkPokemon(p.numero).state })
+                            }}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
 
         {largo && <Scheda numero={scelto} posseduti={posseduti} onSposta={sposta} />}
@@ -206,7 +207,7 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
   const totale = currentData ? (currentData.completo ? currentData.carte.length : currentData.totale) : undefined
 
   return (
-    <section aria-label={`Scheda di ${pokemon.nome}`} className={cn(ATTACCATO, 'sfondo-hero animate-gradiente relative flex flex-col overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 xl:p-8')}>
+    <section aria-label={`Scheda di ${pokemon.nome}`} className="sfondo-hero animate-gradiente relative flex min-h-[28rem] flex-col overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 xl:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           {/* il numero dopo il nome, come nel Pokédex dei giochi */}
@@ -229,8 +230,8 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
         </div>
       </div>
 
-      {/* da desktop largo pedana a sinistra e carte a destra: tutto resta nell'altezza dello schermo. Colonna delle
-          carte larga fissa: mentre arrivano le carte (o le statistiche) la pedana non si sposta */}
+      {/* da desktop largo pedana a sinistra e carte a destra. Colonna delle carte larga fissa: mentre arrivano le
+          carte (o le statistiche) la pedana non si sposta */}
       <div className="grid min-h-0 flex-1 content-start items-center gap-6 pt-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <Pedana numero={numero} sagoma={posseduti !== null && !preso} className="mx-auto size-60 2xl:size-72" />
 
