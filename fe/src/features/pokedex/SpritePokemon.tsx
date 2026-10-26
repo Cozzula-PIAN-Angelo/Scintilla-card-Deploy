@@ -16,8 +16,8 @@ interface Props {
   className?: string
 }
 
-// sulla pedana i piedi stanno al 10% dal fondo del riquadro, un po' dentro l'ombra (che va dal 6% al 18%)
-const PIEDI = 0.1
+// sulla pedana i piedi stanno all'8% dal fondo del riquadro, verso il bordo basso dell'ombra (che va dal 6% al 18%)
+const PIEDI = 0.08
 
 // sprite fermo 96x96; al passaggio la GIF prende il suo posto quando è pronta. La GIF si scarica solo al primo
 // passaggio, e se manca (404) non si riprova e resta lo sprite fermo. Con "riduci movimento" niente GIF
@@ -76,12 +76,12 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
           onError={() => setGifMancante(true)}
           style={{
             ...(gif && ingrandimento !== 1 && { width: gif.larghezza * ingrandimento }),
-            ...(appoggiato && spostamento(ingombroGif, 0)),
+            ...(appoggiato && { bottom: `${PIEDI * 100}%`, ...spostamento(ingombroGif, 0) }),
           }}
           // le GIF più grandi del riquadro si rimpiccioliscono, le altre restano alla loro misura
           className={cn(
             'sprite-pixel absolute max-h-full max-w-full object-contain motion-reduce:hidden',
-            appoggiato ? 'inset-x-0 bottom-[10%] mx-auto' : 'inset-0 m-auto',
+            appoggiato ? 'inset-x-0 mx-auto' : 'inset-0 m-auto',
             !mostraGif && 'invisible',
           )}
         />
@@ -94,7 +94,7 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
 // il fondo del disegno deve restare sopra il fondo dell'immagine
 function spostamento(ingombro: Ingombro | null | undefined, sollevato: number): CSSProperties | undefined {
   // senza misura (immagine non leggibile) lo spostamento medio degli sprite fermi
-  if (!ingombro) return sollevato ? { translate: '0 10%' } : undefined
+  if (!ingombro) return sollevato ? { translate: '0 12%' } : undefined
   return { translate: `${ingombro.dx * 100}% ${(ingombro.dy - sollevato) * 100}%` }
 }
 
