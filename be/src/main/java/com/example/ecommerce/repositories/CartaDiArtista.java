@@ -11,6 +11,9 @@ public interface CartaDiArtista {
 
     UUID getId();
 
+    // id di TCGdex: con questo l'admin sceglie la carta simbolo (vedi CartaSimboloArtista)
+    String getIdEsterno();
+
     String getNome();
 
     String getNumero();

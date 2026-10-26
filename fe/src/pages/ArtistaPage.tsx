@@ -1,6 +1,7 @@
-import { ArrowLeft, BookPlus, Palette } from 'lucide-react'
+import { ArrowLeft, BookPlus, Frame, Palette } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
+import { useAppSelector } from '../app/hooks'
 import { statoErrore } from '../app/errori'
 import { Button, LinkBottone } from '../components/Button'
 import { GrigliaCartePaginata } from '../components/GrigliaCartePaginata'
@@ -11,6 +12,8 @@ import { coautori, elencoNomi, SLUG_SCONOSCIUTO } from '../features/artisti/arti
 import { useGetArtistiQuery, useGetCarteArtistaQuery, useGetStatoCarteArtistaQuery } from '../features/artisti/artistiApi'
 import { AvatarArtista } from '../features/artisti/AvatarArtista'
 import { memoriaArtisti } from '../features/artisti/memoriaArtisti'
+import { ModaleCartaSimbolo } from '../features/artisti/ModaleCartaSimbolo'
+import { selectIsAdmin } from '../features/auth/authSlice'
 import { ModaleBinder } from '../features/binder/ModaleBinder'
 import { BarraCollezione } from '../features/collezione/BarraCollezione'
 import { AvvisoCarteInArrivo } from '../features/collezione/AvvisoCarteInArrivo'
@@ -20,6 +23,7 @@ import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useTitolo } from '../hooks/useTitolo'
 import type { Oggetto } from '../types/api'
+import { cn } from '../utils/cn'
 
 // tutte le carte illustrate da un artista, dalla più recente
 export function ArtistaPage() {
@@ -40,6 +44,8 @@ export function ArtistaPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [checklistAperta, setChecklistAperta] = useState(false)
+  const [simboloAperto, setSimboloAperto] = useState(false)
+  const isAdmin = useAppSelector(selectIsAdmin)
   const nonTrovato = (elenco !== undefined && !artista) || statoErrore(error) === 404
   useTitolo(artista?.nome ?? (nonTrovato ? 'Illustratore non trovato' : 'Illustratori'))
 
@@ -118,7 +124,25 @@ export function ArtistaPage() {
             {risposta.aPezzi && <span className="sr-only">: disponibile quando tutte le carte sono pronte</span>}
           </Button>
         )}
+        {/* solo admin: la carta che il muro della pagina Illustratori usa per lui; serve l'elenco intero */}
+        {isAdmin && slug !== SLUG_SCONOSCIUTO && (
+          <Button
+            variante="chiaro"
+            dimensione="sm"
+            onClick={() => setSimboloAperto(true)}
+            className={cn(!collezione && 'sm:ml-auto')}
+            disabled={!data}
+            title={!data ? 'Disponibile quando tutte le carte sono pronte' : undefined}
+          >
+            <Frame aria-hidden className="size-4" />
+            Carta del muro
+          </Button>
+        )}
       </header>
+
+      {isAdmin && data && slug !== SLUG_SCONOSCIUTO && (
+        <ModaleCartaSimbolo aperto={simboloAperto} slug={slug} nome={nome} carte={data} onChiudi={() => setSimboloAperto(false)} />
+      )}
 
       {data && slug !== SLUG_SCONOSCIUTO && (
         <ModaleBinder

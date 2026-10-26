@@ -11,6 +11,10 @@ import { LinkArtista } from './LinkArtista'
 const SUL_MURO = 10
 const GRANDI: Record<number, string> = { 0: 'lg:col-start-5 lg:row-start-1', 5: 'lg:col-start-1 lg:row-start-2' }
 
+// il cuore della finestra del disegno, dal 12% al 46% dell'altezza della carta (sotto c'è la riga di altezza e peso):
+// l'immagine è alta 2,9 volte il riquadro, sale del 34% del riquadro e sta al centro. Il riquadro è 4:3 e taglia il resto
+export const CLASSI_RITAGLIO = 'absolute top-[-34%] left-1/2 h-[290%] w-auto max-w-none -translate-x-1/2'
+
 interface Props {
   // vuoto mentre arrivano: al loro posto le sagome
   artisti: AnteprimaArtista[]
@@ -67,8 +71,6 @@ function Illustrazione({ artista, grande, className }: { artista: AnteprimaArtis
         {carta && (
           <>
             {!caricata && <div aria-hidden className="skeleton absolute inset-0 opacity-20" />}
-            {/* il cuore della finestra del disegno, dal 12% al 46% dell'altezza della carta (sotto c'è la riga di
-                altezza e peso): la carta è alta 2,9 volte il riquadro, sale del 34% del riquadro e sta al centro */}
             <img
               key={carta.id}
               src={carta.immagineUrl ?? carta.immagineUrlPiccola ?? ''}
@@ -80,7 +82,8 @@ function Illustrazione({ artista, grande, className }: { artista: AnteprimaArtis
                 setScelta((s) => s + 1)
               }}
               className={cn(
-                'absolute top-[-34%] left-1/2 h-[290%] w-auto max-w-none -translate-x-1/2 origin-[50%_15%] transition-[transform,opacity] duration-700 ease-out group-hover:scale-105 group-focus-visible:scale-105',
+                CLASSI_RITAGLIO,
+                'origin-[50%_15%] transition-[transform,opacity] duration-700 ease-out group-hover:scale-105 group-focus-visible:scale-105',
                 caricata ? 'opacity-100' : 'opacity-0',
               )}
             />
