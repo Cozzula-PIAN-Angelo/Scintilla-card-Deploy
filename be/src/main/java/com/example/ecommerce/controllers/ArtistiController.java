@@ -3,7 +3,9 @@ package com.example.ecommerce.controllers;
 import com.example.ecommerce.payloads.ArtistaResponseDTO;
 import com.example.ecommerce.payloads.CarteDTO;
 import com.example.ecommerce.payloads.StatoCarteDTO;
+import com.example.ecommerce.payloads.VetrinaArtistiDTO;
 import com.example.ecommerce.services.ArtistiService;
+import com.example.ecommerce.services.VetrinaArtistiService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.CacheControl;
@@ -24,6 +26,7 @@ import java.util.List;
 public class ArtistiController {
 
     private final ArtistiService artistiService;
+    private final VetrinaArtistiService vetrinaArtistiService;
 
     // l'elenco cambia solo con un nuovo artisti.json, cioè a ogni deploy: il browser lo tiene un'ora
     @GetMapping
@@ -31,6 +34,15 @@ public class ArtistiController {
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
                 .body(artistiService.elenco());
+    }
+
+    // illustratori sul muro questa settimana e le prime carte di ognuno per l'indice, dalle carte già in archivio
+    // il backend la ricalcola al massimo una volta l'ora: il browser la tiene altrettanto
+    @GetMapping("/anteprime")
+    public ResponseEntity<VetrinaArtistiDTO> anteprime() {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
+                .body(vetrinaArtistiService.vetrina());
     }
 
     // la prima apertura importa le carte dell'artista: l'IP serve al limite sugli import (vedi LimitatoreImport)

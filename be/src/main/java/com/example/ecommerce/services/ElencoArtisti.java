@@ -24,7 +24,7 @@ public final class ElencoArtisti {
 
     // pagina delle carte per cui TCGdex non indica l'artista: non è nell'elenco
     public static final String SLUG_SCONOSCIUTO = "sconosciuto";
-    public static final String NOME_SCONOSCIUTO = "Artista sconosciuto";
+    public static final String NOME_SCONOSCIUTO = "Illustratore sconosciuto";
 
     private static final String RISORSA = "artisti.json";
 

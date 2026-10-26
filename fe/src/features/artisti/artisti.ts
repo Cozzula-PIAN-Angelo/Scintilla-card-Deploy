@@ -31,6 +31,19 @@ export function raggruppaPerLettera(artisti: Artista[]): { lettera: string; arti
     .map(([lettera, artisti]) => ({ lettera, artisti }))
 }
 
+// le immagini delle carte di un illustratore per l'indice: quelle in archivio o, se non ce ne sono ancora, la carta
+// del suo avatar
+export function immaginiDi(artista: Artista, carteIndice: Record<string, string[]> | undefined): string[] {
+  const inArchivio = carteIndice?.[artista.slug]
+  if (inArchivio && inArchivio.length > 0) return inArchivio
+  return artista.avatar ? [artista.avatar] : []
+}
+
+// "1 carta", "1.789 carte"
+export function contaCarte(carte: number): string {
+  return carte === 1 ? '1 carta' : `${carte.toLocaleString('it-IT')} carte`
+}
+
 // gli altri autori di una carta, tolto l'artista della pagina
 export function coautori(oggetto: Oggetto, slug: string): ArtistaCarta[] {
   return oggetto.artisti.filter((artista) => artista.slug !== slug)

@@ -1,5 +1,5 @@
 import type { Artista, Espansione } from '../../types/api'
-import { normalizza } from '../artisti/artisti'
+import { contaCarte, normalizza } from '../artisti/artisti'
 import { numeroFormattato, POKEDEX, spriteUrl, type Pokemon } from '../pokedex/pokedex'
 
 // una riga della ricerca unica della navbar: dove porta, cosa scrivere e quale immagine mostrare
@@ -72,7 +72,7 @@ function daArtista(artista: Artista): Risultato {
     tipo: 'artista',
     a: `/artisti/${encodeURIComponent(artista.slug)}`,
     nome: artista.nome,
-    dettaglio: `${artista.carte.toLocaleString('it-IT')} ${artista.carte === 1 ? 'carta' : 'carte'}`,
+    dettaglio: contaCarte(artista.carte),
     immagine: artista.avatar,
   }
 }
@@ -100,7 +100,7 @@ export function cerca(testo: string, espansioni: Espansione[], artisti: Artista[
   const gruppi: GruppoRisultati[] = [
     { titolo: 'Set', risultati: migliori(setRecenti, (e) => punteggio(e.nome, filtro)).map(daSet) },
     { titolo: 'Pokémon', risultati: migliori(POKEDEX, (p) => valutaPokemon(p, filtro)).map(daPokemon) },
-    { titolo: 'Artisti', risultati: migliori(artisti, (a) => punteggio(a.nome, filtro)).map(daArtista) },
+    { titolo: 'Illustratori', risultati: migliori(artisti, (a) => punteggio(a.nome, filtro)).map(daArtista) },
   ]
   return gruppi.filter((gruppo) => gruppo.risultati.length > 0)
 }

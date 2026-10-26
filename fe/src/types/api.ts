@@ -77,7 +77,7 @@ export interface ArtistaCarta {
   slug: string | null
 }
 
-// artista nell'elenco della sezione Artisti; avatar null per "Artista sconosciuto"
+// artista nell'elenco della sezione Artisti; avatar null per "Illustratore sconosciuto"
 export interface Artista {
   slug: string
   nome: string
@@ -111,6 +111,22 @@ export interface CartaAnteprima {
   rarita: string | null
   immagineUrl: string | null
   immagineUrlPiccola: string | null
+}
+
+// illustratore sul muro della pagina Illustratori (GET /artisti/anteprime)
+export interface AnteprimaArtista {
+  slug: string
+  nome: string
+  carte: number
+  // carte da cui ritagliare il disegno, prima i Pokémon col riquadro classico; le altre sono di riserva
+  // (TCGdex non ha tutte le immagini)
+  illustrazioni: CartaAnteprima[]
+}
+
+export interface VetrinaArtisti {
+  sulMuro: AnteprimaArtista[]
+  // slug -> le immagini piccole delle sue tre carte più preziose già in archivio; manca chi non ne ha ancora
+  carteIndice: Record<string, string[]>
 }
 
 // una rarità del set, quante carte ne ha e quanto è ambita (6 la più alta, vedi GradoRarita nel backend)

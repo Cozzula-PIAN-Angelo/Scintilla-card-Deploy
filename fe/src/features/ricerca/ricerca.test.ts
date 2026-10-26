@@ -48,13 +48,13 @@ describe('cerca', () => {
   it('chi inizia col testo viene prima di chi lo contiene', () => {
     expect(gruppo('Set', 'set')?.risultati.map((r) => r.nome)).toEqual(['Base Set 2', 'Base Set'])
     // Ariana inizia con "ari", Mitsuhiro Arita ha una parola che inizia così, Marika lo contiene soltanto
-    expect(gruppo('Artisti', 'ari')?.risultati.map((r) => r.nome)).toEqual(['Ariana', 'Mitsuhiro Arita', 'Marika'])
+    expect(gruppo('Illustratori', 'ari')?.risultati.map((r) => r.nome)).toEqual(['Ariana', 'Mitsuhiro Arita', 'Marika'])
   })
 
   it('i link portano alle pagine giuste', () => {
     expect(gruppo('Set', '151')?.risultati[0]).toMatchObject({ a: '/espansioni/sv03.5', dettaglio: 'Scarlet & Violet · 2023' })
     expect(gruppo('Pokémon', 'pikachu')?.risultati[0]).toMatchObject({ a: '/pokedex/25', dettaglio: '#025' })
-    expect(gruppo('Artisti', 'arita')?.risultati[0]).toMatchObject({ a: '/artisti/mitsuhiro-arita', dettaglio: '812 carte' })
+    expect(gruppo('Illustratori', 'arita')?.risultati[0]).toMatchObject({ a: '/artisti/mitsuhiro-arita', dettaglio: '812 carte' })
   })
 
   it('un set senza data non mostra l\'anno', () => {
@@ -75,7 +75,7 @@ describe('cerca', () => {
   })
 
   it('accenti e maiuscole non contano', () => {
-    expect(gruppo('Artisti', 'MEKAYU')?.risultati[0]).toMatchObject({ nome: 'Mékayu', dettaglio: '1 carta' })
+    expect(gruppo('Illustratori', 'MEKAYU')?.risultati[0]).toMatchObject({ nome: 'Mékayu', dettaglio: '1 carta' })
   })
 
   it('al massimo PER_GRUPPO righe per gruppo e niente gruppi vuoti', () => {

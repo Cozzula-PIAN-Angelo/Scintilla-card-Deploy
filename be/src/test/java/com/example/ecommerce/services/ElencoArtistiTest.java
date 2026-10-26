@@ -25,7 +25,7 @@ class ElencoArtistiTest {
 
     @Test
     void artistiDiVuotoESconosciuto() {
-        assertThat(elenco.artistiDi("")).containsExactly(new ArtistaCartaDTO("Artista sconosciuto", "sconosciuto"));
+        assertThat(elenco.artistiDi("")).containsExactly(new ArtistaCartaDTO("Illustratore sconosciuto", "sconosciuto"));
     }
 
     @Test

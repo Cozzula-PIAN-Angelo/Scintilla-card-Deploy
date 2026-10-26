@@ -41,7 +41,7 @@ export function ArtistaPage() {
   const navigate = useNavigate()
   const [checklistAperta, setChecklistAperta] = useState(false)
   const nonTrovato = (elenco !== undefined && !artista) || statoErrore(error) === 404
-  useTitolo(artista?.nome ?? (nonTrovato ? 'Artista non trovato' : 'Artisti'))
+  useTitolo(artista?.nome ?? (nonTrovato ? 'Illustratore non trovato' : 'Illustratori'))
 
   // arrivati dall'elenco: l'indietro del browser lo ritrova nella stessa posizione
   const daElenco = (location.state as { daElenco?: boolean } | null)?.daElenco === true
@@ -63,11 +63,11 @@ export function ArtistaPage() {
       <PaginaAnimata className="min-h-[70vh] px-4">
         <StatoVuoto
           icona={<Palette aria-hidden className="size-16" />}
-          titolo="Artista non trovato"
-          testo="Non c'è un artista con questo nome."
+          titolo="Illustratore non trovato"
+          testo="Non c'è un illustratore con questo nome."
           azione={
             <LinkBottone to="/artisti" variante="primario" dimensione="lg">
-              Torna agli artisti
+              Torna agli illustratori
             </LinkBottone>
           }
         />
@@ -83,7 +83,7 @@ export function ArtistaPage() {
       <div className="mb-8">
         <Button variante="chiaro" dimensione="sm" onClick={() => (daElenco ? navigate(-1) : navigate('/artisti'))}>
           <ArrowLeft aria-hidden className="size-4" />
-          Artisti
+          Illustratori
         </Button>
       </div>
 
@@ -96,11 +96,11 @@ export function ArtistaPage() {
           </p>
           {slug === SLUG_SCONOSCIUTO && (
             <p className="mt-2 max-w-xl text-sm text-testo/70">
-              Carte a cui TCGdex non assegna un artista: soprattutto Energie, Allenatori e alcune serie speciali.
+              Carte a cui TCGdex non assegna un illustratore: soprattutto Energie, Allenatori e alcune serie speciali.
             </p>
           )}
         </div>
-        {/* collezione presente = utente loggato. Artista sconosciuto: non è un artista vero, niente checklist.
+        {/* collezione presente = utente loggato. Illustratore sconosciuto: non è un illustratore vero, niente checklist.
             A pezzi il bottone si vede ma aspetta tutte le carte */}
         {collezione &&
           slug !== SLUG_SCONOSCIUTO &&
@@ -141,11 +141,11 @@ export function ArtistaPage() {
         isError={isError}
         error={error}
         refetch={refetch}
-        erroreGenerico={`Non è stato possibile caricare le carte di ${nome || "quest'artista"}.`}
+        erroreGenerico={`Non è stato possibile caricare le carte di ${nome || "questo illustratore"}.`}
         vuoto={{
           icona: <Palette aria-hidden className="size-16" />,
           titolo: 'Nessuna carta',
-          testo: `Non ci sono ancora carte di ${nome || "quest'artista"}.`,
+          testo: `Non ci sono ancora carte di ${nome || "questo illustratore"}.`,
         }}
         isPreferito={isPreferito}
         onTogglePreferito={toggle}

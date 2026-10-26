@@ -41,7 +41,7 @@ export function PulsanteRicerca({ onApri }: { onApri: () => void }) {
       onClick={onApri}
       aria-haspopup="dialog"
       aria-keyshortcuts="/ Control+K"
-      aria-label="Cerca set, Pokémon e artisti"
+      aria-label="Cerca set, Pokémon e illustratori"
       className={cn(
         'grid size-11 shrink-0 place-items-center rounded-full text-white transition-colors hover:bg-white/10',
         '2xl:flex 2xl:h-10 2xl:w-auto 2xl:gap-2.5 2xl:bg-white/8 2xl:pl-3.5 2xl:pr-2 2xl:text-sm 2xl:text-white/80 2xl:ring-1 2xl:ring-white/15 2xl:hover:bg-white/14 2xl:hover:text-white',
@@ -146,7 +146,7 @@ function PannelloRicerca({ onChiudi }: { onChiudi: () => void }) {
       <motion.div
         role="dialog"
         aria-modal="true"
-        aria-label="Cerca set, Pokémon e artisti"
+        aria-label="Cerca set, Pokémon e illustratori"
         onKeyDown={tastiPannello}
         initial={{ opacity: 0, y: -10, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
@@ -161,7 +161,7 @@ function PannelloRicerca({ onChiudi }: { onChiudi: () => void }) {
             value={testo}
             onChange={(evento) => scrivi(evento.target.value)}
             onKeyDown={tastiCampo}
-            placeholder="Cerca un set, un Pokémon o un artista"
+            placeholder="Cerca un set, un Pokémon o un illustratore"
             autoComplete="off"
             spellCheck={false}
             enterKeyHint="go"
@@ -224,7 +224,7 @@ function PannelloRicerca({ onChiudi }: { onChiudi: () => void }) {
                   <br />I nomi dei set sono in inglese, come su TCGdex.
                 </>
               ) : (
-                'Scrivi il nome di un set, di un Pokémon o di un artista.'
+                'Scrivi il nome di un set, di un Pokémon o di un illustratore.'
               )}
             </p>
           )}

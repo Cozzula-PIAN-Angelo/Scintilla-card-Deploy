@@ -211,7 +211,7 @@ function ModuloBinder({ binder, onChiudi, onCreato, onEliminato, checklist }: Om
               ? delSet
                 ? 'Il set non ci sta: scegli più tasche'
                 : 'artista' in checklist
-                  ? 'Le carte di questo artista non ci stanno: scegli più tasche'
+                  ? 'Le carte di questo illustratore non ci stanno: scegli più tasche'
                   : 'Le carte di questo Pokémon non ci stanno: scegli più tasche'
               : `${pagineSet} pagine per le ${checklist.carte} ${'master' in checklist && checklist.master ? 'varianti' : 'carte'} ${delSet ? 'del set' : `di ${checklist.nome}`}`}
           </p>

@@ -10,6 +10,7 @@ const TONI: Record<TonoBall, string[]> = {
   oro: ['#fff1a8', '#ffcb05', '#c8900a'],
   argento: ['#ffffff', '#c9d4ff', '#7d8bbd'],
   blu: ['#8eaeff', '#2a75bb', '#1b4f8a'],
+  rosso: ['#ff7a5c', '#e3350d', '#b52a0a'],
 }
 
 const CONTORNO = '#0b1f4b'

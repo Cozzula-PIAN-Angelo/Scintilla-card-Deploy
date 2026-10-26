@@ -107,7 +107,13 @@ public interface OggettoRepository extends JpaRepository<Oggetto, UUID> {
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista IN :grafie")
     List<Oggetto> findByArtistaIn(@Param("grafie") Collection<String> grafie);
 
-    // carte per cui TCGdex non indica un artista (pagina "Artista sconosciuto")
+    // tutte le carte con artista e immagine, per il muro degli illustratori: una riga leggera per carta
+    @Query("SELECT o.artista AS artista, o.id AS id, o.nome AS nome, o.numero AS numero, o.rarita AS rarita, "
+            + "o.immagineUrl AS immagineUrl, o.prezzoMassimo AS prezzoMassimo, SIZE(o.numeriPokedex) AS numeriPokedex "
+            + "FROM Oggetto o WHERE o.artista IS NOT NULL AND o.artista <> '' AND o.immagineUrl IS NOT NULL")
+    List<CartaDiArtista> findCarteConArtista();
+
+    // carte per cui TCGdex non indica un artista (pagina "Illustratore sconosciuto")
     @Query("SELECT o FROM Oggetto o LEFT JOIN FETCH o.espansione WHERE o.artista = ''")
     List<Oggetto> findSenzaArtista();
 

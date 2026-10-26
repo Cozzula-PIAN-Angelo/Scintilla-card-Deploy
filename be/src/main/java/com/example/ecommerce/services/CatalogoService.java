@@ -270,7 +270,7 @@ public class CatalogoService {
         return scarica(FiltroCarte.diArtista(grafie), "artista " + String.join(" | ", grafie)).esito();
     }
 
-    // importa le carte per cui TCGdex non indica l'artista (pagina "Artista sconosciuto"). Con un download completo
+    // importa le carte per cui TCGdex non indica l'artista (pagina "Illustratore sconosciuto"). Con un download completo
     // e non vuoto, le carte che nel catalogo sono ancora '' ma non arrivano più tra quelle senza artista ne hanno
     // ricevuto uno: tornano null, così il job o la pagina del loro artista le rileggono
     public EsitoImport importaSenzaArtista() {
