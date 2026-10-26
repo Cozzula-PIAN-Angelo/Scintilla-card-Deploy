@@ -17,6 +17,7 @@ import { useGetCartePokemonQuery, useGetStatoCartePokemonQuery } from '../featur
 import { Pedana } from '../features/pokedex/Pedana'
 import { SegnoCollezione } from '../features/pokedex/SegnoCollezione'
 import { usePokemonPosseduti } from '../features/pokedex/usePokemonPosseduti'
+import { VentaglioCarte } from '../features/pokedex/VentaglioCarte'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useRitornoElenco, type StatoRitorno } from '../hooks/useRitornoElenco'
@@ -92,12 +93,14 @@ export function PokemonPage() {
       </div>
 
       {/* la scheda del Pokédex dei giochi, in grande: sprite animato sulla pedana, nome e se ce l'hai */}
-      <header className="sfondo-hero animate-gradiente relative mb-10 grid items-center gap-6 overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 sm:grid-cols-[auto_1fr] sm:p-8 lg:gap-10">
-        <Pedana numero={pokemon.numero} className="h-56 justify-self-center sm:h-64 lg:h-72" />
+      <header className="sfondo-hero animate-gradiente relative mb-10 grid items-center gap-6 overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 sm:grid-cols-[auto_1fr] sm:p-8 lg:grid-cols-[auto_1fr_auto] lg:gap-10">
+        <Pedana numero={pokemon.numero} sagoma={posseduti !== null && !preso} className="h-56 justify-self-center sm:h-64 lg:h-72" />
         <div className="min-w-0">
-          <p className="font-titolo text-2xl font-semibold text-white/60">{numeroFormattato(pokemon.numero)}</p>
-          <h1 className="font-titolo text-5xl font-bold leading-none sm:text-6xl">{pokemon.nome}</h1>
-          <p className="mt-3 text-white/80">
+          {/* il numero dopo il nome, come nel Pokédex dei giochi */}
+          <h1 className="font-titolo text-5xl font-bold leading-none sm:text-6xl">
+            {pokemon.nome} <span className="whitespace-nowrap font-sans text-2xl font-semibold text-white/85">{numeroFormattato(pokemon.numero)}</span>
+          </h1>
+          <p className="mt-3 text-white/95">
             {[
               generazione && `Generazione ${generazione.sigla} · ${generazione.regione}`,
               pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`,
@@ -127,6 +130,8 @@ export function PokemonPage() {
             </Button>
           )}
         </div>
+        {/* da desktop le ultime carte a ventaglio, come nella scheda dell'indice; sotto c'è la griglia intera */}
+        <VentaglioCarte carte={risposta.carte ?? []} inAttesa={isLoading} className="hidden pr-4 lg:flex" />
       </header>
 
       {data && (

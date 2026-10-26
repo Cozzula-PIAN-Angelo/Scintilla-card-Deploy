@@ -35,6 +35,8 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
         height={96}
         className={cn(
           'sprite-pixel size-full object-contain transition-[filter,opacity] duration-300',
+          // nel riquadro 96x96 i piedi stanno un po' sopra il fondo: si abbassa sulla pedana
+          appoggiato && 'translate-y-[8%]',
           sagoma && !attivo && 'sprite-sagoma',
           mostraGif && 'motion-safe:invisible',
         )}

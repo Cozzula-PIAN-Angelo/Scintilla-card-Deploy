@@ -27,24 +27,23 @@ const VOCI_VISTA = [
   { valore: 'griglia', etichetta: 'Griglia', Icona: LayoutGrid },
 ] as const
 
-// ricerca, filtro della collezione, salti alle generazioni (children) e vista. Da desktop largo tutto su una riga,
-// altrimenti le generazioni vanno sotto
+// ricerca, filtro della collezione e vista; sotto, su una riga loro, i salti alle generazioni (children)
 export function BarraPokedex({ ricerca, onRicerca, stato, onStato, vista, onVista, conCollezione, children }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <label className="relative block min-w-0 max-w-md flex-1 basis-56 xl:max-w-xs">
+      <label className="relative block min-w-0 max-w-md flex-1 basis-56">
         <span className="sr-only">Cerca un Pokémon</span>
         <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-accento" />
         <input
           type="search"
           value={ricerca}
           onChange={(e) => onRicerca(e.target.value)}
-          placeholder="Cerca per nome o numero…"
+          placeholder="Nome o numero…"
           className="w-full rounded-full bg-superficie py-3 pl-12 pr-5 text-testo shadow-md shadow-ombra/10 ring-1 ring-linea/10 outline-none placeholder:text-testo/50 focus:ring-2 focus:ring-blu-500"
         />
       </label>
       {conCollezione && <Segmenti etichetta="Quali Pokémon" voci={VOCI_STATO} valore={stato} onCambia={onStato} />}
-      {children && <div className="order-last w-full min-w-0 xl:order-none xl:w-auto xl:flex-1 xl:[mask-image:linear-gradient(to_right,#000_calc(100%-2.5rem),transparent)]">{children}</div>}
+      {children && <div className="order-last w-full min-w-0">{children}</div>}
       <Segmenti etichetta="Vista" voci={VOCI_VISTA} valore={vista} onCambia={onVista} className="ml-auto" />
     </div>
   )

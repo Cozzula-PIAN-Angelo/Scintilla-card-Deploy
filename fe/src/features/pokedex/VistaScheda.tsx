@@ -2,7 +2,6 @@ import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { LinkBottone } from '../../components/Button'
-import { FORMA_CARTA, ImmagineCarta } from '../../components/ImmagineCarta'
 import { StatoVuoto } from '../../components/StatiPagina'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
@@ -14,6 +13,7 @@ import { useGetCartePokemonQuery } from './pokedexApi'
 import { SegnoCollezione } from './SegnoCollezione'
 import { Pedana } from './Pedana'
 import { SpritePokemon } from './SpritePokemon'
+import { VentaglioCarte } from './VentaglioCarte'
 
 // pannelli attaccati sotto navbar e barra, alti fino in fondo allo schermo
 const ATTACCATO = 'lg:sticky lg:top-[calc(var(--alto-barra)+4.75rem)] lg:h-[calc(100dvh-var(--alto-barra)-5.75rem)]'
@@ -146,6 +146,13 @@ interface PropsVoce {
 }
 
 function VocePokemon({ pokemon, posseduti, scelto, focalizzabile, largo, onScegli, onApri }: PropsVoce) {
+  // al passaggio (o col focus) la sagoma si colora, come nella griglia
+  const [attivo, setAttivo] = useState(false)
+  const passaggio = {
+    onMouseEnter: () => setAttivo(true),
+    onMouseLeave: () => setAttivo(false),
+    onBlur: () => setAttivo(false),
+  }
   const preso = posseduti?.insieme.has(pokemon.numero) ?? true
   const classi = cn(
     'flex w-full items-center gap-3 rounded-2xl px-3 py-1 text-left transition-colors',
@@ -154,10 +161,10 @@ function VocePokemon({ pokemon, posseduti, scelto, focalizzabile, largo, onScegl
   )
   const contenuto = (
     <>
-      <span className={cn('w-11 shrink-0 text-sm font-semibold tabular-nums', scelto ? 'text-white/80' : 'text-testo/60')}>
+      <span className={cn('w-11 shrink-0 text-sm font-semibold tabular-nums', scelto ? 'text-white/95' : 'text-testo/60')}>
         {numeroFormattato(pokemon.numero)}
       </span>
-      <SpritePokemon numero={pokemon.numero} attivo={false} sagoma={!preso && !scelto} className="size-10 shrink-0" />
+      <SpritePokemon numero={pokemon.numero} attivo={attivo} sagoma={!preso && !scelto} className="size-10 shrink-0" />
       <span className={cn('min-w-0 flex-1 truncate font-semibold', !scelto && (preso ? 'text-testo' : 'text-testo/65'))}>{pokemon.nome}</span>
       {posseduti && <SegnoCollezione preso={preso} className={cn('size-5', scelto && !preso && 'border-white/60')} />}
     </>
@@ -165,7 +172,7 @@ function VocePokemon({ pokemon, posseduti, scelto, focalizzabile, largo, onScegl
   // da telefono un tocco apre il Pokémon; da desktop sceglie, Invio o il doppio clic lo aprono
   if (!largo)
     return (
-      <Link {...propsLinkPokemon(pokemon.numero)} className={classi}>
+      <Link {...propsLinkPokemon(pokemon.numero)} {...passaggio} onFocus={() => setAttivo(true)} className={classi}>
         {contenuto}
       </Link>
     )
@@ -175,8 +182,9 @@ function VocePokemon({ pokemon, posseduti, scelto, focalizzabile, largo, onScegl
       data-numero={pokemon.numero}
       aria-current={scelto || undefined}
       tabIndex={focalizzabile ? 0 : -1}
+      {...passaggio}
       onClick={onScegli}
-      onFocus={onScegli}
+      onFocus={() => (setAttivo(true), onScegli())}
       onDoubleClick={onApri}
       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), onApri())}
       className={classi}
@@ -201,9 +209,11 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
     <section aria-label={`Scheda di ${pokemon.nome}`} className={cn(ATTACCATO, 'sfondo-hero animate-gradiente relative flex flex-col overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 xl:p-8')}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="font-titolo text-2xl font-semibold text-white/60">{numeroFormattato(numero)}</p>
-          <h2 className="font-titolo text-5xl font-bold leading-none xl:text-6xl">{pokemon.nome}</h2>
-          <p className="mt-2 text-white/80">
+          {/* il numero dopo il nome, come nel Pokédex dei giochi */}
+          <h2 className="font-titolo text-5xl font-bold leading-none xl:text-6xl">
+            {pokemon.nome} <span className="whitespace-nowrap font-sans text-2xl font-semibold text-white/85">{numeroFormattato(numero)}</span>
+          </h2>
+          <p className="mt-3 text-white/95">
             {[generazione && `Generazione ${generazione.sigla} · ${generazione.regione}`, pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`]
               .filter(Boolean)
               .join(' · ')}
@@ -221,7 +231,7 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
 
       {/* da desktop largo pedana a sinistra e carte a destra: tutto resta nell'altezza dello schermo */}
       <div className="grid min-h-0 flex-1 content-start items-center gap-6 pt-6 xl:grid-cols-[minmax(0,1fr)_auto]">
-        <Pedana numero={numero} className="mx-auto size-60 2xl:size-72" />
+        <Pedana numero={numero} sagoma={posseduti !== null && !preso} className="mx-auto size-60 2xl:size-72" />
 
         <div className="flex flex-wrap items-end justify-between gap-5 xl:flex-col xl:items-start xl:justify-center">
           <div className="min-w-0">
@@ -231,23 +241,7 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
                 {preso ? "Ce l'hai in collezione" : 'Ti manca: nessuna sua carta in collezione'}
               </p>
             )}
-            <ul className="flex h-32 items-end" aria-label="Le sue carte più recenti" aria-busy={isFetching}>
-              {/* a ventaglio, come in mano: al passaggio la carta si raddrizza e sale */}
-              {carte.slice(0, 5).map((c, i) => (
-                <li
-                  key={c.id}
-                  className="-ml-8 transition-transform duration-300 ease-out first:ml-0 hover:z-20! hover:-translate-y-2! hover:rotate-0!"
-                  style={{ zIndex: 10 - i, rotate: `${(i - 2) * 5}deg`, translate: `0 ${Math.abs(i - 2) * 4}px` }}
-                >
-                  <ImmagineCarta
-                    src={c.immagineUrlPiccola ?? c.immagineUrl}
-                    alt={c.nome}
-                    className={cn(FORMA_CARTA, 'aspect-[63/88] w-[5.5rem] shadow-lg shadow-black/40')}
-                  />
-                </li>
-              ))}
-              {isFetching && carte.length === 0 && <li className="text-sm text-white/70">Cerco le sue carte…</li>}
-            </ul>
+            <VentaglioCarte carte={carte} inAttesa={isFetching} />
           </div>
           <LinkBottone {...propsLinkPokemon(numero)} variante="secondario" dimensione="lg">
             {totale === undefined ? 'Vedi le sue carte' : totale === 0 ? 'Nessuna carta, apri la pagina' : `Vedi le sue ${totale} carte`}
