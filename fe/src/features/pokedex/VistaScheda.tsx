@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, Search } from 'lucide-react'
-import { useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { LinkBottone } from '../../components/Button'
 import { StatoVuoto } from '../../components/StatiPagina'
@@ -32,6 +32,8 @@ export function VistaScheda(props: PropsVista) {
   // la voce raggiungibile col Tab: lo scelto, o il primo se il filtro l'ha tolto dall'elenco
   const focalizzabile = lista.some((p) => p.numero === scelto) ? scelto : lista[0]?.numero
   const elenco = useRef<HTMLUListElement>(null)
+  const pannelli = useRef<HTMLDivElement>(null)
+  const altoPannelli = useAltoFinoInFondo(pannelli, largo)
   const navigate = useNavigate()
 
   // lo scelto resta in vista nell'elenco (scorre il pannello, non la pagina)
@@ -89,7 +91,8 @@ export function VistaScheda(props: PropsVista) {
         ),
       )}
 
-      <div className={cn(CONTENITORE_POKEDEX, 'mt-6 grid gap-6 lg:grid-cols-[minmax(20rem,26rem)_1fr]')}>
+      {/* da desktop elenco e scheda arrivano fino in fondo allo schermo */}
+      <div ref={pannelli} style={{ height: altoPannelli ?? undefined }} className={cn(CONTENITORE_POKEDEX, 'mt-6 grid gap-6 lg:grid-cols-[minmax(20rem,26rem)_1fr]')}>
         {/* da desktop l'elenco è alto quanto la scheda accanto (non la allunga) e scorre al suo interno */}
         <div className="lg:relative">
           <div className="rounded-3xl bg-superficie p-2 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 lg:absolute lg:inset-0 lg:overflow-y-auto">
@@ -207,7 +210,7 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
   const totale = currentData ? (currentData.completo ? currentData.carte.length : currentData.totale) : undefined
 
   return (
-    <section aria-label={`Scheda di ${pokemon.nome}`} className="sfondo-hero animate-gradiente relative flex min-h-[28rem] flex-col overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 xl:p-8">
+    <section aria-label={`Scheda di ${pokemon.nome}`} className="sfondo-hero animate-gradiente relative flex flex-col overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 xl:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
           {/* il numero dopo il nome, come nel Pokédex dei giochi */}
@@ -232,10 +235,11 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
 
       {/* da desktop largo pedana a sinistra e carte a destra. Colonna delle carte larga fissa: mentre arrivano le
           carte (o le statistiche) la pedana non si sposta */}
-      <div className="grid min-h-0 flex-1 content-start items-center gap-6 pt-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Pedana numero={numero} sagoma={posseduti !== null && !preso} className="mx-auto size-60 2xl:size-72" />
+      <div className="flex min-h-0 flex-1 flex-col gap-6 pt-6 xl:flex-row xl:items-center">
+        {/* la pedana prende tutto lo spazio che resta: su uno schermo alto il Pokémon è più grande */}
+        <Pedana numero={numero} sagoma={posseduti !== null && !preso} riempi className="min-h-40 min-w-0 flex-1 self-stretch" />
 
-        <div className="flex flex-wrap items-end justify-between gap-5 xl:flex-col xl:items-start xl:justify-center">
+        <div className="flex shrink-0 flex-wrap items-end justify-between gap-5 xl:w-80 xl:flex-col xl:items-start xl:justify-center">
           <div className="min-w-0">
             {posseduti && (
               <p className="mb-4 flex items-center gap-2 font-semibold">
@@ -252,4 +256,31 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
       </div>
     </section>
   )
+}
+
+// altezza dal punto in cui comincia l'elemento fino in fondo allo schermo (meno un margine); solo se attivo (da
+// desktop). Almeno 28rem, 34rem sotto i 1280 px, dove nella scheda pedana e carte stanno una sopra l'altra.
+// Si rimisura quando cambia lo schermo o quello che sta sopra (contatore, barra)
+function useAltoFinoInFondo(ref: RefObject<HTMLElement | null>, attivo: boolean) {
+  const [alto, setAlto] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!attivo || !el) {
+      setAlto(null)
+      return
+    }
+    const misura = () => {
+      const minimo = window.innerWidth >= 1280 ? 448 : 544
+      setAlto(Math.max(minimo, Math.round(window.innerHeight - (el.getBoundingClientRect().top + window.scrollY) - 24)))
+    }
+    misura()
+    const osservatore = new ResizeObserver(misura)
+    osservatore.observe(document.body)
+    window.addEventListener('resize', misura)
+    return () => {
+      osservatore.disconnect()
+      window.removeEventListener('resize', misura)
+    }
+  }, [ref, attivo])
+  return alto
 }

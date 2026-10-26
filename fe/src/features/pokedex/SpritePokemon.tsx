@@ -9,19 +9,21 @@ interface Props {
   attivo: boolean
   // Pokémon che manca alla collezione: sagoma, che si colora al passaggio
   sagoma?: boolean
-  // la GIF è ritagliata attorno al Pokémon, alla sua misura: nei riquadri grandi si ingrandisce a pixel interi
-  ingrandimento?: number
-  // in piedi su una pedana in fondo al riquadro, col disegno centrato davvero e l'ombra larga quanto lui
+  // in piedi su una pedana in fondo al riquadro, ingrandito in proporzione al riquadro, col disegno centrato
+  // davvero e l'ombra larga quanto lui
   appoggiato?: boolean
   className?: string
 }
 
 // sulla pedana i piedi stanno all'8% dal fondo del riquadro, verso il bordo basso dell'ombra (che va dal 6% al 18%)
 const PIEDI = 0.08
+// sulla pedana un pixel dello sprite è grande 1/60 del riquadro: 4 volte in un riquadro da 240 px. Sprite fermo e
+// GIF hanno la stessa scala (i loro pixel art sono alla stessa misura), così al cambio non c'è scatto
+const PIXEL_PER_LATO = 60
 
 // sprite fermo 96x96; al passaggio la GIF prende il suo posto quando è pronta. La GIF si scarica solo al primo
 // passaggio, e se manca (404) non si riprova e resta lo sprite fermo. Con "riduci movimento" niente GIF
-export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 1, appoggiato = false, className }: Props) {
+export function SpritePokemon({ numero, attivo, sagoma = false, appoggiato = false, className }: Props) {
   const [gif, setGif] = useState<{ larghezza: number; altezza: number } | null>(null)
   const [gifMancante, setGifMancante] = useState(false)
   const [richiesta, setRichiesta] = useState(false)
@@ -30,15 +32,14 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
   const ingombroFermo = useIngombro(appoggiato ? spriteUrl(numero) : null)
   const ingombroGif = useIngombro(appoggiato && richiesta && !gifMancante ? spriteAnimatoUrl(numero) : null)
   const mostraGif = attivo && gif !== null && (!appoggiato || ingombroGif !== undefined)
-  const fermoPronto = !appoggiato || ingombroFermo !== undefined
   const [lato, refLato] = useLato(appoggiato)
+  const fermoPronto = !appoggiato || (ingombroFermo !== undefined && lato > 0)
+  const scala = lato / PIXEL_PER_LATO
 
-  // larghezza del disegno a schermo, per l'ombra: la GIF si rimpicciolisce se non sta nel riquadro
+  // larghezza del disegno a schermo, per l'ombra: le GIF più grandi del riquadro si rimpiccioliscono
   let disegno = 0
-  if (mostraGif && ingombroGif) {
-    const scala = Math.min(ingrandimento, lato / gif.larghezza, lato / gif.altezza)
-    disegno = ingombroGif.larghezza * gif.larghezza * scala
-  } else if (ingombroFermo) disegno = ingombroFermo.larghezza * lato
+  if (mostraGif && ingombroGif) disegno = ingombroGif.larghezza * gif.larghezza * Math.min(scala, lato / gif.larghezza, lato / gif.altezza)
+  else if (ingombroFermo) disegno = ingombroFermo.larghezza * 96 * scala
 
   return (
     <span ref={refLato} className={cn('relative block', className)}>
@@ -58,10 +59,11 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
         width={96}
         height={96}
         crossOrigin={appoggiato ? 'anonymous' : undefined}
-        // lo sprite fermo riempie il riquadro: il fondo del disegno va all'altezza dei piedi della GIF
-        style={appoggiato ? spostamento(ingombroFermo, PIEDI) : undefined}
+        style={appoggiato ? sullaPedana(96 * scala, ingombroFermo) : undefined}
         className={cn(
-          'sprite-pixel relative size-full object-contain transition-[filter,opacity] duration-300',
+          'sprite-pixel object-contain transition-[filter,opacity] duration-300',
+          // sulla pedana alla stessa scala della GIF: il riquadro 96x96 ha molto vuoto attorno e può uscire dal bordo
+          appoggiato ? 'absolute inset-x-0 mx-auto max-w-none' : 'size-full',
           sagoma && !attivo && 'sprite-sagoma',
           mostraGif && 'motion-safe:invisible',
           !fermoPronto && 'invisible',
@@ -74,10 +76,7 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
           crossOrigin={appoggiato ? 'anonymous' : undefined}
           onLoad={(e) => setGif({ larghezza: e.currentTarget.naturalWidth, altezza: e.currentTarget.naturalHeight })}
           onError={() => setGifMancante(true)}
-          style={{
-            ...(gif && ingrandimento !== 1 && { width: gif.larghezza * ingrandimento }),
-            ...(appoggiato && { bottom: `${PIEDI * 100}%`, ...spostamento(ingombroGif, 0) }),
-          }}
+          style={appoggiato && gif ? sullaPedana(gif.larghezza * scala, ingombroGif) : undefined}
           // le GIF più grandi del riquadro si rimpiccioliscono, le altre restano alla loro misura
           className={cn(
             'sprite-pixel absolute max-h-full max-w-full object-contain motion-reduce:hidden',
@@ -90,12 +89,14 @@ export function SpritePokemon({ numero, attivo, sagoma = false, ingrandimento = 
   )
 }
 
-// translate in percentuale della misura dell'immagine stessa: vale a qualunque ingrandimento. sollevato: quanto
-// il fondo del disegno deve restare sopra il fondo dell'immagine
-function spostamento(ingombro: Ingombro | null | undefined, sollevato: number): CSSProperties | undefined {
-  // senza misura (immagine non leggibile) lo spostamento medio degli sprite fermi
-  if (!ingombro) return sollevato ? { translate: '0 12%' } : undefined
-  return { translate: `${ingombro.dx * 100}% ${(ingombro.dy - sollevato) * 100}%` }
+// immagine larga larghezza px, coi piedi del disegno all'altezza PIEDI e il suo peso al centro. Il translate è in
+// percentuale della misura dell'immagine stessa, quindi vale a qualunque ingrandimento
+function sullaPedana(larghezza: number, ingombro: Ingombro | null | undefined): CSSProperties {
+  return {
+    width: larghezza,
+    bottom: `${PIEDI * 100}%`,
+    translate: ingombro ? `${ingombro.dx * 100}% ${ingombro.dy * 100}%` : undefined,
+  }
 }
 
 // lato in pixel del riquadro dello sprite, misurato solo se serve (sulla pedana)
@@ -105,7 +106,7 @@ function useLato(attivo: boolean) {
   useEffect(() => {
     const el = ref.current
     if (!attivo || !el) return
-    const osservatore = new ResizeObserver(() => setLato(el.offsetWidth))
+    const osservatore = new ResizeObserver(() => setLato(Math.min(el.offsetWidth, el.offsetHeight)))
     osservatore.observe(el)
     return () => osservatore.disconnect()
   }, [attivo])

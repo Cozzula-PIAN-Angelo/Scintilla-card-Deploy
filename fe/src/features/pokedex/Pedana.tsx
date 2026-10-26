@@ -1,15 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '../../utils/cn'
 import { SpritePokemon } from './SpritePokemon'
 
+// lato massimo della pedana quando riempie lo spazio che ha
+const LATO_MASSIMO = 480
+
 // lo sprite animato in grande appoggiato su una pedana chiara (disegnata da SpritePokemon), come nella schermata
-// dei giochi. Quadrato: si dà
-// l'altezza (o la larghezza) e l'altro lato segue. Un Pokémon che manca alla collezione compare in sagoma e
-// poco dopo si colora, come in "Chi è quel Pokémon?"
-export function Pedana({ numero, sagoma = false, className }: { numero: number; sagoma?: boolean; className?: string }) {
-  return (
-    <div className={cn('relative aspect-square', className)}>
+// dei giochi. Quadrata: con riempi prende il quadrato più grande che sta nello spazio del contenitore (la scheda
+// dell'indice, alta quanto lo schermo), altrimenti la misura la dà className. Un Pokémon che manca alla
+// collezione compare in sagoma e poco dopo si colora, come in "Chi è quel Pokémon?"
+export function Pedana({ numero, sagoma = false, riempi = false, className }: { numero: number; sagoma?: boolean; riempi?: boolean; className?: string }) {
+  const spazio = useRef<HTMLDivElement>(null)
+  const [lato, setLato] = useState<number | null>(null)
+  useEffect(() => {
+    const el = spazio.current
+    if (!riempi || !el) return
+    const osservatore = new ResizeObserver(() => setLato(Math.min(el.clientWidth, el.clientHeight, LATO_MASSIMO)))
+    osservatore.observe(el)
+    return () => osservatore.disconnect()
+  }, [riempi])
+
+  const pedana = (
+    <div className={cn('relative aspect-square', !riempi && className)} style={riempi ? { width: lato ?? 0 } : undefined}>
       <SpriteSvelato key={numero} numero={numero} sagoma={sagoma} />
+    </div>
+  )
+  if (!riempi) return pedana
+  return (
+    <div ref={spazio} className={cn('flex items-center justify-center', className)}>
+      {pedana}
     </div>
   )
 }
@@ -21,5 +40,5 @@ function SpriteSvelato({ numero, sagoma }: { numero: number; sagoma: boolean }) 
     const timer = setTimeout(() => setSvelato(true), 700)
     return () => clearTimeout(timer)
   }, [svelato])
-  return <SpritePokemon numero={numero} attivo={svelato} sagoma={sagoma} appoggiato ingrandimento={4} className="absolute inset-0" />
+  return <SpritePokemon numero={numero} attivo={svelato} sagoma={sagoma} appoggiato className="size-full" />
 }
