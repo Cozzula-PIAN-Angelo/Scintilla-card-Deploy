@@ -229,8 +229,9 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
         </div>
       </div>
 
-      {/* da desktop largo pedana a sinistra e carte a destra: tutto resta nell'altezza dello schermo */}
-      <div className="grid min-h-0 flex-1 content-start items-center gap-6 pt-6 xl:grid-cols-[minmax(0,1fr)_auto]">
+      {/* da desktop largo pedana a sinistra e carte a destra: tutto resta nell'altezza dello schermo. Colonna delle
+          carte larga fissa: mentre arrivano le carte (o le statistiche) la pedana non si sposta */}
+      <div className="grid min-h-0 flex-1 content-start items-center gap-6 pt-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <Pedana numero={numero} sagoma={posseduti !== null && !preso} className="mx-auto size-60 2xl:size-72" />
 
         <div className="flex flex-wrap items-end justify-between gap-5 xl:flex-col xl:items-start xl:justify-center">

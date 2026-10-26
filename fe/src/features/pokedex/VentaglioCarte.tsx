@@ -3,11 +3,12 @@ import type { Oggetto } from '../../types/api'
 import { cn } from '../../utils/cn'
 
 // le ultime carte del Pokémon a ventaglio, come in mano: al passaggio la carta si raddrizza e sale.
-// Solo carte con l'immagine: il placeholder non è una carta vera
+// Solo carte con l'immagine: il placeholder non è una carta vera. Misura fissa (cinque carte da 5,5rem
+// sovrapposte di 2rem) anche da vuoto, così chi sta accanto non si sposta quando arrivano
 export function VentaglioCarte({ carte, inAttesa, className }: { carte: Oggetto[]; inAttesa: boolean; className?: string }) {
   const mostrate = carte.filter((c) => c.immagineUrlPiccola ?? c.immagineUrl).slice(0, 5)
   return (
-    <ul className={cn('flex h-32 items-end', className)} aria-label="Le sue carte più recenti" aria-busy={inAttesa}>
+    <ul className={cn('flex h-32 w-[19.5rem] shrink-0 items-end', className)} aria-label="Le sue carte più recenti" aria-busy={inAttesa}>
       {mostrate.map((c, i) => (
         <li
           key={c.id}
