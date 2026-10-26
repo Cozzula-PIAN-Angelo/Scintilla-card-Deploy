@@ -1,31 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import type { Artista, CartaAnteprima } from '../../types/api'
-import { carteDi, contaCarte } from './artisti'
+import type { Artista } from '../../types/api'
+import { contaCarte, immaginiDi } from './artisti'
 
 const arita: Artista = { slug: 'mitsuhiro-arita', nome: 'Mitsuhiro Arita', carte: 741, avatar: 'https://assets.tcgdex.net/en/base/base1/4/low.webp' }
-const charizard: CartaAnteprima = {
-  id: 'c1',
-  nome: 'Charizard',
-  numero: '4',
-  rarita: 'Rare Holo',
-  immagineUrl: 'https://assets.tcgdex.net/en/base/base1/4/high.webp',
-  immagineUrlPiccola: 'https://assets.tcgdex.net/en/base/base1/4/low.webp',
-}
+const charizard = 'https://assets.tcgdex.net/en/base/base1/4/low.webp'
 
-describe('carteDi', () => {
+describe('immaginiDi', () => {
   it("le carte dell'archivio, se ci sono", () => {
-    expect(carteDi(arita, { 'mitsuhiro-arita': [charizard] })).toEqual([charizard])
+    expect(immaginiDi(arita, { 'mitsuhiro-arita': [charizard] })).toEqual([charizard])
   })
 
   it("senza carte in archivio la carta dell'avatar", () => {
-    expect(carteDi(arita, {})).toEqual([
-      { id: 'mitsuhiro-arita', nome: 'Mitsuhiro Arita', numero: null, rarita: null, immagineUrl: arita.avatar, immagineUrlPiccola: arita.avatar },
-    ])
-    expect(carteDi(arita, undefined)).toHaveLength(1)
+    expect(immaginiDi(arita, {})).toEqual([arita.avatar])
+    expect(immaginiDi(arita, undefined)).toEqual([arita.avatar])
   })
 
   it('niente avatar e niente archivio: nessuna carta', () => {
-    expect(carteDi({ ...arita, avatar: null }, { 'mitsuhiro-arita': [] })).toEqual([])
+    expect(immaginiDi({ ...arita, avatar: null }, { 'mitsuhiro-arita': [] })).toEqual([])
   })
 })
 

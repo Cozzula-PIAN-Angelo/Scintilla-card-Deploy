@@ -125,8 +125,8 @@ export interface AnteprimaArtista {
 
 export interface VetrinaArtisti {
   sulMuro: AnteprimaArtista[]
-  // slug -> le sue tre carte più preziose già in archivio; manca chi non ne ha ancora
-  carteIndice: Record<string, CartaAnteprima[]>
+  // slug -> le immagini piccole delle sue tre carte più preziose già in archivio; manca chi non ne ha ancora
+  carteIndice: Record<string, string[]>
 }
 
 // una rarità del set, quante carte ne ha e quanto è ambita (6 la più alta, vedi GradoRarita nel backend)

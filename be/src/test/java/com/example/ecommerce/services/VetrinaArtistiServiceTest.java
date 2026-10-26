@@ -56,11 +56,11 @@ class VetrinaArtistiServiceTest {
 
         VetrinaArtistiDTO vetrina = service.calcola(OGGI);
 
-        assertThat(vetrina.carteIndice().get("sachiko-eba")).extracting(CartaAnteprimaDTO::nome).containsExactly("Mew");
-        assertThat(vetrina.carteIndice().get("shinji-higuchi")).extracting(CartaAnteprimaDTO::nome).containsExactly("Mew");
+        assertThat(vetrina.carteIndice().get("sachiko-eba")).containsExactly(immagine("Mew"));
+        assertThat(vetrina.carteIndice().get("shinji-higuchi")).containsExactly(immagine("Mew"));
     }
 
-    // nell'indice le tre più preziose, un Pokémon una volta sola
+    // nell'indice le immagini delle tre più preziose, un Pokémon una volta sola
     @Test
     void indiceConLeTrePiuPreziose() {
         when(oggettoRepository.findCarteConArtista()).thenReturn(List.of(
@@ -71,20 +71,51 @@ class VetrinaArtistiServiceTest {
                 carta("Mitsuhiro Arita", "Venusaur", "200", "Rare Holo", 1)));
 
         assertThat(service.calcola(OGGI).carteIndice().get("mitsuhiro-arita"))
-                .extracting(CartaAnteprimaDTO::nome).containsExactly("Charizard", "Blastoise", "Venusaur");
+                .containsExactly(immagine("Charizard"), immagine("Blastoise"), immagine("Venusaur"));
     }
 
-    // per il ritaglio prima i Pokémon col riquadro classico, anche se valgono meno di allenatori e illustrazioni speciali
+    // per il ritaglio prima i Pokémon col riquadro classico, anche se valgono meno di allenatori, illustrazioni
+    // speciali, VMAX e GX anche promo (disegno a tutta carta)
     @Test
     void illustrazioniPrimaIPokemonColRiquadro() {
         List<CartaAnteprimaDTO> illustrazioni = VetrinaArtistiService.illustrazioni(List.of(
                 carta("Mitsuhiro Arita", "Professor Oak", "90", "Rare", 0),
                 carta("Mitsuhiro Arita", "Pikachu ex", "400", "Special Illustration Rare", 1),
+                carta("Mitsuhiro Arita", "Charizard VMAX", "300", "Rare Holo VMAX", 1),
+                carta("Mitsuhiro Arita", "Ultra Necrozma GX (SM Black Star Promos SM126)", "1", "Promo", 1),
                 carta("Mitsuhiro Arita", "Bulbasaur", "2", "Common", 1),
                 carta("Mitsuhiro Arita", "Charmander", "5", "Common", 1)));
 
         assertThat(illustrazioni).extracting(CartaAnteprimaDTO::nome)
-                .containsExactly("Charmander", "Bulbasaur", "Pikachu ex", "Professor Oak");
+                .containsExactly("Charmander", "Bulbasaur", "Pikachu ex", "Charizard VMAX");
+    }
+
+    // chi supera le carte minime a metà settimana non rimescola il muro: gli altri restano nello stesso ordine
+    @Test
+    void muroDellaSettimanaNonSiRimescolaQuandoArrivaQualcuno() {
+        List<CartaDiArtista> due = new ArrayList<>(pokemon("Mitsuhiro Arita", VetrinaArtistiService.CARTE_MINIME_MURO));
+        due.addAll(pokemon("Kent Kanetsuna/Direc. Shinji Higuchi", VetrinaArtistiService.CARTE_MINIME_MURO));
+        when(oggettoRepository.findCarteConArtista()).thenReturn(due);
+        List<String> prima = service.calcola(OGGI).sulMuro().stream().map(AnteprimaArtistaDTO::slug).toList();
+
+        // Sachiko Eba arriva a 12 carte
+        List<CartaDiArtista> tre = new ArrayList<>(due);
+        tre.addAll(pokemon("Shinji Higuchi + Sachiko Eba", VetrinaArtistiService.CARTE_MINIME_MURO));
+        when(oggettoRepository.findCarteConArtista()).thenReturn(tre);
+        List<String> dopo = service.calcola(OGGI).sulMuro().stream().map(AnteprimaArtistaDTO::slug).toList();
+
+        assertThat(prima).containsExactlyInAnyOrder("mitsuhiro-arita", "shinji-higuchi");
+        assertThat(dopo).hasSize(3).contains("sachiko-eba").containsSubsequence(prima);
+    }
+
+    // fra le carte col riquadro le promo vanno dopo: spesso hanno un timbro sul disegno
+    @Test
+    void illustrazioniPromoDopoLeAltre() {
+        List<CartaAnteprimaDTO> illustrazioni = VetrinaArtistiService.illustrazioni(List.of(
+                carta("Mitsuhiro Arita", "Necrozma", "50", "Promo", 1),
+                carta("Mitsuhiro Arita", "Togekiss", "3", "Rare", 1)));
+
+        assertThat(illustrazioni).extracting(CartaAnteprimaDTO::nome).containsExactly("Togekiss", "Necrozma");
     }
 
     @Test
@@ -111,8 +142,13 @@ class VetrinaArtistiServiceTest {
     }
 
     private static CartaDiArtista carta(String artista, String nome, String prezzo, String rarita, int numeriPokedex) {
-        return new Carta(artista, UUID.randomUUID(), nome, "1", rarita, "https://assets.tcgdex.net/en/base/base1/1/high.webp",
+        return new Carta(artista, UUID.randomUUID(), nome, "1", rarita, "https://assets.tcgdex.net/en/base/base1/" + nome + "/high.webp",
                 new BigDecimal(prezzo), numeriPokedex);
+    }
+
+    // l'immagine piccola della carta col nome dato (vedi carta)
+    private static String immagine(String nome) {
+        return "https://assets.tcgdex.net/en/base/base1/" + nome + "/low.webp";
     }
 
     private record Carta(String getArtista, UUID getId, String getNome, String getNumero, String getRarita,

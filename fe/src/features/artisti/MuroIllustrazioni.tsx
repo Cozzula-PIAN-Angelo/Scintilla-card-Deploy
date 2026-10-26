@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { FORMA_CARTA, ImmagineCarta } from '../../components/ImmagineCarta'
-import type { AnteprimaArtista, CartaAnteprima } from '../../types/api'
+import type { AnteprimaArtista } from '../../types/api'
 import { cn } from '../../utils/cn'
-import { useCarteCaricateDiPiuSet } from '../vetrina/useCarteCaricate'
 import { contaCarte } from './artisti'
 import { LinkArtista } from './LinkArtista'
 
@@ -23,10 +22,8 @@ interface Props {
 // il muro delle illustrazioni: per ogni illustratore il disegno di una sua carta, ritagliato dalla finestra
 // dell'illustrazione, con il nome come una firma. Al passaggio la carta intera spunta dall'angolo
 export function MuroIllustrazioni({ artisti, inAttesa, titolo }: Props) {
-  const gruppi = useMemo(() => artisti.slice(0, SUL_MURO).map((a) => a.illustrazioni), [artisti])
-  const carte = useCarteCaricateDiPiuSet(gruppi, 1)
-  // finito l'arrivo senza nessuno da mostrare (archivio vuoto, errore) resta solo il titolo
-  const riquadri = artisti.length > 0 || inAttesa ? SUL_MURO : 0
+  // sagome solo mentre arrivano; poi tante tessere quanti illustratori (archivio quasi vuoto: meno di dieci, o nessuna)
+  const riquadri = inAttesa ? SUL_MURO : Math.min(artisti.length, SUL_MURO)
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-6">
@@ -35,7 +32,7 @@ export function MuroIllustrazioni({ artisti, inAttesa, titolo }: Props) {
         const artista = artisti[i]
         const classi = cn(i in GRANDI ? cn('col-span-2 row-span-2 max-lg:aspect-[4/3]', GRANDI[i]) : 'aspect-[4/3]', i >= 5 && 'max-lg:hidden')
         return artista ? (
-          <Illustrazione key={artista.slug} artista={artista} carta={carte[i]?.[0]} grande={i in GRANDI} className={classi} />
+          <Illustrazione key={artista.slug} artista={artista} grande={i in GRANDI} className={classi} />
         ) : (
           <div key={i} aria-hidden className={cn('skeleton rounded-2xl opacity-20', classi)} />
         )
@@ -44,9 +41,15 @@ export function MuroIllustrazioni({ artisti, inAttesa, titolo }: Props) {
   )
 }
 
-function Illustrazione({ artista, carta, grande, className }: { artista: AnteprimaArtista; carta?: CartaAnteprima; grande: boolean; className: string }) {
+function Illustrazione({ artista, grande, className }: { artista: AnteprimaArtista; grande: boolean; className: string }) {
+  // TCGdex non ha tutte le immagini: se una non si carica si passa alla carta di riserva dopo; finite le riserve
+  // resta il fondo blu con la firma
+  const [scelta, setScelta] = useState(0)
+  const [caricata, setCaricata] = useState(false)
+  const carta = artista.illustrazioni[scelta]
   // anche col focus da tastiera la carta spunta: il focus è sul link, gli eventi di React risalgono fin qui
   const [fuoco, setFuoco] = useState(false)
+
   return (
     <motion.div
       initial="ferma"
@@ -61,27 +64,37 @@ function Illustrazione({ artista, carta, grande, className }: { artista: Antepri
         etichetta={`${artista.nome}, ${contaCarte(artista.carte)}`}
         className="group relative block size-full overflow-hidden rounded-2xl bg-blu-900 shadow-xl shadow-black/30 ring-1 ring-white/15"
       >
-        {carta ? (
+        {carta && (
           <>
+            {!caricata && <div aria-hidden className="skeleton absolute inset-0 opacity-20" />}
             {/* il cuore della finestra del disegno, dal 12% al 46% dell'altezza della carta (sotto c'è la riga di
                 altezza e peso): la carta è alta 2,9 volte il riquadro, sale del 34% del riquadro e sta al centro */}
             <img
+              key={carta.id}
               src={carta.immagineUrl ?? carta.immagineUrlPiccola ?? ''}
               alt=""
               decoding="async"
-              className="absolute top-[-34%] left-1/2 h-[290%] w-auto max-w-none -translate-x-1/2 origin-[50%_15%] transition-transform duration-700 ease-out group-hover:scale-105 group-focus-visible:scale-105"
+              onLoad={() => setCaricata(true)}
+              onError={() => {
+                setCaricata(false)
+                setScelta((s) => s + 1)
+              }}
+              className={cn(
+                'absolute top-[-34%] left-1/2 h-[290%] w-auto max-w-none -translate-x-1/2 origin-[50%_15%] transition-[transform,opacity] duration-700 ease-out group-hover:scale-105 group-focus-visible:scale-105',
+                caricata ? 'opacity-100' : 'opacity-0',
+              )}
             />
-            <motion.div
-              aria-hidden
-              variants={{ ferma: { y: '115%', rotate: 12 }, sopra: { y: '0%', rotate: 6 } }}
-              transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-              className={cn('absolute right-3 bottom-3', grande ? 'w-[24%]' : 'w-[30%]')}
-            >
-              <ImmagineCarta src={carta.immagineUrlPiccola} alt="" className={cn('aspect-[63/88] w-full shadow-2xl shadow-black/60', FORMA_CARTA)} />
-            </motion.div>
+            {caricata && (
+              <motion.div
+                aria-hidden
+                variants={{ ferma: { y: '115%', rotate: 12 }, sopra: { y: '0%', rotate: 6 } }}
+                transition={{ type: 'spring', stiffness: 220, damping: 22 }}
+                className={cn('absolute right-3 bottom-3', grande ? 'w-[24%]' : 'w-[30%]')}
+              >
+                <ImmagineCarta src={carta.immagineUrlPiccola} alt="" className={cn('aspect-[63/88] w-full shadow-2xl shadow-black/60', FORMA_CARTA)} />
+              </motion.div>
+            )}
           </>
-        ) : (
-          <div aria-hidden className="skeleton absolute inset-0 opacity-20" />
         )}
         <span
           className={cn(

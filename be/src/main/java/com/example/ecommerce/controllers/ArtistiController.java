@@ -37,9 +37,12 @@ public class ArtistiController {
     }
 
     // illustratori sul muro questa settimana e le prime carte di ognuno per l'indice, dalle carte già in archivio
+    // il backend la ricalcola al massimo una volta l'ora: il browser la tiene altrettanto
     @GetMapping("/anteprime")
-    public VetrinaArtistiDTO anteprime() {
-        return vetrinaArtistiService.vetrina();
+    public ResponseEntity<VetrinaArtistiDTO> anteprime() {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
+                .body(vetrinaArtistiService.vetrina());
     }
 
     // la prima apertura importa le carte dell'artista: l'IP serve al limite sugli import (vedi LimitatoreImport)

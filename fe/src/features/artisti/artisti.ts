@@ -1,4 +1,4 @@
-import type { Artista, ArtistaCarta, CartaAnteprima, Oggetto } from '../../types/api'
+import type { Artista, ArtistaCarta, Oggetto } from '../../types/api'
 
 // pagina delle carte per cui TCGdex non indica l'artista: in fondo all'elenco, fuori dalle lettere
 export const SLUG_SCONOSCIUTO = 'sconosciuto'
@@ -31,12 +31,12 @@ export function raggruppaPerLettera(artisti: Artista[]): { lettera: string; arti
     .map(([lettera, artisti]) => ({ lettera, artisti }))
 }
 
-// le carte di un illustratore per l'indice: quelle in archivio o, se non ce ne sono ancora, la carta del suo avatar
-export function carteDi(artista: Artista, carteIndice: Record<string, CartaAnteprima[]> | undefined): CartaAnteprima[] {
+// le immagini delle carte di un illustratore per l'indice: quelle in archivio o, se non ce ne sono ancora, la carta
+// del suo avatar
+export function immaginiDi(artista: Artista, carteIndice: Record<string, string[]> | undefined): string[] {
   const inArchivio = carteIndice?.[artista.slug]
   if (inArchivio && inArchivio.length > 0) return inArchivio
-  if (!artista.avatar) return []
-  return [{ id: artista.slug, nome: artista.nome, numero: null, rarita: null, immagineUrl: artista.avatar, immagineUrlPiccola: artista.avatar }]
+  return artista.avatar ? [artista.avatar] : []
 }
 
 // "1 carta", "1.789 carte"

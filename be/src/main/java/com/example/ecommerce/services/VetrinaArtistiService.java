@@ -16,19 +16,21 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.IsoFields;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 // muro della pagina Illustratori, dalle carte già in archivio: chi ne ha abbastanza può finire sul muro (gli
-// illustratori cambiano ogni settimana), e ogni illustratore dell'indice porta le sue tre carte più preziose.
+// illustratori cambiano ogni settimana), e ogni illustratore dell'indice porta le immagini delle sue tre carte più
+// preziose.
 // Ricalcolata al massimo una volta l'ora: legge tutte le carte con artista
 @Service
 @RequiredArgsConstructor
@@ -40,14 +42,21 @@ public class VetrinaArtistiService {
     // il muro ne mostra una, le altre sono di riserva per le immagini che TCGdex non ha
     static final int ILLUSTRAZIONI = 4;
     static final int CARTE_INDICE = 3;
-    // dalle ultra rare in su il disegno copre tutta la carta: il ritaglio della finestra prenderebbe testo e cornici
+    // dalle ultra rare in su il disegno copre tutta la carta: il ritaglio della finestra prenderebbe testo e cornici.
+    // Stessa cosa per VMAX e VSTAR, che GradoRarita mette fra le doppie rare, e per le carte GX, EX, V e simili, anche
+    // promo (rarità "Promo"): si riconoscono dal nome
     static final int GRADO_MASSIMO_RITAGLIO = 3;
+    private static final Pattern DISEGNO_A_TUTTA_CARTA = Pattern.compile("vmax|vstar", Pattern.CASE_INSENSITIVE);
+    private static final Pattern NOME_A_TUTTA_CARTA = Pattern.compile("[ -](GX|EX|V|VMAX|VSTAR|V-UNION|BREAK|LEGEND)$|&");
     private static final Duration DURATA = Duration.ofHours(1);
+
+    // GradoRarita prova le regole una a una: un calcolo per rarità, non uno per confronto
+    private static final Map<String, Integer> GRADI = new ConcurrentHashMap<>();
 
     // per prezzo massimo, poi per rarità
     private static final Comparator<CartaDiArtista> PER_VALORE = Comparator
             .comparing(CartaDiArtista::getPrezzoMassimo, Comparator.nullsLast(Comparator.<BigDecimal>reverseOrder()))
-            .thenComparing(Comparator.comparingInt((CartaDiArtista c) -> GradoRarita.di(c.getRarita())).reversed());
+            .thenComparing(Comparator.comparingInt(VetrinaArtistiService::grado).reversed());
 
     private final OggettoRepository oggettoRepository;
 
@@ -75,22 +84,25 @@ public class VetrinaArtistiService {
             }
         }
 
-        Map<String, List<CartaAnteprimaDTO>> carteIndice = new LinkedHashMap<>();
+        Map<String, List<String>> carteIndice = new LinkedHashMap<>();
         List<ElencoArtisti.Artista> candidati = new ArrayList<>();
         for (ElencoArtisti.Artista artista : elenco.elenco()) {
             List<CartaDiArtista> carte = perSlug.getOrDefault(artista.slug(), List.of());
             if (!carte.isEmpty()) {
-                carteIndice.put(artista.slug(), diPunta(carte, PER_VALORE).limit(CARTE_INDICE).toList());
+                carteIndice.put(artista.slug(), diPunta(carte, PER_VALORE).map(CartaAnteprimaDTO::immagineUrlPiccola)
+                        .filter(Objects::nonNull).limit(CARTE_INDICE).toList());
             }
             if (carte.size() >= CARTE_MINIME_MURO) {
                 candidati.add(artista);
             }
         }
 
-        // stessa scelta per tutta la settimana
-        Collections.shuffle(candidati, new Random(oggi.get(IsoFields.WEEK_BASED_YEAR) * 100L
-                + oggi.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)));
+        // ordine pescato dalla settimana: ogni illustratore ha il suo posto, che non dipende dagli altri, così chi
+        // supera le carte minime a metà settimana entra solo se pesca un posto fra i primi, senza rimescolare il muro
+        String settimana = oggi.get(IsoFields.WEEK_BASED_YEAR) + "-" + oggi.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR);
         List<AnteprimaArtistaDTO> sulMuro = candidati.stream()
+                .sorted(Comparator.comparingInt((ElencoArtisti.Artista a) -> (a.slug() + "@" + settimana).hashCode())
+                        .thenComparing(ElencoArtisti.Artista::slug))
                 .limit(ARTISTI_SUL_MURO)
                 .map(artista -> new AnteprimaArtistaDTO(artista.slug(), artista.nome(), artista.carte(),
                         illustrazioni(perSlug.get(artista.slug()))))
@@ -98,14 +110,22 @@ public class VetrinaArtistiService {
         return new VetrinaArtistiDTO(sulMuro, carteIndice);
     }
 
-    // prima i Pokémon col riquadro classico (il ritaglio del disegno viene pulito), poi il resto
+    // prima i Pokémon col riquadro classico (il ritaglio del disegno viene pulito), fra questi prima quelli non promo
+    // (spesso hanno un timbro sul disegno), poi il resto
     static List<CartaAnteprimaDTO> illustrazioni(List<CartaDiArtista> carte) {
         Comparator<CartaDiArtista> primaConRiquadro = Comparator.comparing(c -> !conRiquadro(c));
-        return diPunta(carte, primaConRiquadro.thenComparing(PER_VALORE)).limit(ILLUSTRAZIONI).toList();
+        Comparator<CartaDiArtista> poiNonPromo = Comparator.comparing(c -> "promo".equalsIgnoreCase(c.getRarita()));
+        return diPunta(carte, primaConRiquadro.thenComparing(poiNonPromo).thenComparing(PER_VALORE)).limit(ILLUSTRAZIONI).toList();
     }
 
     private static boolean conRiquadro(CartaDiArtista carta) {
-        return carta.getNumeriPokedex() > 0 && GradoRarita.di(carta.getRarita()) <= GRADO_MASSIMO_RITAGLIO;
+        return carta.getNumeriPokedex() > 0 && grado(carta) <= GRADO_MASSIMO_RITAGLIO
+                && (carta.getRarita() == null || !DISEGNO_A_TUTTA_CARTA.matcher(carta.getRarita()).find())
+                && !NOME_A_TUTTA_CARTA.matcher(CartaAnteprimaDTO.nomeSenzaDettaglio(carta.getNome())).find();
+    }
+
+    private static int grado(CartaDiArtista carta) {
+        return carta.getRarita() == null ? 0 : GRADI.computeIfAbsent(carta.getRarita(), GradoRarita::di);
     }
 
     // nell'ordine dato, un Pokémon una volta sola

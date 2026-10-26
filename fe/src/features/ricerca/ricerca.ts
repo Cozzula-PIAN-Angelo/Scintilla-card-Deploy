@@ -1,5 +1,5 @@
 import type { Artista, Espansione } from '../../types/api'
-import { normalizza } from '../artisti/artisti'
+import { contaCarte, normalizza } from '../artisti/artisti'
 import { numeroFormattato, POKEDEX, spriteUrl, type Pokemon } from '../pokedex/pokedex'
 
 // una riga della ricerca unica della navbar: dove porta, cosa scrivere e quale immagine mostrare
@@ -72,7 +72,7 @@ function daArtista(artista: Artista): Risultato {
     tipo: 'artista',
     a: `/artisti/${encodeURIComponent(artista.slug)}`,
     nome: artista.nome,
-    dettaglio: `${artista.carte.toLocaleString('it-IT')} ${artista.carte === 1 ? 'carta' : 'carte'}`,
+    dettaglio: contaCarte(artista.carte),
     immagine: artista.avatar,
   }
 }

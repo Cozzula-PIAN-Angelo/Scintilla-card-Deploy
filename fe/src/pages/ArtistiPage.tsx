@@ -5,7 +5,7 @@ import { messaggioErrore } from '../app/errori'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { Skeleton } from '../components/Skeleton'
 import { StatoErrore, StatoVuoto } from '../components/StatiPagina'
-import { carteDi, corrisponde, normalizza, raggruppaPerLettera, SLUG_SCONOSCIUTO } from '../features/artisti/artisti'
+import { corrisponde, immaginiDi, normalizza, raggruppaPerLettera, SLUG_SCONOSCIUTO } from '../features/artisti/artisti'
 import { useGetArtistiQuery, useGetVetrinaArtistiQuery } from '../features/artisti/artistiApi'
 import { LinkArtista } from '../features/artisti/LinkArtista'
 import { memoriaArtisti } from '../features/artisti/memoriaArtisti'
@@ -37,20 +37,21 @@ export function ArtistiPage() {
   const risultati = useMemo(() => (filtro ? artisti.filter((a) => corrisponde(a, filtro)) : []), [artisti, filtro])
   const mostraSconosciuto = sconosciuto && (!filtro || corrisponde(sconosciuto, filtro))
 
-  // tornati da un illustratore (indietro del browser o del sito): si riparte dallo stesso punto, appena l'elenco
-  // c'è. Salto istantaneo: il tema ha scroll-behavior smooth, che animerebbe migliaia di pixel
+  // tornati da un illustratore (indietro del browser o del sito): si riparte dallo stesso punto, appena ci sono
+  // l'elenco e il muro sopra (la sua altezza sposta tutto). Salto istantaneo: il tema ha scroll-behavior smooth,
+  // che animerebbe migliaia di pixel
   useEffect(() => {
-    if (!data) return
+    if (!data || vetrinaInArrivo) return
     if (tipoNavigazione === 'POP' && memoriaArtisti.posizione !== null) {
       window.scrollTo({ top: memoriaArtisti.posizione, behavior: 'instant' })
     }
     memoriaArtisti.posizione = null
-  }, [tipoNavigazione, data])
+  }, [tipoNavigazione, data, vetrinaInArrivo])
 
   const vaiALettera = (lettera: string) =>
     document.getElementById(`lettera-${lettera}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
 
-  const voce = (a: Artista) => <VoceIllustratore key={a.slug} artista={a} carte={carteDi(a, vetrina?.carteIndice)} />
+  const voce = (a: Artista) => <VoceIllustratore key={a.slug} artista={a} immagini={immaginiDi(a, vetrina?.carteIndice)} />
 
   return (
     <PaginaAnimata className="pb-16">
