@@ -56,6 +56,7 @@ public class SecurityConfig {
             get("/pokedex/*/carte/stato"),
             // sezione Artisti: elenco e carte di un artista, pubblici come il Pokédex
             get("/artisti"),
+            get("/artisti/anteprime"),
             get("/artisti/*/carte"),
             get("/artisti/*/carte/stato"),
             // immagine profilo: URL con UUID e versione, servita senza token per usarla in un <img>

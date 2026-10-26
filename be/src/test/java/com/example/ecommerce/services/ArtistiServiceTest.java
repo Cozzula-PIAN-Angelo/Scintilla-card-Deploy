@@ -132,7 +132,7 @@ class ArtistiServiceTest {
 
         assertThat(elenco).extracting(ArtistaResponseDTO::slug)
                 .containsExactly("mitsuhiro-arita", "sachiko-eba", "shinji-higuchi", "sconosciuto");
-        assertThat(elenco.getLast()).isEqualTo(new ArtistaResponseDTO("sconosciuto", "Artista sconosciuto", 12, null));
+        assertThat(elenco.getLast()).isEqualTo(new ArtistaResponseDTO("sconosciuto", "Illustratore sconosciuto", 12, null));
     }
 
     private static ArtistaImportato importatoDaPoco(String slug) {

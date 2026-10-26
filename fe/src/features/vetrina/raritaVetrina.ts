@@ -1,7 +1,8 @@
 import type { RaritaContata } from '../../types/api'
 
 // filtro della ball: arcobaleno solo per la più rara del set, poi per grado (vedi GradoRarita nel backend)
-export type TonoBall = 'arcobaleno' | 'oro' | 'argento' | 'blu'
+// rosso: la Poké Ball classica, fuori dalle rarità (titolo della pagina Illustratori)
+export type TonoBall = 'arcobaleno' | 'oro' | 'argento' | 'blu' | 'rosso'
 
 export interface RaritaMostrata extends RaritaContata {
   sigla: string

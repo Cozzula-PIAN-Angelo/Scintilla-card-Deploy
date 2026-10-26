@@ -10,7 +10,7 @@ export interface VoceMenu {
 export const VOCI_PRINCIPALI: VoceMenu[] = [
   { a: '/', etichetta: 'Catalogo', icona: LayoutGrid },
   { a: '/pokedex', etichetta: 'Pokédex', icona: BookOpen },
-  { a: '/artisti', etichetta: 'Artisti', icona: Palette },
+  { a: '/artisti', etichetta: 'Illustratori', icona: Palette },
   { a: '/preferiti', etichetta: 'Preferiti', icona: Heart },
   { a: '/binder', etichetta: 'Binder', icona: Album },
 ]

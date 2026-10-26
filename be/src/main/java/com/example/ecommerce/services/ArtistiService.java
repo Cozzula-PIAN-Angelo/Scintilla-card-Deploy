@@ -37,7 +37,7 @@ public class ArtistiService {
                 "artista");
     }
 
-    // in ordine alfabetico, con "Artista sconosciuto" in fondo
+    // in ordine alfabetico, con "Illustratore sconosciuto" in fondo
     public List<ArtistaResponseDTO> elenco() {
         return Stream.concat(
                 elencoArtisti.elenco().stream()

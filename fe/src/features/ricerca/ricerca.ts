@@ -100,7 +100,7 @@ export function cerca(testo: string, espansioni: Espansione[], artisti: Artista[
   const gruppi: GruppoRisultati[] = [
     { titolo: 'Set', risultati: migliori(setRecenti, (e) => punteggio(e.nome, filtro)).map(daSet) },
     { titolo: 'Pokémon', risultati: migliori(POKEDEX, (p) => valutaPokemon(p, filtro)).map(daPokemon) },
-    { titolo: 'Artisti', risultati: migliori(artisti, (a) => punteggio(a.nome, filtro)).map(daArtista) },
+    { titolo: 'Illustratori', risultati: migliori(artisti, (a) => punteggio(a.nome, filtro)).map(daArtista) },
   ]
   return gruppi.filter((gruppo) => gruppo.risultati.length > 0)
 }
