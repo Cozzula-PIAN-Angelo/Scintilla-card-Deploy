@@ -1,11 +1,12 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { Pause, PencilLine, Play } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Pause, PencilLine, Play } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { useAppSelector } from '../../app/hooks'
 import { Button, LinkBottone } from '../../components/Button'
 import { CarteSfondo } from '../../components/CarteSfondo'
 import { SimboloSet } from '../../components/SimboloSet'
 import { DALL_ELENCO } from '../../hooks/useRitornoElenco'
+import { molla } from '../../theme/motion'
 import type { AnteprimaSet } from '../../types/api'
 import { cn } from '../../utils/cn'
 import { formattaData } from '../../utils/formato'
@@ -52,9 +53,9 @@ export function HeroSet() {
 // ogni quanto la hero passa al set dopo
 const DURATA_SET = 8000
 
-// gira da sola, senza comandi in vista; si ferma col mouse sopra, col focus da tastiera dentro, con la modifica aperta
-// e quando la hero non si vede. Da telefono si ferma al primo tocco (niente mouse sopra per fermarla).
-// Con il movimento ridotto non gira. I comandi (un bottone per set e ferma/riprendi) compaiono solo col focus da tastiera
+// gira da sola, con le frecce per passare al set prima o dopo; si ferma col mouse sopra, col focus da tastiera dentro,
+// con la modifica aperta e quando la hero non si vede. Da telefono si ferma al primo tocco (niente mouse sopra per fermarla).
+// Con il movimento ridotto non gira. Gli altri comandi (un bottone per set e ferma/riprendi) compaiono solo col focus da tastiera
 function CaroselloHero({ giro }: { giro: AnteprimaSet[] }) {
   const sezione = useRef<HTMLElement>(null)
   const [scelto, setScelto] = useState(0)
@@ -68,7 +69,8 @@ function CaroselloHero({ giro }: { giro: AnteprimaSet[] }) {
 
   const indice = scelto < giro.length ? scelto : 0
   const hero = giro[indice]
-  useContoAllaRovescia(!automatico || inPausa, indice, () => setScelto((indice + 1) % giro.length))
+  const sposta = (passo: number) => setScelto((indice + passo + giro.length) % giro.length)
+  useContoAllaRovescia(!automatico || inPausa, indice, () => sposta(1))
   const isAdmin = useAppSelector(selectIsAdmin)
 
   const candidate = useMemo(() => giro.map((a) => a.carteDiPunta), [giro])
@@ -102,7 +104,16 @@ function CaroselloHero({ giro }: { giro: AnteprimaSet[] }) {
         </motion.div>
       </AnimatePresence>
 
-      <div className={CLASSI_GRIGLIA}>
+      {giro.length > 1 && (
+        // da desktop le frecce stanno ai bordi della hero, a metà altezza
+        <>
+          <FrecciaSet lato="sinistra" onClick={() => sposta(-1)} className="absolute top-1/2 left-6 hidden -translate-y-1/2 lg:grid" />
+          <FrecciaSet lato="destra" onClick={() => sposta(1)} className="absolute top-1/2 right-6 hidden -translate-y-1/2 lg:grid" />
+        </>
+      )}
+
+      {/* il contenuto lascia spazio alle frecce finché i margini dello schermo non bastano */}
+      <div className={cn(CLASSI_GRIGLIA, giro.length > 1 && 'lg:px-24 2xl:px-6')}>
         <AnimatePresence mode="wait">
           <TavoloCarte key={hero.espansione.id} espansione={hero.espansione} carte={carte} className="order-2 lg:order-1" />
         </AnimatePresence>
@@ -141,12 +152,49 @@ function CaroselloHero({ giro }: { giro: AnteprimaSet[] }) {
             </div>
           )}
         </div>
+
+        {giro.length > 1 && (
+          // da telefono una fila sotto le carte
+          <div className="order-3 -mt-4 flex justify-center gap-4 lg:hidden">
+            <FrecciaSet lato="sinistra" onClick={() => sposta(-1)} />
+            <FrecciaSet lato="destra" onClick={() => sposta(1)} />
+          </div>
+        )}
       </div>
 
       {isAdmin && (
         <ModaleDescrizioneSet aperto={modificaAperta} espansione={hero.espansione} onChiudi={() => setModificaAperta(false)} />
       )}
     </section>
+  )
+}
+
+interface PropsFreccia {
+  lato: 'sinistra' | 'destra'
+  onClick: () => void
+  className?: string
+}
+
+// freccia tonda di vetro senza contorno: solo un velo bianco semitrasparente e la sfocatura di ciò che c'è sotto,
+// così sul blu e sulle carte si vede senza coprirle
+function FrecciaSet({ lato, onClick, className }: PropsFreccia) {
+  const Icona = lato === 'sinistra' ? ChevronLeft : ChevronRight
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      aria-label={lato === 'sinistra' ? 'Set precedente' : 'Set successivo'}
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.92 }}
+      transition={molla}
+      className={cn(
+        'z-10 grid size-12 place-items-center rounded-full bg-white/5 text-white/85 backdrop-blur-xl lg:size-14',
+        'shadow-[0_12px_28px_-12px_rgb(0_0_0/0.45)] transition-colors hover:bg-white/14 hover:text-white',
+        className,
+      )}
+    >
+      <Icona aria-hidden strokeWidth={2} className={cn('size-6 lg:size-7', lato === 'sinistra' ? '-ml-0.5' : 'ml-0.5')} />
+    </motion.button>
   )
 }
 
