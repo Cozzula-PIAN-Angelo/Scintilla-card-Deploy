@@ -367,6 +367,63 @@
   to { opacity: 1; }
 }
 
+/* marchio (MarchioIcona): la carta coperta si stringe di taglio e mostra la M. Da sola, ogni 6 secondi
+   (marchio-animato, solo nella navbar), subito al passaggio o al focus sul logo, e lì resta girata */
+@layer components {
+  .marchio-gira,
+  .marchio-retro,
+  .marchio-fronte {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .marchio-retro {
+    transition: transform 160ms cubic-bezier(0.4, 0, 1, 1) 200ms;
+  }
+  .marchio-fronte {
+    transform: scaleX(0);
+    transition: transform 160ms cubic-bezier(0.4, 0, 1, 1);
+  }
+  .marchio-animato .marchio-gira {
+    animation: marchio-alza 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  .marchio-animato .marchio-retro {
+    animation: marchio-retro 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  .marchio-animato .marchio-fronte {
+    animation: marchio-fronte 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  .group:is(:hover, :focus-visible) .marchio-gira {
+    animation: none;
+  }
+  .group:is(:hover, :focus-visible) .marchio-retro {
+    animation: none;
+    transform: scaleX(0);
+    transition-delay: 0ms;
+  }
+  .group:is(:hover, :focus-visible) .marchio-fronte {
+    animation: none;
+    transform: scaleX(1);
+    transition: transform 240ms cubic-bezier(0.25, 1, 0.5, 1) 160ms;
+  }
+  @keyframes marchio-alza {
+    0%, 14% { transform: none; }
+    20% { transform: translateY(-5%) rotate(-2deg) scale(1.04); }
+    26%, 50% { transform: none; }
+    56% { transform: translateY(-5%) rotate(2deg) scale(1.04); }
+    62%, 100% { transform: none; }
+  }
+  @keyframes marchio-retro {
+    0%, 16% { transform: scaleX(1); }
+    20%, 56% { transform: scaleX(0); }
+    60%, 100% { transform: scaleX(1); }
+  }
+  @keyframes marchio-fronte {
+    0%, 20% { transform: scaleX(0); }
+    24%, 52% { transform: scaleX(1); }
+    56%, 100% { transform: scaleX(0); }
+  }
+}
+
 /* angolo del bordo arcobaleno della rarità più rara (riquadro-iride): registrato per poterlo animare */
 @property --giro-iride {
   syntax: "<angle>";
@@ -407,6 +464,16 @@
   }
   .dissolvenza-ridotta {
     animation: pulsa 1.6s ease-in-out infinite !important;
+  }
+  /* il marchio resta coperto e al passaggio cambia faccia senza girare */
+  .marchio-animato .marchio-gira,
+  .marchio-animato .marchio-retro,
+  .marchio-animato .marchio-fronte {
+    animation: none !important;
+  }
+  .marchio-retro,
+  .marchio-fronte {
+    transition: none !important;
   }
 }
 

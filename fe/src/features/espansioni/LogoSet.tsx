@@ -16,10 +16,10 @@ export function LogoSet({ src, lazy = false, className }: Props) {
   if (!src || srcInErrore === src) {
     return (
       <div aria-hidden className={cn('@container absolute inset-0 flex items-center justify-center gap-1.5 opacity-70', className)}>
-        {/* il tratteggio chiaro della navbar sparirebbe sul fondo della tessera. Nelle tessere strette
+        {/* il giallo e l'azzurro della navbar sparirebbero sul fondo della tessera. Nelle tessere strette
             (due colonne da telefono) la scritta non ci sta: resta solo l'icona */}
-        <MarchioIcona classeTratteggio="stroke-testo/50" className="h-11" />
-        <MarchioScritta classeTratteggio="stroke-testo/50" className="hidden h-7 @min-[12rem]:block" />
+        <MarchioIcona className="h-11" />
+        <MarchioScritta classeCelo="fill-testo" classeManca="fill-accento" className="hidden h-5 @min-[12rem]:block" />
       </div>
     )
   }
