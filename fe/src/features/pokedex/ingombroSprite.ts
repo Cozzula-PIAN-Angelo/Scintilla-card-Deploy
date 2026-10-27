@@ -56,6 +56,8 @@ async function calcola(url: string): Promise<Ingombro | null> {
   if (blob.type === 'image/gif' && 'ImageDecoder' in window) {
     const decoder = new ImageDecoder({ data: blob.stream(), type: blob.type })
     await decoder.tracks.ready
+    // a flusso il numero di fotogrammi è solo quelli letti finora: si aspetta che la GIF sia letta tutta
+    await decoder.completed
     const fotogrammi = Math.min(decoder.tracks.selectedTrack?.frameCount ?? 1, MAX_FOTOGRAMMI)
     for (let i = 0; i < fotogrammi; i++) {
       const { image } = await decoder.decode({ frameIndex: i })

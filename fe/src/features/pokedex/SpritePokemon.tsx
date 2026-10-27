@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
+import { useDimensioni } from '../../hooks/useDimensioni'
 import { cn } from '../../utils/cn'
 import { useIngombro, type Ingombro } from './ingombroSprite'
 import { spriteAnimatoUrl, spriteUrl } from './pokedex'
@@ -32,17 +33,21 @@ export function SpritePokemon({ numero, attivo, sagoma = false, appoggiato = fal
   const ingombroFermo = useIngombro(appoggiato ? spriteUrl(numero) : null)
   const ingombroGif = useIngombro(appoggiato && richiesta && !gifMancante ? spriteAnimatoUrl(numero) : null)
   const mostraGif = attivo && gif !== null && (!appoggiato || ingombroGif !== undefined)
-  const [lato, refLato] = useLato(appoggiato)
+  const [misura, riquadro] = useDimensioni<HTMLSpanElement>()
+  const lato = appoggiato ? Math.min(riquadro.larghezza, riquadro.altezza) : 0
   const fermoPronto = !appoggiato || (ingombroFermo !== undefined && lato > 0)
   const scala = lato / PIXEL_PER_LATO
+  // le GIF più grandi del riquadro si rimpiccioliscono, intere: la larghezza data è già quella giusta, così il
+  // translate (in percentuale dell'immagine) resta preciso
+  const larghezzaGif = gif ? gif.larghezza * Math.min(scala, lato / gif.larghezza, lato / gif.altezza) : 0
 
-  // larghezza del disegno a schermo, per l'ombra: le GIF più grandi del riquadro si rimpiccioliscono
+  // larghezza del disegno a schermo, per l'ombra
   let disegno = 0
-  if (mostraGif && ingombroGif) disegno = ingombroGif.larghezza * gif.larghezza * Math.min(scala, lato / gif.larghezza, lato / gif.altezza)
+  if (mostraGif && ingombroGif) disegno = ingombroGif.larghezza * larghezzaGif
   else if (ingombroFermo) disegno = ingombroFermo.larghezza * 96 * scala
 
   return (
-    <span ref={refLato} className={cn('relative block', className)}>
+    <span ref={appoggiato ? misura : undefined} className={cn('relative block', className)}>
       {appoggiato && (
         // l'ombra: almeno il 70% del riquadro, più larga sotto chi è più largo (Venusaur)
         <span
@@ -76,11 +81,11 @@ export function SpritePokemon({ numero, attivo, sagoma = false, appoggiato = fal
           crossOrigin={appoggiato ? 'anonymous' : undefined}
           onLoad={(e) => setGif({ larghezza: e.currentTarget.naturalWidth, altezza: e.currentTarget.naturalHeight })}
           onError={() => setGifMancante(true)}
-          style={appoggiato && gif ? sullaPedana(gif.larghezza * scala, ingombroGif) : undefined}
-          // le GIF più grandi del riquadro si rimpiccioliscono, le altre restano alla loro misura
+          style={appoggiato && gif ? sullaPedana(larghezzaGif, ingombroGif) : undefined}
+          // fuori dalla pedana le GIF più grandi del riquadro si rimpiccioliscono, le altre restano alla loro misura
           className={cn(
-            'sprite-pixel absolute max-h-full max-w-full object-contain motion-reduce:hidden',
-            appoggiato ? 'inset-x-0 mx-auto' : 'inset-0 m-auto',
+            'sprite-pixel absolute motion-reduce:hidden',
+            appoggiato ? 'inset-x-0 mx-auto max-w-none' : 'inset-0 m-auto max-h-full max-w-full object-contain',
             !mostraGif && 'invisible',
           )}
         />
@@ -97,18 +102,4 @@ function sullaPedana(larghezza: number, ingombro: Ingombro | null | undefined): 
     bottom: `${PIEDI * 100}%`,
     translate: ingombro ? `${ingombro.dx * 100}% ${ingombro.dy * 100}%` : undefined,
   }
-}
-
-// lato in pixel del riquadro dello sprite, misurato solo se serve (sulla pedana)
-function useLato(attivo: boolean) {
-  const [lato, setLato] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!attivo || !el) return
-    const osservatore = new ResizeObserver(() => setLato(Math.min(el.offsetWidth, el.offsetHeight)))
-    osservatore.observe(el)
-    return () => osservatore.disconnect()
-  }, [attivo])
-  return [lato, ref] as const
 }

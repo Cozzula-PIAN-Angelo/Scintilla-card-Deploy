@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useDimensioni } from '../../hooks/useDimensioni'
 import { cn } from '../../utils/cn'
 import { SpritePokemon } from './SpritePokemon'
 
@@ -10,24 +11,17 @@ const LATO_MASSIMO = 480
 // dell'indice, alta quanto lo schermo), altrimenti la misura la dà className. Un Pokémon che manca alla
 // collezione compare in sagoma e poco dopo si colora, come in "Chi è quel Pokémon?"
 export function Pedana({ numero, sagoma = false, riempi = false, className }: { numero: number; sagoma?: boolean; riempi?: boolean; className?: string }) {
-  const spazio = useRef<HTMLDivElement>(null)
-  const [lato, setLato] = useState<number | null>(null)
-  useEffect(() => {
-    const el = spazio.current
-    if (!riempi || !el) return
-    const osservatore = new ResizeObserver(() => setLato(Math.min(el.clientWidth, el.clientHeight, LATO_MASSIMO)))
-    osservatore.observe(el)
-    return () => osservatore.disconnect()
-  }, [riempi])
+  const [misura, spazio] = useDimensioni<HTMLDivElement>()
+  const lato = Math.min(spazio.larghezza, spazio.altezza, LATO_MASSIMO)
 
   const pedana = (
-    <div className={cn('relative aspect-square', !riempi && className)} style={riempi ? { width: lato ?? 0 } : undefined}>
+    <div className={cn('relative aspect-square', !riempi && className)} style={riempi ? { width: lato } : undefined}>
       <SpriteSvelato key={numero} numero={numero} sagoma={sagoma} />
     </div>
   )
   if (!riempi) return pedana
   return (
-    <div ref={spazio} className={cn('flex items-center justify-center', className)}>
+    <div ref={misura} className={cn('flex items-center justify-center', className)}>
       {pedana}
     </div>
   )

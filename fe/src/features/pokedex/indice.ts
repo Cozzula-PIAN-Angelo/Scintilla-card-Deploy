@@ -37,3 +37,10 @@ export function propsLinkPokemon(numero: number) {
 
 // stessa larghezza per fascia, barra e viste: i bordi si allineano
 export const CONTENITORE_POKEDEX = 'mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8'
+
+// titolo e testo quando l'elenco filtrato è vuoto: per la ricerca o per il filtro della collezione
+export function testiVuoto({ ricerca, filtro, stato }: Pick<PropsVista, 'ricerca' | 'filtro' | 'stato'>) {
+  if (filtro) return { titolo: 'Nessun Pokémon trovato', testo: `Nessun Pokémon corrisponde a "${ricerca.trim()}".` }
+  if (stato === 'presi') return { titolo: 'Nessun Pokémon in collezione', testo: 'Segna le carte che hai e qui compaiono i loro Pokémon.' }
+  return { titolo: 'Pokédex completo!', testo: 'Hai almeno una carta di ogni Pokémon.' }
+}

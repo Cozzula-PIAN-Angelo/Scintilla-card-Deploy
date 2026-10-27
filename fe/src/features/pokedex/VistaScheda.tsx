@@ -1,12 +1,13 @@
 import { ChevronDown, ChevronUp, Search } from 'lucide-react'
-import { useLayoutEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
+import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { LinkBottone } from '../../components/Button'
 import { StatoVuoto } from '../../components/StatiPagina'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { cn } from '../../utils/cn'
-import { CONTENITORE_POKEDEX, filtraPokemon, propsLinkPokemon, type PropsVista } from './indice'
+import { CONTENITORE_POKEDEX, filtraPokemon, propsLinkPokemon, testiVuoto, type PropsVista } from './indice'
+import { StatoCollezione, TitoloPokemon } from './IntestazioneScheda'
 import { memoriaPokedex } from './memoriaPokedex'
 import { generazioneDi, GENERAZIONI, numeroFormattato, POKEDEX, trovaPokemon, type Pokemon } from './pokedex'
 import { useGetCartePokemonQuery } from './pokedexApi'
@@ -19,45 +20,61 @@ import { VentaglioCarte } from './VentaglioCarte'
 // vista "scheda", come il Pokédex dei giochi: elenco numerato a sinistra, scheda del Pokémon scelto a destra con
 // le sue carte. Da telefono solo l'elenco, e un tocco apre il Pokémon
 export function VistaScheda(props: PropsVista) {
-  const { filtro, posseduti, barra } = props
+  const { ricerca, filtro, stato, posseduti, barra } = props
   const largo = useMediaQuery('(min-width: 1024px)')
   const [scelto, setScelto] = useState(memoriaPokedex.ultimo ?? 1)
-  const lista = filtraPokemon(POKEDEX, props)
+  const lista = useMemo(() => filtraPokemon(POKEDEX, { filtro, stato, posseduti }), [filtro, stato, posseduti])
   // per regione; i risultati di una ricerca tutti insieme
-  const gruppi = filtro
-    ? [{ regione: null, pokemon: lista }]
-    : GENERAZIONI.map((g) => ({ regione: g.regione, pokemon: lista.filter((p) => p.numero >= g.da && p.numero <= g.a) })).filter(
-        (g) => g.pokemon.length > 0,
-      )
-  // la voce raggiungibile col Tab: lo scelto, o il primo se il filtro l'ha tolto dall'elenco
-  const focalizzabile = lista.some((p) => p.numero === scelto) ? scelto : lista[0]?.numero
+  const gruppi = useMemo(
+    () =>
+      filtro
+        ? [{ regione: null, pokemon: lista }]
+        : GENERAZIONI.map((g) => ({ regione: g.regione, pokemon: lista.filter((p) => p.numero >= g.da && p.numero <= g.a) })).filter(
+            (g) => g.pokemon.length > 0,
+          ),
+    [filtro, lista],
+  )
+  // il Pokémon mostrato (e raggiungibile col Tab): lo scelto, o il primo dell'elenco se ricerca o filtro l'hanno tolto
+  const mostrato = lista.some((p) => p.numero === scelto) ? scelto : lista[0]?.numero
   const elenco = useRef<HTMLUListElement>(null)
   const pannelli = useRef<HTMLDivElement>(null)
   const altoPannelli = useAltoFinoInFondo(pannelli, largo)
   const navigate = useNavigate()
 
-  // lo scelto resta in vista nell'elenco (scorre il pannello, non la pagina)
+  // il mostrato resta in vista nell'elenco (scorre il pannello, non la pagina)
   useLayoutEffect(() => {
     const pannello = elenco.current?.parentElement
-    const voce = elenco.current?.querySelector<HTMLElement>(`[data-numero="${scelto}"]`)
+    const voce = elenco.current?.querySelector<HTMLElement>(`[data-numero="${mostrato}"]`)
     if (!pannello || !voce || !largo) return
     const sopra = voce.offsetTop - pannello.scrollTop
     if (sopra < 40 || sopra > pannello.clientHeight - 60) pannello.scrollTop = voce.offsetTop - pannello.clientHeight / 2
-  }, [scelto, largo, filtro])
+  }, [mostrato, largo, filtro])
 
-  const sposta = (passo: number) => {
-    const i = lista.findIndex((p) => p.numero === scelto)
+  // un passo nell'elenco; dalle frecce della tastiera anche il focus segue, da quelle della scheda no (resta sul
+  // bottone, così si può continuare a premere)
+  const sposta = (passo: number, conFocus = false) => {
+    const i = lista.findIndex((p) => p.numero === mostrato)
     const prossimo = lista[Math.min(lista.length - 1, Math.max(0, i + passo))]
     if (!prossimo) return
     setScelto(prossimo.numero)
-    elenco.current?.querySelector<HTMLElement>(`[data-numero="${prossimo.numero}"]`)?.focus({ preventScroll: true })
+    if (conFocus) elenco.current?.querySelector<HTMLElement>(`[data-numero="${prossimo.numero}"]`)?.focus({ preventScroll: true })
   }
   const tasti = (e: KeyboardEvent) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault()
-      sposta(e.key === 'ArrowDown' ? 1 : -1)
+      sposta(e.key === 'ArrowDown' ? 1 : -1, true)
     }
   }
+  // stabili, così le voci (fino a 1025) non si ridisegnano tutte a ogni passo
+  const scegli = useCallback((numero: number) => setScelto(numero), [])
+  const apri = useCallback(
+    (numero: number) => {
+      const link = propsLinkPokemon(numero)
+      link.onClick()
+      navigate(link.to, { state: link.state })
+    },
+    [navigate],
+  )
   // da desktop si sceglie il primo della generazione, da telefono si scorre fino a lui
   const vaiA = (da: number) => {
     const primo = lista.find((p) => p.numero >= da)
@@ -65,14 +82,16 @@ export function VistaScheda(props: PropsVista) {
     if (largo) setScelto(primo.numero)
     else document.getElementById(`voce-${primo.numero}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }
+  const vuoto = testiVuoto({ ricerca, filtro, stato })
 
   return (
     <>
       {barra(
         !filtro && (
           <nav aria-label="Generazioni" className="flex gap-2 overflow-x-auto pb-1">
-            {GENERAZIONI.map((g) => {
-              const attiva = generazioneDi(scelto)?.numero === g.numero
+            {/* solo le generazioni che il filtro della collezione lascia nell'elenco */}
+            {GENERAZIONI.filter((g) => lista.some((p) => p.numero >= g.da && p.numero <= g.a)).map((g) => {
+              const attiva = mostrato !== undefined && generazioneDi(mostrato)?.numero === g.numero
               return (
                 <button
                   key={g.numero}
@@ -97,9 +116,10 @@ export function VistaScheda(props: PropsVista) {
         <div className="lg:relative">
           <div className="rounded-3xl bg-superficie p-2 shadow-lg shadow-ombra/10 ring-1 ring-linea/5 lg:absolute lg:inset-0 lg:overflow-y-auto">
             {lista.length === 0 ? (
-              <StatoVuoto icona={<Search aria-hidden className="size-16" />} titolo="Nessun Pokémon trovato" testo={`Nessun Pokémon corrisponde a "${props.ricerca}".`} />
+              <StatoVuoto icona={<Search aria-hidden className="size-16" />} titolo={vuoto.titolo} testo={vuoto.testo} />
             ) : (
-              <ul ref={elenco} aria-label="Pokémon" onKeyDown={tasti} className="relative">
+              // le frecce della tastiera solo da desktop: da telefono le voci sono link e le frecce scorrono la pagina
+              <ul ref={elenco} aria-label="Pokémon" onKeyDown={largo ? tasti : undefined} className="relative">
                 {gruppi.map(({ regione, pokemon }) => (
                   <li key={regione ?? 'risultati'}>
                     {/* il nome della regione resta in cima al pannello (da telefono sotto la barra) finché si scorre lei */}
@@ -114,14 +134,11 @@ export function VistaScheda(props: PropsVista) {
                           <VocePokemon
                             pokemon={p}
                             posseduti={posseduti}
-                            scelto={largo && p.numero === scelto}
-                            focalizzabile={p.numero === focalizzabile}
+                            scelto={largo && p.numero === mostrato}
+                            focalizzabile={p.numero === mostrato}
                             largo={largo}
-                            onScegli={() => setScelto(p.numero)}
-                            onApri={() => {
-                              memoriaPokedex.ultimo = p.numero
-                              navigate(`/pokedex/${p.numero}`, { state: propsLinkPokemon(p.numero).state })
-                            }}
+                            onScegli={scegli}
+                            onApri={apri}
                           />
                         </li>
                       ))}
@@ -133,7 +150,7 @@ export function VistaScheda(props: PropsVista) {
           </div>
         </div>
 
-        {largo && <Scheda numero={scelto} posseduti={posseduti} onSposta={sposta} />}
+        {largo && mostrato !== undefined && <Scheda numero={mostrato} posseduti={posseduti} onSposta={sposta} />}
       </div>
     </>
   )
@@ -145,11 +162,11 @@ interface PropsVoce {
   scelto: boolean
   focalizzabile: boolean
   largo: boolean
-  onScegli: () => void
-  onApri: () => void
+  onScegli: (numero: number) => void
+  onApri: (numero: number) => void
 }
 
-function VocePokemon({ pokemon, posseduti, scelto, focalizzabile, largo, onScegli, onApri }: PropsVoce) {
+const VocePokemon = memo(function VocePokemon({ pokemon, posseduti, scelto, focalizzabile, largo, onScegli, onApri }: PropsVoce) {
   // al passaggio (o col focus) la sagoma si colora, come nella griglia
   const [attivo, setAttivo] = useState(false)
   const passaggio = {
@@ -187,16 +204,16 @@ function VocePokemon({ pokemon, posseduti, scelto, focalizzabile, largo, onScegl
       aria-current={scelto || undefined}
       tabIndex={focalizzabile ? 0 : -1}
       {...passaggio}
-      onClick={onScegli}
-      onFocus={() => (setAttivo(true), onScegli())}
-      onDoubleClick={onApri}
-      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), onApri())}
+      onClick={() => onScegli(pokemon.numero)}
+      onFocus={() => (setAttivo(true), onScegli(pokemon.numero))}
+      onDoubleClick={() => onApri(pokemon.numero)}
+      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), onApri(pokemon.numero))}
       className={classi}
     >
       {contenuto}
     </button>
   )
-}
+})
 
 // scheda del Pokémon scelto: sprite animato grande, nome, se ce l'hai e le sue prime carte
 function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: PropsVista['posseduti']; onSposta: (passo: number) => void }) {
@@ -208,20 +225,20 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
   const { currentData, isFetching } = useGetCartePokemonQuery({ chiave: fermo }, { skip: fermo !== numero })
   const carte = fermo === numero ? (currentData?.carte ?? []) : []
   const totale = currentData ? (currentData.completo ? currentData.carte.length : currentData.totale) : undefined
+  // anche la pedana aspetta un attimo: tenendo premuta una freccia non si scarica e misura la GIF di ogni Pokémon
+  const sullaPedana = useDebounce(numero, 150)
+  const presoSullaPedana = posseduti?.insieme.has(sullaPedana)
 
   return (
     <section aria-label={`Scheda di ${pokemon.nome}`} className="sfondo-hero animate-gradiente relative flex flex-col overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 xl:p-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          {/* il numero dopo il nome, come nel Pokédex dei giochi */}
-          <h2 className="font-titolo text-5xl font-bold leading-none xl:text-6xl">
-            {pokemon.nome} <span className="whitespace-nowrap font-sans text-2xl font-semibold text-white/85">{numeroFormattato(numero)}</span>
-          </h2>
-          <p className="mt-3 text-white/95">
-            {[generazione && `Generazione ${generazione.sigla} · ${generazione.regione}`, pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
+          <TitoloPokemon
+            pokemon={pokemon}
+            livello="h2"
+            className="text-5xl xl:text-6xl"
+            dettagli={[generazione && `Generazione ${generazione.sigla} · ${generazione.regione}`, pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`]}
+          />
         </div>
         <div className="flex flex-col gap-1.5">
           <button type="button" onClick={() => onSposta(-1)} aria-label="Pokémon precedente" className="grid size-10 place-items-center rounded-full bg-white/10 ring-1 ring-white/20 transition-colors hover:bg-white/20">
@@ -237,16 +254,11 @@ function Scheda({ numero, posseduti, onSposta }: { numero: number; posseduti: Pr
           carte (o le statistiche) la pedana non si sposta */}
       <div className="flex min-h-0 flex-1 flex-col gap-6 pt-6 xl:flex-row xl:items-center">
         {/* la pedana prende tutto lo spazio che resta: su uno schermo alto il Pokémon è più grande */}
-        <Pedana numero={numero} sagoma={posseduti !== null && !preso} riempi className="min-h-40 min-w-0 flex-1 self-stretch" />
+        <Pedana numero={sullaPedana} sagoma={posseduti !== null && !presoSullaPedana} riempi className="min-h-40 min-w-0 flex-1 self-stretch" />
 
         <div className="flex shrink-0 flex-wrap items-end justify-between gap-5 xl:w-80 xl:flex-col xl:items-start xl:justify-center">
           <div className="min-w-0">
-            {posseduti && (
-              <p className="mb-4 flex items-center gap-2 font-semibold">
-                <SegnoCollezione preso={!!preso} className={cn('size-6', !preso && 'border-white/50')} />
-                {preso ? "Ce l'hai in collezione" : 'Ti manca: nessuna sua carta in collezione'}
-              </p>
-            )}
+            {posseduti && <StatoCollezione preso={!!preso} className="mb-4" />}
             <VentaglioCarte carte={carte} inAttesa={isFetching} />
           </div>
           <LinkBottone {...propsLinkPokemon(numero)} variante="secondario" dimensione="lg">

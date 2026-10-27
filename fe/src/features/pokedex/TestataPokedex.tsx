@@ -1,5 +1,7 @@
+import { cn } from '../../utils/cn'
 import { percentuale } from '../statistiche/calcoli'
 import { BallRarita } from '../vetrina/BallRarita'
+import { CONTENITORE_POKEDEX } from './indice'
 import type { PokemonPosseduti } from './usePokemonPosseduti'
 
 // fascia blu in cima, come la home e gli illustratori: titolo con la ball e, con l'accesso, quanti ne hai
@@ -7,7 +9,7 @@ export function TestataPokedex({ posseduti }: { posseduti: PokemonPosseduti | nu
   const quota = posseduti ? percentuale(posseduti.posseduti, posseduti.totale) : 0
   return (
     <section aria-labelledby="titolo-pokedex" className="sfondo-hero animate-gradiente relative overflow-hidden text-white">
-      <div className="mx-auto flex max-w-screen-2xl flex-wrap items-end justify-between gap-x-10 gap-y-5 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+      <div className={cn(CONTENITORE_POKEDEX, 'flex flex-wrap items-end justify-between gap-x-10 gap-y-5 py-8 lg:py-10')}>
         <div>
           <h1 id="titolo-pokedex" className="flex items-center gap-[0.2em] font-titolo text-5xl font-bold leading-none sm:text-6xl">
             Pokédex

@@ -14,15 +14,14 @@ import { useCarteProgressive } from '../features/oggetti/useCarteProgressive'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon } from '../features/pokedex/pokedex'
 import { useGetCartePokemonQuery, useGetStatoCartePokemonQuery } from '../features/pokedex/pokedexApi'
+import { StatoCollezione, TitoloPokemon } from '../features/pokedex/IntestazioneScheda'
 import { Pedana } from '../features/pokedex/Pedana'
-import { SegnoCollezione } from '../features/pokedex/SegnoCollezione'
 import { usePokemonPosseduti } from '../features/pokedex/usePokemonPosseduti'
 import { VentaglioCarte } from '../features/pokedex/VentaglioCarte'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useRitornoElenco, type StatoRitorno } from '../hooks/useRitornoElenco'
 import { useTitolo } from '../hooks/useTitolo'
-import { cn } from '../utils/cn'
 
 // tutte le carte in cui compare un Pokémon, dalla più recente
 export function PokemonPage() {
@@ -96,25 +95,16 @@ export function PokemonPage() {
       <header className="sfondo-hero animate-gradiente relative mb-10 grid items-center gap-6 overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 sm:grid-cols-[auto_1fr] sm:p-8 lg:grid-cols-[auto_1fr_auto] lg:gap-10">
         <Pedana numero={pokemon.numero} sagoma={posseduti !== null && !preso} className="h-56 justify-self-center sm:h-64 lg:h-72" />
         <div className="min-w-0">
-          {/* il numero dopo il nome, come nel Pokédex dei giochi */}
-          <h1 className="font-titolo text-5xl font-bold leading-none sm:text-6xl">
-            {pokemon.nome} <span className="whitespace-nowrap font-sans text-2xl font-semibold text-white/85">{numeroFormattato(pokemon.numero)}</span>
-          </h1>
-          <p className="mt-3 text-white/95">
-            {[
+          <TitoloPokemon
+            pokemon={pokemon}
+            livello="h1"
+            dettagli={[
               generazione && `Generazione ${generazione.sigla} · ${generazione.regione}`,
               pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`,
               numeroCarte !== undefined && (numeroCarte === 1 ? '1 carta' : `${numeroCarte} carte`),
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-          {posseduti && (
-            <p className="mt-4 flex items-center gap-2 font-semibold">
-              <SegnoCollezione preso={preso} className={cn('size-6', !preso && 'border-white/50')} />
-              {preso ? "Ce l'hai in collezione" : 'Ti manca: nessuna sua carta in collezione'}
-            </p>
-          )}
+            ]}
+          />
+          {posseduti && <StatoCollezione preso={preso} className="mt-4" />}
           {/* collezione presente = utente loggato. A pezzi il bottone si vede ma aspetta tutte le carte */}
           {collezione && (risposta.aPezzi ? (risposta.totaleServer ?? 0) > 0 : data && data.length > 0) && (
             <Button

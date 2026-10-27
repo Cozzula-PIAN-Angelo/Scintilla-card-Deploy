@@ -1,9 +1,9 @@
 import { Search } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { StatoVuoto } from '../../components/StatiPagina'
 import { cn } from '../../utils/cn'
-import { CONTENITORE_POKEDEX, filtraPokemon, propsLinkPokemon, type PropsVista } from './indice'
+import { CONTENITORE_POKEDEX, filtraPokemon, propsLinkPokemon, testiVuoto, type PropsVista } from './indice'
 import { memoriaPokedex } from './memoriaPokedex'
 import { GENERAZIONI, numeroFormattato, POKEDEX, type Pokemon } from './pokedex'
 import { SpritePokemon } from './SpritePokemon'
@@ -12,16 +12,22 @@ const CLASSI_GRIGLIA = 'grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:
 
 // vista "griglia": tutti insieme, generazione dopo generazione; chi manca è una tasca vuota con la sua sagoma
 export function VistaGriglia(props: PropsVista) {
-  const { ricerca, filtro, posseduti, barra } = props
+  const { ricerca, filtro, stato, posseduti, barra } = props
   const vaiA = (numero: number) => document.getElementById(`generazione-${numero}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-  const risultati = filtro ? filtraPokemon(POKEDEX, props) : []
+  const lista = useMemo(() => filtraPokemon(POKEDEX, { filtro, stato, posseduti }), [filtro, stato, posseduti])
+  // le generazioni che ricerca e filtro della collezione lasciano: i salti portano solo a sezioni che ci sono
+  const sezioni = useMemo(
+    () => GENERAZIONI.map((g) => ({ generazione: g, pokemon: lista.filter((p) => p.numero >= g.da && p.numero <= g.a) })).filter((s) => s.pokemon.length > 0),
+    [lista],
+  )
+  const vuoto = testiVuoto({ ricerca, filtro, stato })
 
   return (
     <>
       {barra(
-        !filtro && (
+        !filtro && sezioni.length > 0 && (
           <nav aria-label="Generazioni" className="flex gap-2 overflow-x-auto pb-1">
-            {GENERAZIONI.map((g) => {
+            {sezioni.map(({ generazione: g }) => {
               const avanz = posseduti?.generazioni[g.numero - 1]
               return (
                 <button
@@ -44,22 +50,18 @@ export function VistaGriglia(props: PropsVista) {
       )}
 
       <div className={cn(CONTENITORE_POKEDEX, 'mt-8')}>
-        {filtro ? (
-          risultati.length === 0 ? (
-            <StatoVuoto icona={<Search aria-hidden className="size-16" />} titolo="Nessun Pokémon trovato" testo={`Nessun Pokémon corrisponde a "${ricerca}".`} />
-          ) : (
-            <ul className={CLASSI_GRIGLIA}>
-              {risultati.map((p) => (
-                <TascaPokemon key={p.numero} pokemon={p} preso={posseduti?.insieme.has(p.numero) ?? true} />
-              ))}
-            </ul>
-          )
+        {lista.length === 0 ? (
+          <StatoVuoto icona={<Search aria-hidden className="size-16" />} titolo={vuoto.titolo} testo={vuoto.testo} />
+        ) : filtro ? (
+          <ul className={CLASSI_GRIGLIA}>
+            {lista.map((p) => (
+              <TascaPokemon key={p.numero} pokemon={p} preso={posseduti?.insieme.has(p.numero) ?? true} />
+            ))}
+          </ul>
         ) : (
           <div className="space-y-14">
-            {GENERAZIONI.map((g) => {
-              const lista = filtraPokemon(POKEDEX.slice(g.da - 1, g.a), props)
+            {sezioni.map(({ generazione: g, pokemon }) => {
               const avanz = posseduti?.generazioni[g.numero - 1]
-              if (lista.length === 0) return null
               return (
                 <section key={g.numero} id={`generazione-${g.numero}`} aria-labelledby={`titolo-generazione-${g.numero}`} className="scroll-mt-[calc(var(--alto-barra)+5rem)]">
                   <div className="mb-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
@@ -76,7 +78,7 @@ export function VistaGriglia(props: PropsVista) {
                     )}
                   </div>
                   <ul className={CLASSI_GRIGLIA}>
-                    {lista.map((p) => (
+                    {pokemon.map((p) => (
                       <TascaPokemon key={p.numero} pokemon={p} preso={posseduti?.insieme.has(p.numero) ?? true} />
                     ))}
                   </ul>

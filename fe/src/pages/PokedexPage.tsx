@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { useNavigationType } from 'react-router'
 import { PaginaAnimata } from '../components/PaginaAnimata'
 import { BarraPokedex } from '../features/pokedex/BarraPokedex'
@@ -10,6 +10,7 @@ import { useVistaPokedex } from '../features/pokedex/useVistaPokedex'
 import { VistaGriglia } from '../features/pokedex/VistaGriglia'
 import { VistaScheda } from '../features/pokedex/VistaScheda'
 import { useDebounce } from '../hooks/useDebounce'
+import { useDimensioni } from '../hooks/useDimensioni'
 import { useTitolo } from '../hooks/useTitolo'
 import { cn } from '../utils/cn'
 
@@ -25,15 +26,7 @@ export function PokedexPage() {
   const posseduti = usePokemonPosseduti()
 
   // altezza della barra attaccata: titoli e pannelli delle viste si attaccano sotto di lei
-  const barraRef = useRef<HTMLDivElement>(null)
-  const [altoBarra, setAltoBarra] = useState(0)
-  useEffect(() => {
-    const el = barraRef.current
-    if (!el) return
-    const osservatore = new ResizeObserver(() => setAltoBarra(el.offsetHeight))
-    osservatore.observe(el)
-    return () => osservatore.disconnect()
-  }, [vista])
+  const [misuraBarra, { altezza: altoBarra }] = useDimensioni<HTMLDivElement>()
 
   // tornati da un Pokémon (indietro del browser o del sito): si riparte dallo stesso punto.
   // Salto istantaneo: il tema ha scroll-behavior smooth, che animerebbe migliaia di pixel
@@ -46,7 +39,7 @@ export function PokedexPage() {
 
   // top-15: attaccata alla navbar ridotta dallo scorrimento (pulsanti da 44px + py-2 = 60px)
   const barra = (generazioni?: ReactNode) => (
-    <div ref={barraRef} className="sticky top-15 z-30 mt-4 bg-sfondo/90 backdrop-blur-md">
+    <div ref={misuraBarra} className="sticky top-15 z-30 mt-4 bg-sfondo/90 backdrop-blur-md">
       <div className={cn(CONTENITORE_POKEDEX, 'py-3')}>
         <BarraPokedex
           ricerca={ricerca}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { avanzamentoPokedex } from '../statistiche/calcoli'
-import { filtraPokemon } from './indice'
+import { filtraPokemon, testiVuoto } from './indice'
 import { POKEDEX } from './pokedex'
 
 const kanto = POKEDEX.slice(0, 151)
@@ -29,5 +29,19 @@ describe('filtraPokemon', () => {
   it('ricerca e filtro insieme', () => {
     expect(numeri(filtraPokemon(POKEDEX, { filtro: 'pika', stato: 'presi', posseduti }))).toEqual([25])
     expect(filtraPokemon(POKEDEX, { filtro: 'pika', stato: 'mancanti', posseduti }).map((p) => p.nome)).not.toContain('Pikachu')
+  })
+})
+
+describe('testiVuoto', () => {
+  it('con la ricerca parla della ricerca', () => {
+    expect(testiVuoto({ ricerca: ' pika ', filtro: 'pika', stato: 'presi' }).testo).toBe('Nessun Pokémon corrisponde a "pika".')
+  })
+
+  it("senza ricerca, con Ce l'ho, dice che la collezione è vuota", () => {
+    expect(testiVuoto({ ricerca: '', filtro: '', stato: 'presi' }).titolo).toBe('Nessun Pokémon in collezione')
+  })
+
+  it('senza ricerca, con Mi mancano, festeggia il Pokédex completo', () => {
+    expect(testiVuoto({ ricerca: '', filtro: '', stato: 'mancanti' }).titolo).toBe('Pokédex completo!')
   })
 })
