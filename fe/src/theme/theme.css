@@ -136,6 +136,15 @@
   .sprite-pixel {
     image-rendering: pixelated;
   }
+  /* Pokémon che manca alla collezione: solo la sagoma, blu notte di giorno e chiara di notte */
+  .sprite-sagoma {
+    filter: brightness(0);
+    opacity: 0.2;
+  }
+  :root[data-tema="scuro"] .sprite-sagoma {
+    filter: brightness(0) invert(0.85);
+    opacity: 0.22;
+  }
   /* sfondo blu animato di hero e pagine di accesso */
   .sfondo-hero {
     background-image: linear-gradient(

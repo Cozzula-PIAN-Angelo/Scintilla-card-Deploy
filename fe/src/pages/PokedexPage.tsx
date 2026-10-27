@@ -1,25 +1,32 @@
-import { Search } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigationType } from 'react-router'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useNavigationType } from 'react-router'
 import { PaginaAnimata } from '../components/PaginaAnimata'
-import { StatoVuoto } from '../components/StatiPagina'
+import { BarraPokedex } from '../features/pokedex/BarraPokedex'
+import { CONTENITORE_POKEDEX, type FiltroStato } from '../features/pokedex/indice'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
-import { corrisponde, GENERAZIONI, numeroFormattato, POKEDEX, spriteAnimatoUrl, spriteUrl, type Pokemon } from '../features/pokedex/pokedex'
+import { TestataPokedex } from '../features/pokedex/TestataPokedex'
+import { usePokemonPosseduti } from '../features/pokedex/usePokemonPosseduti'
+import { useVistaPokedex } from '../features/pokedex/useVistaPokedex'
+import { VistaGriglia } from '../features/pokedex/VistaGriglia'
+import { VistaScheda } from '../features/pokedex/VistaScheda'
 import { useDebounce } from '../hooks/useDebounce'
-import { DALL_ELENCO } from '../hooks/useRitornoElenco'
+import { useDimensioni } from '../hooks/useDimensioni'
 import { useTitolo } from '../hooks/useTitolo'
 import { cn } from '../utils/cn'
 
-const CLASSI_GRIGLIA = 'grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
-
-// indice dei 1025 Pokémon per generazione: cliccandone uno si aprono tutte le sue carte
+// indice dei 1025 Pokémon: la scheda dei giochi (elenco e Pokémon scelto) o la griglia di tutti, per generazione.
+// Con l'accesso chi manca alla collezione è in sagoma; cliccandone uno si aprono tutte le sue carte
 export function PokedexPage() {
   useTitolo('Pokédex')
   const tipoNavigazione = useNavigationType()
   const [ricerca, setRicerca] = useState('')
+  const [stato, setStato] = useState<FiltroStato>('tutti')
+  const [vista, setVista] = useVistaPokedex()
   const filtro = useDebounce(ricerca.trim().toLowerCase(), 150)
+  const posseduti = usePokemonPosseduti()
 
-  const risultati = useMemo(() => (filtro ? POKEDEX.filter((p) => corrisponde(p, filtro)) : []), [filtro])
+  // altezza della barra attaccata: titoli e pannelli delle viste si attaccano sotto di lei
+  const [misuraBarra, { altezza: altoBarra }] = useDimensioni<HTMLDivElement>()
 
   // tornati da un Pokémon (indietro del browser o del sito): si riparte dallo stesso punto.
   // Salto istantaneo: il tema ha scroll-behavior smooth, che animerebbe migliaia di pixel
@@ -30,133 +37,34 @@ export function PokedexPage() {
     memoriaPokedex.posizione = null
   }, [tipoNavigazione])
 
-  const vaiAGenerazione = (numero: number) =>
-    document.getElementById(`generazione-${numero}`)?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-
-  return (
-    <PaginaAnimata className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-testo">Pokédex</h1>
-        <p className="mt-1 text-testo/70">Tutti i 1025 Pokémon, da Bulbasaur in poi: scegline uno e trovi ogni carta in cui è apparso.</p>
+  // top-15: attaccata alla navbar ridotta dallo scorrimento (pulsanti da 44px + py-2 = 60px)
+  const barra = (generazioni?: ReactNode) => (
+    <div ref={misuraBarra} className="sticky top-15 z-30 mt-4 bg-sfondo/90 backdrop-blur-md">
+      <div className={cn(CONTENITORE_POKEDEX, 'py-3')}>
+        <BarraPokedex
+          ricerca={ricerca}
+          onRicerca={setRicerca}
+          stato={stato}
+          onStato={setStato}
+          vista={vista}
+          onVista={setVista}
+          conCollezione={posseduti !== null}
+        >
+          {generazioni}
+        </BarraPokedex>
       </div>
-
-      {/* top-15: attaccata alla navbar ridotta dallo scorrimento (pulsanti da 44px + py-2 = 60px) */}
-      <div className="sticky top-15 z-20 -mx-4 mb-10 bg-sfondo/90 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
-        <label className="relative block max-w-md">
-          <span className="sr-only">Cerca un Pokémon</span>
-          <Search aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-accento" />
-          <input
-            type="search"
-            value={ricerca}
-            onChange={(e) => setRicerca(e.target.value)}
-            placeholder="Cerca per nome o numero…"
-            className="w-full rounded-full bg-superficie py-3 pl-12 pr-5 text-testo shadow-md shadow-ombra/10 ring-1 ring-linea/10 outline-none placeholder:text-testo/50 focus:ring-2 focus:ring-blu-500"
-          />
-        </label>
-        {!filtro && (
-          <nav aria-label="Generazioni" className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            {GENERAZIONI.map((g) => (
-              <button
-                key={g.numero}
-                type="button"
-                onClick={() => vaiAGenerazione(g.numero)}
-                className="shrink-0 rounded-full bg-superficie px-3.5 py-1.5 text-sm font-semibold text-testo-2 shadow-sm ring-1 ring-linea/10 transition-colors hover:bg-blu-500 hover:text-white"
-              >
-                {g.sigla} · {g.regione}
-              </button>
-            ))}
-          </nav>
-        )}
-      </div>
-
-      {filtro ? (
-        risultati.length === 0 ? (
-          <StatoVuoto
-            icona={<Search aria-hidden className="size-16" />}
-            titolo="Nessun Pokémon trovato"
-            testo={`Nessun Pokémon corrisponde a "${ricerca}".`}
-          />
-        ) : (
-          <ul className={CLASSI_GRIGLIA}>
-            {risultati.map((p) => (
-              <TilePokemon key={p.numero} pokemon={p} />
-            ))}
-          </ul>
-        )
-      ) : (
-        <div className="space-y-14">
-          {GENERAZIONI.map((g) => (
-            <section key={g.numero} id={`generazione-${g.numero}`} aria-labelledby={`titolo-generazione-${g.numero}`} className="scroll-mt-44">
-              <h2 id={`titolo-generazione-${g.numero}`} className="mb-5 text-2xl font-bold text-testo">
-                Generazione {g.sigla} · {g.regione}
-                <span className="ml-3 text-base font-medium text-testo/60">
-                  {numeroFormattato(g.da)}–{numeroFormattato(g.a)}
-                </span>
-              </h2>
-              <ul className={CLASSI_GRIGLIA}>
-                {POKEDEX.slice(g.da - 1, g.a).map((p) => (
-                  <TilePokemon key={p.numero} pokemon={p} />
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      )}
-    </PaginaAnimata>
+    </div>
   )
-}
 
-function TilePokemon({ pokemon }: { pokemon: Pokemon }) {
-  const evidenziato = pokemon.numero === memoriaPokedex.ultimo
-  // la GIF si scarica solo al primo passaggio del mouse e prende il posto dello sprite fermo quando è pronta;
-  // se manca (404) non si riprova e resta lo sprite fermo
-  const [inHover, setInHover] = useState(false)
-  const [gifPronta, setGifPronta] = useState(false)
-  const [gifMancante, setGifMancante] = useState(false)
-  const mostraGif = inHover && gifPronta
+  // da ospite non c'è niente da filtrare: tutti
+  const props = { ricerca, filtro, stato: posseduti ? stato : 'tutti', posseduti, barra } as const
+
   return (
-    <li>
-      <Link
-        to={`/pokedex/${pokemon.numero}`}
-        // passi di cronologia dal Pokédex: "← Pokédex" torna qui anche dopo aver sfogliato altri Pokémon
-        state={DALL_ELENCO}
-        onClick={() => {
-          memoriaPokedex.posizione = window.scrollY
-          memoriaPokedex.ultimo = pokemon.numero
-        }}
-        onMouseEnter={() => setInHover(true)}
-        onMouseLeave={() => setInHover(false)}
-        className={cn(
-          'group flex flex-col items-center rounded-2xl bg-superficie px-2 pb-3 pt-1 text-center shadow-md shadow-ombra/10 ring-1 ring-linea/5 transition',
-          'hover:-translate-y-1 hover:shadow-xl hover:shadow-ombra/25',
-          evidenziato && 'ring-4 ring-giallo-400',
-        )}
-      >
-        <span className="relative size-24 transition-transform group-hover:scale-110">
-          <img
-            src={spriteUrl(pokemon.numero)}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            width={96}
-            height={96}
-            // con "riduci movimento" la GIF non si vede e resta lo sprite fermo
-            className={cn('sprite-pixel size-24', mostraGif && 'motion-safe:invisible')}
-          />
-          {inHover && !gifMancante && (
-            <img
-              src={spriteAnimatoUrl(pokemon.numero)}
-              alt=""
-              onLoad={() => setGifPronta(true)}
-              onError={() => setGifMancante(true)}
-              // le GIF più grandi del riquadro si rimpiccioliscono, le altre restano alla loro misura
-              className={cn('sprite-pixel absolute inset-0 m-auto max-h-full motion-reduce:hidden', !gifPronta && 'invisible')}
-            />
-          )}
-        </span>
-        <span className="text-xs font-semibold text-testo/50">{numeroFormattato(pokemon.numero)}</span>
-        <span className="w-full truncate text-sm font-semibold text-testo">{pokemon.nome}</span>
-      </Link>
-    </li>
+    <PaginaAnimata className="pb-16">
+      <TestataPokedex posseduti={posseduti} />
+      <div style={{ '--alto-barra': `${altoBarra}px` } as CSSProperties}>
+        {vista === 'scheda' ? <VistaScheda {...props} /> : <VistaGriglia {...props} />}
+      </div>
+    </PaginaAnimata>
   )
 }

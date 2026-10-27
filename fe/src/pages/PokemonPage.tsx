@@ -14,6 +14,10 @@ import { useCarteProgressive } from '../features/oggetti/useCarteProgressive'
 import { memoriaPokedex } from '../features/pokedex/memoriaPokedex'
 import { generazioneDi, numeroFormattato, spriteUrl, trovaPokemon, type Pokemon } from '../features/pokedex/pokedex'
 import { useGetCartePokemonQuery, useGetStatoCartePokemonQuery } from '../features/pokedex/pokedexApi'
+import { StatoCollezione, TitoloPokemon } from '../features/pokedex/IntestazioneScheda'
+import { Pedana } from '../features/pokedex/Pedana'
+import { usePokemonPosseduti } from '../features/pokedex/usePokemonPosseduti'
+import { VentaglioCarte } from '../features/pokedex/VentaglioCarte'
 import { usePreferiti } from '../features/preferiti/usePreferiti'
 import { useCartaSelezionata } from '../hooks/useCartaSelezionata'
 import { useRitornoElenco, type StatoRitorno } from '../hooks/useRitornoElenco'
@@ -38,6 +42,7 @@ export function PokemonPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [checklistAperta, setChecklistAperta] = useState(false)
+  const posseduti = usePokemonPosseduti()
   useTitolo(pokemon?.nome ?? 'Pokémon non trovato')
 
   const { torna: tornaAlPokedex, statoAvanti: statoFrecce } = useRitornoElenco('/pokedex')
@@ -66,6 +71,7 @@ export function PokemonPage() {
   // a pezzi il totale lo dice TCGdex
   const numeroCarte = data?.length ?? risposta.totaleServer
   const generazione = generazioneDi(pokemon.numero)
+  const preso = posseduti?.insieme.has(pokemon.numero) ?? false
   const precedente = trovaPokemon(pokemon.numero - 1)
   const successivo = trovaPokemon(pokemon.numero + 1)
   // il filtro della collezione segue le frecce, la pagina no: ogni Pokémon riparte dalla prima
@@ -85,39 +91,37 @@ export function PokemonPage() {
         </nav>
       </div>
 
-      <header className="mb-10 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-        <div className="grid size-40 shrink-0 place-items-center rounded-3xl bg-superficie shadow-lg shadow-ombra/10">
-          <img src={spriteUrl(pokemon.numero)} alt="" width={96} height={96} className="sprite-pixel size-36" />
-        </div>
+      {/* la scheda del Pokédex dei giochi, in grande: sprite animato sulla pedana, nome e se ce l'hai */}
+      <header className="sfondo-hero animate-gradiente relative mb-10 grid items-center gap-6 overflow-hidden rounded-3xl p-6 text-white shadow-xl shadow-ombra/25 sm:grid-cols-[auto_1fr] sm:p-8 lg:grid-cols-[auto_1fr_auto] lg:gap-10">
+        <Pedana numero={pokemon.numero} sagoma={posseduti !== null && !preso} className="h-56 justify-self-center sm:h-64 lg:h-72" />
         <div className="min-w-0">
-          <h1 className="text-4xl font-bold text-testo">
-            {pokemon.nome} <span className="font-sans text-2xl font-semibold text-testo/50">{numeroFormattato(pokemon.numero)}</span>
-          </h1>
-          <p className="mt-1 text-testo/70">
-            {[
+          <TitoloPokemon
+            pokemon={pokemon}
+            livello="h1"
+            dettagli={[
               generazione && `Generazione ${generazione.sigla} · ${generazione.regione}`,
               pokemon.nomeInglese && `Sulle carte: ${pokemon.nomeInglese}`,
               numeroCarte !== undefined && (numeroCarte === 1 ? '1 carta' : `${numeroCarte} carte`),
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
+            ]}
+          />
+          {posseduti && <StatoCollezione preso={preso} className="mt-4" />}
+          {/* collezione presente = utente loggato. A pezzi il bottone si vede ma aspetta tutte le carte */}
+          {collezione && (risposta.aPezzi ? (risposta.totaleServer ?? 0) > 0 : data && data.length > 0) && (
+            <Button
+              variante="secondario"
+              onClick={() => setChecklistAperta(true)}
+              className="mt-6"
+              disabled={risposta.aPezzi}
+              title={risposta.aPezzi ? 'Disponibile quando tutte le carte sono pronte' : undefined}
+            >
+              <BookPlus aria-hidden className="size-4" />
+              Crea binder checklist
+              {risposta.aPezzi && <span className="sr-only">: disponibile quando tutte le carte sono pronte</span>}
+            </Button>
+          )}
         </div>
-        {/* collezione presente = utente loggato. A pezzi il bottone si vede ma aspetta tutte le carte */}
-        {collezione && (risposta.aPezzi ? (risposta.totaleServer ?? 0) > 0 : data && data.length > 0) && (
-          <Button
-            variante="chiaro"
-            dimensione="sm"
-            onClick={() => setChecklistAperta(true)}
-            className="sm:ml-auto"
-            disabled={risposta.aPezzi}
-            title={risposta.aPezzi ? 'Disponibile quando tutte le carte sono pronte' : undefined}
-          >
-            <BookPlus aria-hidden className="size-4" />
-            Crea binder checklist
-            {risposta.aPezzi && <span className="sr-only">: disponibile quando tutte le carte sono pronte</span>}
-          </Button>
-        )}
+        {/* da desktop le ultime carte a ventaglio, come nella scheda dell'indice; sotto c'è la griglia intera */}
+        <VentaglioCarte carte={risposta.carte ?? []} inAttesa={isLoading} className="hidden pr-4 lg:flex" />
       </header>
 
       {data && (

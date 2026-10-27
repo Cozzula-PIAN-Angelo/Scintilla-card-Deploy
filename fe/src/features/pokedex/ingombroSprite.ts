@@ -1,0 +1,95 @@
+import { useEffect, useState } from 'react'
+
+// Dove sta davvero il Pokémon nella sua immagine. Gli sprite fermi hanno spazio vuoto non simmetrico e le GIF
+// sono larghe quanto tutta l'animazione: una coda o un'ala che si allarga da un lato (la fiamma di Charmeleon)
+// sposta il centro dell'immagine, e sulla pedana il corpo sembra fuori centro. Si centra quindi il "peso" del
+// disegno (la media dei pixel pieni di tutti i fotogrammi), non il riquadro. In verticale conta il fotogramma più
+// basso: chi vola (Lugia) resta sospeso negli altri, ed è giusto così. dx e dy sono gli spostamenti, in frazioni
+// della misura dell'immagine, che portano il peso al centro e i piedi sul fondo; larghezza è quanto è largo il
+// disegno (tutti i fotogrammi insieme), per l'ombra sotto
+export interface Ingombro {
+  dx: number
+  dy: number
+  larghezza: number
+}
+
+// fotogrammi letti al massimo da una GIF: bastano a coprire un ciclo dell'animazione
+const MAX_FOTOGRAMMI = 60
+// sotto questa opacità un pixel non conta (bordi sfumati, ombre a terra)
+const SOGLIA_ALFA = 20
+
+const memoria = new Map<string, Promise<Ingombro | null>>()
+
+export function misuraIngombro(url: string): Promise<Ingombro | null> {
+  let misura = memoria.get(url)
+  if (!misura) {
+    misura = calcola(url).catch(() => null)
+    memoria.set(url, misura)
+  }
+  return misura
+}
+
+async function calcola(url: string): Promise<Ingombro | null> {
+  const blob = await (await fetch(url)).blob()
+  const riquadro = { sommaX: 0, pieni: 0, sinistra: Infinity, destra: -1, sotto: -1, larghezza: 0, altezza: 0 }
+  const leggi = (immagine: CanvasImageSource, larghezza: number, altezza: number) => {
+    const tela = new OffscreenCanvas(larghezza, altezza)
+    const ctx = tela.getContext('2d', { willReadFrequently: true })
+    if (!ctx) return
+    ctx.drawImage(immagine, 0, 0)
+    const dati = ctx.getImageData(0, 0, larghezza, altezza).data
+    for (let y = 0; y < altezza; y++)
+      for (let x = 0; x < larghezza; x++)
+        if (dati[(y * larghezza + x) * 4 + 3] > SOGLIA_ALFA) {
+          riquadro.sommaX += x + 0.5
+          riquadro.pieni++
+          riquadro.sinistra = Math.min(riquadro.sinistra, x)
+          riquadro.destra = Math.max(riquadro.destra, x)
+          riquadro.sotto = Math.max(riquadro.sotto, y)
+        }
+    riquadro.larghezza = larghezza
+    riquadro.altezza = altezza
+  }
+
+  // GIF: l'unione di tutti i fotogrammi, dove il browser sa decodificarli uno per uno (ImageDecoder);
+  // altrove, e per i PNG, il primo
+  if (blob.type === 'image/gif' && 'ImageDecoder' in window) {
+    const decoder = new ImageDecoder({ data: blob.stream(), type: blob.type })
+    await decoder.tracks.ready
+    // a flusso il numero di fotogrammi è solo quelli letti finora: si aspetta che la GIF sia letta tutta
+    await decoder.completed
+    const fotogrammi = Math.min(decoder.tracks.selectedTrack?.frameCount ?? 1, MAX_FOTOGRAMMI)
+    for (let i = 0; i < fotogrammi; i++) {
+      const { image } = await decoder.decode({ frameIndex: i })
+      leggi(image, image.displayWidth, image.displayHeight)
+      image.close()
+    }
+    decoder.close()
+  } else {
+    const bitmap = await createImageBitmap(blob)
+    leggi(bitmap, bitmap.width, bitmap.height)
+    bitmap.close()
+  }
+
+  const { sommaX, pieni, sinistra, destra, sotto, larghezza, altezza } = riquadro
+  if (pieni === 0) return null
+  return {
+    dx: (larghezza / 2 - sommaX / pieni) / larghezza,
+    dy: (altezza - (sotto + 1)) / altezza,
+    larghezza: (destra - sinistra + 1) / larghezza,
+  }
+}
+
+// l'ingombro dell'immagine all'indirizzo dato: undefined mentre si misura, null se non si può misurare
+export function useIngombro(url: string | null): Ingombro | null | undefined {
+  const [risultato, setRisultato] = useState<{ url: string; ingombro: Ingombro | null } | null>(null)
+  useEffect(() => {
+    if (!url) return
+    let attivo = true
+    misuraIngombro(url).then((ingombro) => attivo && setRisultato({ url, ingombro }))
+    return () => {
+      attivo = false
+    }
+  }, [url])
+  return risultato?.url === url ? risultato.ingombro : undefined
+}
