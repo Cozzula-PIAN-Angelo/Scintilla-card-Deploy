@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="bg-notte text-white">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 py-10 text-center sm:px-6">
         <p>
-          <MarchioScritta className="h-8" />
+          <MarchioScritta className="h-6" />
           <span className="sr-only">CeloManca</span>
         </p>
         <p className="max-w-md text-sm text-white/85">
